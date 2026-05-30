@@ -1,17 +1,14 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { resolve } from 'path'
 
 export default defineConfig({
   plugins: [react()],
-  root: '.',
   build: {
     outDir: 'dist',
-    rollupOptions: {
-      input: resolve(__dirname, 'index.html'),
-    },
+    sourcemap: false,
   },
   server: {
     port: 3000,
+    open: true,
   }
 })
