@@ -636,3 +636,4 @@ function AdminDashboard({ onLogout }) {
     if(page==="students") return (
       <div>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}><h2 style={{fontFamily:"Georgia,serif",fontSize:22,fontWeight:700,color:C2.navy}}>Students</h2><button style={{background:`linear
+        
