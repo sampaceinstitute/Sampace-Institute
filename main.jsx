@@ -408,63 +408,7 @@ function SchoolPage({ school, onBack, onLogin }) {
     </div>
   );
 }
-
 // ─── SCHOOL PAGE ───
-function SchoolPage({ school, onBack, onLogin }) {
-  const [showForm, setShowForm] = useState(false);
-  const [openSub, setOpenSub] = useState(null);
-  return (
-    <div className="page-in" style={{ fontFamily:"'Syne',sans-serif", background:"#050A14", minHeight:"100vh" }}>
-      <div style={{ padding:"12px 18px", background:"rgba(5,10,20,.96)", backdropFilter:"blur(16px)", borderBottom:"1px solid rgba(255,255,255,.06)", display:"flex", alignItems:"center", gap:12, position:"sticky", top:0, zIndex:200 }}>
-        <button onClick={onBack} style={{ background:"rgba(255,255,255,.08)", border:"1px solid rgba(255,255,255,.14)", color:"#fff", padding:"7px 16px", borderRadius:7, fontSize:12, cursor:"pointer", fontWeight:600 }}>← Back</button>
-        <div style={{ flex:1, fontSize:11, color:"rgba(255,255,255,.35)", fontFamily:"'Space Mono',monospace" }}>SAMPACE › {school.name}</div>
-        <button onClick={()=>setShowForm(true)} style={{ background:`linear-gradient(135deg,${school.g2},${school.color})`, border:"none", color:"#fff", padding:"7px 16px", borderRadius:7, fontSize:12, cursor:"pointer", fontWeight:700 }}>{school.applyType==="inquiry"?"✉️ Inquire":"Apply Now"}</button>
-      </div>
-      <div style={{ background:`linear-gradient(160deg,${school.g1} 0%,${school.g2} 55%,${school.color} 100%)`, padding:"52px 18px 40px", textAlign:"center", position:"relative", overflow:"hidden" }}>
-        <Particles n={10} />
-        <div style={{ position:"absolute", inset:0, backgroundImage:"linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px)", backgroundSize:"36px 36px" }} />
-        <div style={{ position:"relative", zIndex:2 }}>
-          <div style={{ width:72, height:72, borderRadius:20, background:"rgba(255,255,255,.12)", backdropFilter:"blur(8px)", border:`1px solid ${school.accent}40`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:34, margin:"0 auto 13px", animation:"floatY 4s ease-in-out infinite", boxShadow:`0 0 40px ${school.color}50` }}>{school.emoji}</div>
-          <div style={{ fontFamily:"'Space Mono',monospace", fontSize:9, color:"rgba(255,255,255,.4)", letterSpacing:4, marginBottom:5, textTransform:"uppercase" }}>SCHOOL {school.num}</div>
-          <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:"clamp(22px,5vw,46px)", fontWeight:900, color:"#fff", margin:"0 0 7px", lineHeight:1.05 }}>{school.name}</h1>
-          <div style={{ fontSize:12, color:school.accent, marginBottom:13, letterSpacing:1, fontWeight:600 }}>{school.short}</div>
-          <p style={{ fontSize:13, color:"rgba(255,255,255,.65)", lineHeight:1.8, maxWidth:480, margin:"0 auto 22px" }}>{school.desc}</p>
-          <div style={{ display:"flex", gap:6, justifyContent:"center", flexWrap:"wrap", marginBottom:22 }}>{school.tags.map(t=><span key={t} style={{ background:"rgba(255,255,255,.1)", border:"1px solid rgba(255,255,255,.15)", color:"#fff", padding:"3px 11px", borderRadius:100, fontSize:10, fontWeight:500 }}>{t}</span>)}</div>
-          <div style={{ display:"flex", gap:10, justifyContent:"center", flexWrap:"wrap" }}>
-            <button onClick={()=>setShowForm(true)} style={{ background:"linear-gradient(135deg,#C9A84C,#FFD54F)", color:"#0B1F3A", border:"none", padding:"12px 26px", borderRadius:8, fontSize:13, fontWeight:800, cursor:"pointer" }}>{school.applyType==="inquiry"?"✉️ Make Inquiry":"📋 Apply Now"}</button>
-            <a href={WA} style={{ background:"rgba(37,211,102,.14)", border:"1px solid rgba(37,211,102,.3)", color:"#fff", padding:"12px 20px", borderRadius:8, fontSize:13, textDecoration:"none", display:"inline-flex", alignItems:"center", gap:6, fontWeight:600 }}>💬 Join Community</a>
-          </div>
-        </div>
-      </div>
-      <div style={{ padding:"28px 16px", maxWidth:660, margin:"0 auto" }}>
-        <div style={{ background:"rgba(21,101,192,.08)", border:"1px solid rgba(21,101,192,.2)", borderRadius:12, padding:"16px 18px", marginBottom:22, display:"flex", gap:12, alignItems:"center" }}>
-          <div style={{ fontSize:28, flexShrink:0 }}>🎓</div>
-          <div style={{ flex:1 }}>
-            <div style={{ fontWeight:700, fontSize:12, color:"#fff", marginBottom:3 }}>Live Classes · Virtual Labs · CBT Exams · All on this platform</div>
-            <div style={{ fontSize:11, color:"rgba(255,255,255,.4)", lineHeight:1.5 }}>All lessons, classes, labs and exams accessible after enrollment and payment confirmation.</div>
-          </div>
-        </div>
-        {school.subSchools && (
-          <div style={{ marginBottom:24 }}>
-            <div style={{ fontFamily:"'Space Mono',monospace", fontSize:9, color:school.accent, letterSpacing:3, fontWeight:700, textTransform:"uppercase", marginBottom:13, textAlign:"center" }}>Tap a School to Explore</div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-              {school.subSchools.map(sub=>(
-                <div key={sub.id} className="hover-lift" onClick={()=>setOpenSub(openSub===sub.id?null:sub.id)} style={{ background:`${sub.color}18`, border:`2px solid ${openSub===sub.id?sub.color:"rgba(255,255,255,.07)"}`, borderRadius:12, padding:"16px 13px", transition:"all .3s" }}>
-                  <div style={{ fontSize:22, marginBottom:7 }}>{sub.emoji}</div>
-                  <div style={{ fontWeight:700, fontSize:12, color:"#fff", marginBottom:4, lineHeight:1.2 }}>{sub.name}</div>
-                  <div style={{ display:"flex", flexWrap:"wrap", gap:3 }}>
-                    {sub.courses.slice(0,2).map(c=><span key={c} style={{ background:"rgba(255,255,255,.06)", color:"rgba(255,255,255,.4)", padding:"1px 6px", borderRadius:100, fontSize:9 }}>{c}</span>)}
-                    <span style={{ background:"rgba(255,255,255,.06)", color:"rgba(255,255,255,.3)", padding:"1px 6px", borderRadius:100, fontSize:9 }}>+{sub.courses.length-2}</span>
-                  </div>
-                  {openSub===sub.id && (
-                    <div style={{ paddingTop:10, borderTop:"1px solid rgba(255,255,255,.07)", marginTop:8 }}>
-                      {sub.courses.map(c=><div key={c} style={{ fontSize:11, color:"rgba(255,255,255,.55)", padding:"3px 0", borderBottom:"1px solid rgba(255,255,255,.04)" }}>→ {c}</div>)}
-                      <button onClick={e=>{e.stopPropagation();setShowForm(true);}} style={{ width:"100%", background:`linear-gradient(135deg,${sub.color},${sub.color}cc)`, border:"none", color:"#fff", padding:"9px", borderRadius:7, fontSize:11, fontWeight:700, cursor:"pointer", marginTop:10 }}>Enroll in {sub.name} →</button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
           </div>
         )}
         <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"clamp(18px,3.5vw,28px)", color:"#fff", textAlign:"center", marginBottom:18, fontWeight:700 }}>What We <span className="shimmer">Offer</span></h2>
