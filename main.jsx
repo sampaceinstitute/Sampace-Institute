@@ -410,7 +410,6 @@ function SchoolPage({ school, onBack, onLogin }) {
 }
 // ─── SCHOOL PAGE ───
           </div>
-        )
         <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"clamp(18px,3.5vw,28px)", color:"#fff", textAlign:"center", marginBottom:18, fontWeight:700 }}>What We <span className="shimmer">Offer</span></h2>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:11, marginBottom:24 }}>
           {school.features.map((f,i)=>(
