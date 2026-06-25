@@ -440,7 +440,7 @@ function Homepage({ onSelect, onLogin }) {
               </div>
             )}
           </div>
-          <button onClick={()=>onSelect(SCHOOLS[0])} style={{ background:"linear-gradient(135deg,#C9A84C,#FFD54F)", color:"#0B1F3A", border:"none", padding:"7px 15px", borderRadius:6, fontSize:11, fontWeight:800, cursor:"pointer" }}>Apply Now</button>
+          <button onClick={()=>document.getElementById("schools-sec")?.scrollIntoView({behavior:"smooth"})} style={{ background:"linear-gradient(135deg,#C9A84C,#FFD54F)", color:"#0B1F3A", border:"none", padding:"7px 15px", borderRadius:6, fontSize:11, fontWeight:800, cursor:"pointer" }}>Apply Now</button>
         </div>
       </nav>
 
@@ -463,7 +463,7 @@ function Homepage({ onSelect, onLogin }) {
           <p style={{ fontSize:"clamp(12px,2vw,14px)", color:"rgba(255,255,255,.5)", lineHeight:1.85, maxWidth:480, margin:"0 auto 26px" }}>Nine world-class schools. Virtual Labs · CBT Exams · Live Classes · Parent Portals. Everything online.</p>
           <div style={{ display:"flex", gap:10, justifyContent:"center", flexWrap:"wrap", marginBottom:44 }}>
             <button onClick={()=>document.getElementById("schools-sec").scrollIntoView({behavior:"smooth"})} style={{ background:"linear-gradient(135deg,#1565C0,#42A5F5)", color:"#fff", border:"none", padding:"12px 26px", borderRadius:8, fontSize:13, fontWeight:700, cursor:"pointer", boxShadow:"0 8px 28px rgba(21,101,192,.4)" }}>Explore Schools →</button>
-            <button onClick={()=>onSelect(SCHOOLS[0])} style={{ background:"linear-gradient(135deg,#C9A84C,#FFD54F)", color:"#0B1F3A", border:"none", padding:"12px 26px", borderRadius:8, fontSize:13, fontWeight:800, cursor:"pointer" }}>Apply Now</button>
+            <button onClick={()=>document.getElementById("schools-sec")?.scrollIntoView({behavior:"smooth"})} style={{ background:"linear-gradient(135deg,#C9A84C,#FFD54F)", color:"#0B1F3A", border:"none", padding:"12px 26px", borderRadius:8, fontSize:13, fontWeight:800, cursor:"pointer" }}>Apply Now</button>
             <a href={WA} style={{ background:"rgba(37,211,102,.12)", border:"1px solid rgba(37,211,102,.25)", color:"#fff", padding:"12px 20px", borderRadius:8, fontSize:13, textDecoration:"none", fontWeight:600, display:"inline-flex", alignItems:"center", gap:6 }}>💬 Community</a>
           </div>
           <div style={{ display:"flex", gap:24, justifyContent:"center", flexWrap:"wrap", paddingTop:32, borderTop:"1px solid rgba(255,255,255,.06)" }}>
@@ -1248,10 +1248,40 @@ function ParentPortal({ onLogout }) {
 function App() {
   const [view, setView] = useState("home");
   const [school, setSchool] = useState(null);
-  const go = s => { setSchool(s); setView("school"); window.scrollTo(0,0); };
-  const login = type => { setView("login-"+type); window.scrollTo(0,0); };
-  const afterLogin = type => { setView(type); window.scrollTo(0,0); };
-  const back = () => { setSchool(null); setView("home"); window.scrollTo(0,0); };
+
+  // Push state so browser back button works correctly
+  const go = s => {
+    setSchool(s); setView("school"); window.scrollTo(0,0);
+    window.history.pushState({view:"school", schoolId:s.id}, "", "#"+s.id);
+  };
+  const login = type => {
+    setView("login-"+type); window.scrollTo(0,0);
+    window.history.pushState({view:"login-"+type}, "", "#login-"+type);
+  };
+  const afterLogin = type => {
+    setView(type); window.scrollTo(0,0);
+    window.history.pushState({view:type}, "", "#"+type);
+  };
+  const back = () => {
+    setSchool(null); setView("home"); window.scrollTo(0,0);
+    window.history.pushState({view:"home"}, "", window.location.pathname);
+  };
+
+  // Handle browser back/forward buttons
+  useEffect(() => {
+    const onPop = (e) => {
+      const state = e.state;
+      if (!state || state.view === "home") { setSchool(null); setView("home"); window.scrollTo(0,0); }
+      else if (state.view === "school" && state.schoolId) {
+        const f = SCHOOLS.find(s=>s.id===state.schoolId);
+        if (f) { setSchool(f); setView("school"); window.scrollTo(0,0); }
+      } else if (state.view && state.view.startsWith("login-")) { setView(state.view); window.scrollTo(0,0); }
+      else { setSchool(null); setView("home"); window.scrollTo(0,0); }
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
   useEffect(() => {
     const h = window.location.hash.replace("#","");
     if (h) { const f = SCHOOLS.find(s=>s.id===h); if (f) { setSchool(f); setView("school"); } }
