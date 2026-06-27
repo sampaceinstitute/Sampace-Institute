@@ -4,6 +4,9 @@ import ReactDOM from "react-dom/client";
 // ─── CONFIG ───
 const WA = "https://chat.whatsapp.com/HLWOIKvXhjqIjYAfOFjvTp";
 const EMAIL = "info@sampacecampus.com.ng";
+const CLOUD_NAME = "dsqz7kndw";
+const SUPABASE_URL = "https://fjlwdfjneeicvaecjxlz.supabase.co";
+const SUPABASE_ANON = "sb_publishable_y7Ug4vsOjJdQr0JmJU6aAQ_6c4QbOsJ";
 
 // Demo credentials
 const DEMO = {
@@ -164,144 +167,256 @@ function LoginScreen({ type, onLogin, onBack }) {
 }
 
 // ─── APPLY MODAL ───
+// ─── APPLY MODAL (Full detail form with validation) ───
 function ApplyModal({ school, onClose }) {
-  const [step, setStep] = useState(1), [appType, setAppType] = useState("parent"), [done, setDone] = useState(false);
+  const [step, setStep] = useState(1);
+  const [appType, setAppType] = useState("parent");
+  const [done, setDone] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [form, setForm] = useState({});
   const ac = lbl(school.accent);
+  const R = school.color;
+
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const req = (fields) => {
+    const e = {};
+    fields.forEach(k => { if (!form[k] || form[k].trim() === "") e[k] = "Required"; });
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const isSec = school.id === "school-college" || school.id === "pre-university";
+  const isTut = school.id === "tutorial";
+
   if (done) return (
-    <div style={{ textAlign: "center", padding: "36px 16px" }}>
-      <div style={{ fontSize: 56, marginBottom: 12, animation: "floatY 2s ease-in-out infinite" }}>🎉</div>
-      <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 700, color: "#fff", marginBottom: 8 }}>{school.applyType === "inquiry" ? "Inquiry Received!" : "Application Submitted!"}</div>
-      <p style={{ color: "rgba(255,255,255,.55)", lineHeight: 1.7, marginBottom: 16, fontSize: 13 }}>{school.applyType === "inquiry" ? "Our consultant will respond within 48 hours." : "Our admissions team will review within 72 hours. Check your email and WhatsApp."}</p>
-      <div style={{ background: "rgba(255,255,255,.05)", borderRadius: 10, padding: "13px 16px", marginBottom: 14, textAlign: "left" }}>
-        <div style={{ fontSize: 10, color: school.accent, fontWeight: 700, letterSpacing: 1, marginBottom: 4, textTransform: "uppercase" }}>Reference Number</div>
-        <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 17, color: "#fff" }}>{school.num.replace("–", "-")}-{Math.floor(Math.random() * 9000 + 1000)}</div>
+    <div style={{ textAlign:"center", padding:"36px 16px" }}>
+      <div style={{ fontSize:56, marginBottom:12, animation:"floatY 2s ease-in-out infinite" }}>🎉</div>
+      <div style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:700, color:"#fff", marginBottom:8 }}>
+        {school.applyType === "inquiry" ? "Inquiry Received!" : "Application Submitted!"}
       </div>
-      <div style={{ background: "rgba(201,168,76,.06)", border: "1px solid rgba(201,168,76,.18)", borderRadius: 9, padding: "11px 14px", marginBottom: 14, fontSize: 11, color: "rgba(255,255,255,.55)", lineHeight: 1.6 }}>
-        💡 Admin reviews → sends payment details → student and parent portals activate after payment confirmation
+      <p style={{ color:"rgba(255,255,255,.55)", lineHeight:1.7, marginBottom:16, fontSize:13 }}>
+        Our admissions team reviews within 72 hours. Watch your email and WhatsApp.
+      </p>
+      <div style={{ background:"rgba(255,255,255,.05)", borderRadius:10, padding:"13px 16px", marginBottom:14, textAlign:"left" }}>
+        <div style={{ fontSize:10, color:school.accent, fontWeight:700, letterSpacing:1, marginBottom:4, textTransform:"uppercase" }}>Reference Number</div>
+        <div style={{ fontFamily:"'Space Mono',monospace", fontSize:17, color:"#fff" }}>
+          {school.num.replace("–","-")}-{Math.floor(Math.random()*9000+1000)}
+        </div>
       </div>
-      <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
-        <a href={WA} style={{ background: "linear-gradient(135deg,#25D366,#128C7E)", color: "#fff", padding: "9px 18px", borderRadius: 8, fontSize: 12, fontWeight: 700, textDecoration: "none" }}>💬 Join Community</a>
-        <button onClick={onClose} style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.12)", color: "#fff", padding: "9px 18px", borderRadius: 8, fontSize: 12, cursor: "pointer" }}>Close</button>
+      <div style={{ background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.18)", borderRadius:9, padding:"11px 14px", marginBottom:14, fontSize:11, color:"rgba(255,255,255,.55)", lineHeight:1.6 }}>
+        💡 Admin reviews → payment details sent → portal access unlocked after confirmation
+      </div>
+      <div style={{ display:"flex", gap:10, justifyContent:"center" }}>
+        <a href={WA} style={{ background:"linear-gradient(135deg,#25D366,#128C7E)", color:"#fff", padding:"9px 18px", borderRadius:8, fontSize:12, fontWeight:700, textDecoration:"none" }}>💬 Join WhatsApp</a>
+        <button onClick={onClose} style={{ background:"rgba(255,255,255,.06)", border:"1px solid rgba(255,255,255,.12)", color:"#fff", padding:"9px 18px", borderRadius:8, fontSize:12, cursor:"pointer" }}>Close</button>
       </div>
     </div>
   );
+
+  // ── INQUIRY FORM ──
   if (school.applyType === "inquiry") return (
     <div>
-      {step === 1 && <div>
-        <label style={ac}>Full Name *</label><input style={inp} placeholder="Your full name" />
-        <label style={ac}>Email *</label><input style={inp} placeholder="email@example.com" />
-        <label style={ac}>Phone / WhatsApp *</label><input style={inp} placeholder="+234..." />
-        <label style={ac}>Service Needed *</label>
-        <select style={sel}><option value="">Select service...</option>{school.services && school.services.map(s => <option key={s}>{s}</option>)}</select>
-        <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-          <a href={WA} style={{ flex: 1, background: "linear-gradient(135deg,#25D366,#128C7E)", color: "#fff", padding: "11px", borderRadius: 8, fontSize: 11, fontWeight: 700, textDecoration: "none", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>💬 WhatsApp</a>
-          <button onClick={() => setStep(2)} style={{ flex: 1, background: `linear-gradient(135deg,${school.g2},${school.color})`, border: "none", color: "#fff", padding: "11px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Via Form →</button>
-        </div>
-      </div>}
-      {step === 2 && <div>
-        <label style={ac}>Describe What You Need *</label>
-        <textarea style={{ ...inp, minHeight: 90, resize: "vertical" }} placeholder="Your goals and what you need..." />
-        <label style={ac}>Preferred Contact</label>
-        <select style={sel}><option>WhatsApp</option><option>Email</option><option>Either</option></select>
-        <label style={ac}>Timeline</label>
-        <select style={sel}><option>As soon as possible</option><option>Within 1 week</option><option>Within 1 month</option><option>Flexible</option></select>
-        <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
-          <button onClick={() => setStep(1)} style={{ flex: 1, background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.12)", color: "#fff", padding: "11px", borderRadius: 8, fontSize: 12, cursor: "pointer" }}>← Back</button>
-          <button onClick={() => setDone(true)} style={{ flex: 2, background: `linear-gradient(135deg,${school.g2},${school.color})`, border: "none", color: "#fff", padding: "11px", borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>✅ Submit</button>
-        </div>
-      </div>}
+      <label style={ac}>Full Name *</label>
+      <input style={{...inp, borderColor: errors.name ? "#EF4444":"rgba(255,255,255,.14)"}} placeholder="Your full legal name" onChange={e=>set("name",e.target.value)}/>
+      {errors.name && <div style={{color:"#EF4444",fontSize:10,marginTop:-8,marginBottom:8}}>{errors.name}</div>}
+      <label style={ac}>Email *</label>
+      <input style={{...inp, borderColor: errors.email ? "#EF4444":"rgba(255,255,255,.14)"}} placeholder="email@example.com" onChange={e=>set("email",e.target.value)}/>
+      <label style={ac}>Phone / WhatsApp *</label>
+      <input style={{...inp, borderColor: errors.phone ? "#EF4444":"rgba(255,255,255,.14)"}} placeholder="+234..." onChange={e=>set("phone",e.target.value)}/>
+      <label style={ac}>Service Needed *</label>
+      <select style={sel} onChange={e=>set("service",e.target.value)}>
+        <option value="">Select service...</option>
+        {school.services && school.services.map(s=><option key={s}>{s}</option>)}
+      </select>
+      <label style={ac}>Describe Your Need</label>
+      <textarea style={{...inp, minHeight:80, resize:"vertical"}} placeholder="Tell us more about what you need..." onChange={e=>set("desc",e.target.value)}/>
+      <div style={{display:"flex",gap:10,marginTop:6}}>
+        <a href={WA} style={{flex:1,background:"linear-gradient(135deg,#25D366,#128C7E)",color:"#fff",padding:"11px",borderRadius:8,fontSize:11,fontWeight:700,textDecoration:"none",textAlign:"center",display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>💬 WhatsApp Us</a>
+        <button onClick={()=>{if(req(["name","email","phone","service"]))setDone(true);}} style={{flex:2,background:`linear-gradient(135deg,${school.g2},${school.color})`,border:"none",color:"#fff",padding:"11px",borderRadius:8,fontSize:13,fontWeight:700,cursor:"pointer"}}>Submit Inquiry ✓</button>
+      </div>
     </div>
   );
-  if (school.applyType === "student-only") return (
+
+  // ── TUTORIAL — STUDENT ONLY (no parent) ──
+  if (isTut) return (
     <div>
       {step === 1 && <div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          <div><label style={ac}>First Name *</label><input style={inp} placeholder="First" /></div>
-          <div><label style={ac}>Last Name *</label><input style={inp} placeholder="Last" /></div>
+        <div style={{background:"rgba(0,137,123,.08)",border:"1px solid rgba(0,137,123,.2)",borderRadius:8,padding:"10px 12px",marginBottom:14,fontSize:11,color:"rgba(255,255,255,.55)",lineHeight:1.6}}>
+          📝 Tutorial school is student-only. Fill your own details below.
         </div>
-        <label style={ac}>Email *</label><input style={inp} placeholder="email@example.com" />
-        <label style={ac}>Phone / WhatsApp *</label><input style={inp} placeholder="+234..." />
-        <label style={ac}>Date of Birth *</label><input type="date" style={inp} />
-        <label style={ac}>State of Origin *</label><input style={inp} placeholder="State" />
-        <button onClick={() => setStep(2)} style={{ width: "100%", background: `linear-gradient(135deg,${school.g2},${school.color})`, border: "none", color: "#fff", padding: "12px", borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: "pointer", marginTop: 4 }}>Next →</button>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+          <div><label style={ac}>First Name *</label><input style={{...inp,borderColor:errors.fname?"#EF4444":"rgba(255,255,255,.14)"}} placeholder="First name" onChange={e=>set("fname",e.target.value)}/>{errors.fname&&<div style={{color:"#EF4444",fontSize:10}}>{errors.fname}</div>}</div>
+          <div><label style={ac}>Last Name *</label><input style={{...inp,borderColor:errors.lname?"#EF4444":"rgba(255,255,255,.14)"}} placeholder="Last name" onChange={e=>set("lname",e.target.value)}/>{errors.lname&&<div style={{color:"#EF4444",fontSize:10}}>{errors.lname}</div>}</div>
+        </div>
+        <label style={ac}>Date of Birth *</label>
+        <input type="date" style={{...inp,borderColor:errors.dob?"#EF4444":"rgba(255,255,255,.14)"}} onChange={e=>set("dob",e.target.value)}/>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+          <div><label style={ac}>Gender *</label><select style={sel} onChange={e=>set("gender",e.target.value)}><option value="">Select</option><option>Male</option><option>Female</option></select></div>
+          <div><label style={ac}>State of Origin *</label><input style={inp} placeholder="e.g. Lagos" onChange={e=>set("state",e.target.value)}/></div>
+        </div>
+        <label style={ac}>Email Address *</label>
+        <input style={{...inp,borderColor:errors.email?"#EF4444":"rgba(255,255,255,.14)"}} placeholder="email@example.com" onChange={e=>set("email",e.target.value)}/>
+        <label style={ac}>Phone / WhatsApp *</label>
+        <input style={{...inp,borderColor:errors.phone?"#EF4444":"rgba(255,255,255,.14)"}} placeholder="+234..." onChange={e=>set("phone",e.target.value)}/>
+        <label style={ac}>Residential Address</label>
+        <input style={inp} placeholder="House No, Street, Town" onChange={e=>set("address",e.target.value)}/>
+        <button onClick={()=>{if(req(["fname","lname","dob","email","phone"]))setStep(2);}} style={{width:"100%",background:`linear-gradient(135deg,${school.g2},${school.color})`,border:"none",color:"#fff",padding:"12px",borderRadius:8,fontSize:13,fontWeight:700,cursor:"pointer",marginTop:4}}>Next: Exam Details →</button>
       </div>}
       {step === 2 && <div>
-        <label style={ac}>Exam Track *</label>
-        <select style={sel}><option value="">Select track...</option>{school.tracks && school.tracks.map(t => <option key={t}>{t}</option>)}</select>
-        <label style={ac}>Package</label>
-        <select style={sel}><option>Full Package — All Subjects</option><option>Bundle — 2–4 Subjects</option><option>Single Subject</option></select>
+        <label style={ac}>Exam Target *</label>
+        <select style={{...sel,borderColor:errors.exam?"#EF4444":"rgba(255,255,255,.14)"}} onChange={e=>set("exam",e.target.value)}>
+          <option value="">Select exam...</option>
+          {school.tracks && school.tracks.map(t=><option key={t}>{t}</option>)}
+        </select>
+        <label style={ac}>Current Class</label>
+        <select style={sel} onChange={e=>set("cls",e.target.value)}>
+          <option value="">Select class...</option>
+          <option>JSS1</option><option>JSS2</option><option>JSS3</option>
+          <option>SS1</option><option>SS2</option><option>SS3</option>
+          <option>Awaiting Result</option><option>Post-Secondary</option>
+        </select>
+        <label style={ac}>Department (SS Students)</label>
+        <select style={sel} onChange={e=>set("dept",e.target.value)}>
+          <option value="">Select if applicable</option>
+          <option>Sciences</option><option>Commercial</option><option>Arts/Humanities</option>
+        </select>
+        <label style={ac}>Subjects Interested In</label>
+        <input style={inp} placeholder="e.g. Mathematics, English, Biology" onChange={e=>set("subjects",e.target.value)}/>
+        <label style={ac}>JAMB Score (if taken)</label>
+        <input style={inp} placeholder="e.g. 280 (optional)" onChange={e=>set("jamb",e.target.value)}/>
+        <label style={ac}>Previous School</label>
+        <input style={inp} placeholder="Name of your last school" onChange={e=>set("prevschool",e.target.value)}/>
         <label style={ac}>How Did You Hear About Us?</label>
-        <select style={sel}><option>Social Media</option><option>Friend/Referral</option><option>Google</option><option>School</option><option>Other</option></select>
-        <div style={{ background: "rgba(77,182,172,.07)", border: "1px solid rgba(77,182,172,.2)", borderRadius: 8, padding: "10px 12px", marginBottom: 10, fontSize: 11, color: "rgba(255,255,255,.5)", lineHeight: 1.6 }}>
-          💳 Payment details sent after submission. Access enabled by admin after payment confirmation.
+        <select style={sel} onChange={e=>set("source",e.target.value)}>
+          <option>Social Media</option><option>Friend/Referral</option><option>Google</option><option>School</option><option>WhatsApp</option><option>Other</option>
+        </select>
+        <div style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:8,padding:"10px 12px",marginBottom:12,fontSize:11,color:"rgba(255,255,255,.45)",lineHeight:1.6}}>
+          💳 Admin reviews → payment details sent → access enabled after confirmation.
         </div>
-        <div style={{ display: "flex", gap: 10 }}>
-          <button onClick={() => setStep(1)} style={{ flex: 1, background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.12)", color: "#fff", padding: "11px", borderRadius: 8, fontSize: 12, cursor: "pointer" }}>← Back</button>
-          <button onClick={() => setDone(true)} style={{ flex: 2, background: `linear-gradient(135deg,${school.g2},${school.color})`, border: "none", color: "#fff", padding: "11px", borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>Submit ✓</button>
+        <div style={{display:"flex",gap:10}}>
+          <button onClick={()=>setStep(1)} style={{flex:1,background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.12)",color:"#fff",padding:"11px",borderRadius:8,fontSize:12,cursor:"pointer"}}>← Back</button>
+          <button onClick={()=>{if(req(["exam"]))setDone(true);}} style={{flex:2,background:`linear-gradient(135deg,${school.g2},${school.color})`,border:"none",color:"#fff",padding:"11px",borderRadius:8,fontSize:13,fontWeight:700,cursor:"pointer"}}>Submit Application ✓</button>
         </div>
       </div>}
     </div>
   );
+
+  // ── SECONDARY / PRE-UNIVERSITY / DIGITAL CAMPUS — FULL FORM ──
   return (
     <div>
-      {step === 1 && <div>
-        <label style={ac}>Application Type *</label>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
-          {[["parent", "👨‍👩‍👧 Parent/Guardian"], ["self", "🎓 Self-Sponsored"]].map(([v, l]) => (
-            <div key={v} onClick={() => setAppType(v)} style={{ border: `2px solid ${appType === v ? school.color : "rgba(255,255,255,.1)"}`, borderRadius: 8, padding: "11px 10px", cursor: "pointer", background: appType === v ? `${school.color}18` : "rgba(255,255,255,.03)", textAlign: "center", fontSize: 12, color: appType === v ? "#fff" : "rgba(255,255,255,.5)", fontWeight: appType === v ? 700 : 400, transition: "all .2s" }}>{l}</div>
-          ))}
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          <div><label style={ac}>First Name *</label><input style={inp} placeholder="First" /></div>
-          <div><label style={ac}>Last Name *</label><input style={inp} placeholder="Last" /></div>
-        </div>
-        <label style={ac}>Date of Birth *</label><input type="date" style={inp} />
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          <div><label style={ac}>Gender *</label><select style={sel}><option>Male</option><option>Female</option></select></div>
-          <div><label style={ac}>State *</label><input style={inp} placeholder="State" /></div>
-        </div>
-        <label style={ac}>Email / Phone *</label><input style={inp} placeholder="Email or phone" />
-        {appType === "parent" && <div style={{ background: "rgba(201,168,76,.06)", border: "1px solid rgba(201,168,76,.15)", borderRadius: 8, padding: "9px 12px", marginBottom: 10, fontSize: 11, color: "rgba(255,255,255,.5)", lineHeight: 1.6 }}>👨‍👩‍👧 Parent portal auto-created on admission. Can register multiple children under one account.</div>}
-        <button onClick={() => setStep(2)} style={{ width: "100%", background: `linear-gradient(135deg,${school.g2},${school.color})`, border: "none", color: "#fff", padding: "12px", borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: "pointer", marginTop: 4 }}>Next →</button>
-      </div>}
-      {step === 2 && <div>
-        {appType === "parent" ? <div>
-          <label style={ac}>Guardian Full Name *</label><input style={inp} placeholder="Guardian name" />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <div><label style={ac}>Relationship *</label><select style={sel}><option>Father</option><option>Mother</option><option>Uncle</option><option>Aunt</option><option>Guardian</option></select></div>
-            <div><label style={ac}>Guardian Phone *</label><input style={inp} placeholder="+234..." /></div>
+      {/* Step indicator */}
+      <div style={{display:"flex",gap:6,marginBottom:16,alignItems:"center"}}>
+        {[1,2,3,4].map(n=>(
+          <div key={n} style={{display:"flex",alignItems:"center",gap:6}}>
+            <div style={{width:26,height:26,borderRadius:"50%",background:step>=n?`linear-gradient(135deg,${school.g2},${school.color})`:"rgba(255,255,255,.1)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:step>=n?"#fff":"rgba(255,255,255,.4)",transition:"all .3s"}}>{n}</div>
+            {n<4&&<div style={{flex:1,height:2,background:step>n?school.color:"rgba(255,255,255,.1)",minWidth:20,transition:"all .3s"}}/>}
           </div>
-          <label style={ac}>Guardian Email *</label><input style={inp} placeholder="guardian@email.com" />
-        </div> : <div>
-          <label style={ac}>Your Email *</label><input style={inp} placeholder="email@example.com" />
-          <label style={ac}>Your Phone *</label><input style={inp} placeholder="+234..." />
-          <label style={ac}>Occupation</label><input style={inp} placeholder="Current occupation" />
+        ))}
+        <div style={{marginLeft:"auto",fontSize:10,color:"rgba(255,255,255,.4)"}}>Step {step} of 4</div>
+      </div>
+
+      {/* STEP 1: Applicant Type + Student Personal */}
+      {step === 1 && <div>
+        {isSec && <div>
+          <label style={ac}>Application Type *</label>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
+            {[["parent","👨‍👩‍👧 Parent/Guardian applies"],["self","🎓 Self-Sponsored (18+)"]].map(([v,l])=>(
+              <div key={v} onClick={()=>setAppType(v)} style={{border:`2px solid ${appType===v?school.color:"rgba(255,255,255,.1)"}`,borderRadius:8,padding:"11px 10px",cursor:"pointer",background:appType===v?`${school.color}18`:"rgba(255,255,255,.03)",textAlign:"center",fontSize:12,color:appType===v?"#fff":"rgba(255,255,255,.5)",fontWeight:appType===v?700:400,transition:"all .2s"}}>{l}</div>
+            ))}
+          </div>
         </div>}
-        <div style={{ display: "flex", gap: 10 }}>
-          <button onClick={() => setStep(1)} style={{ flex: 1, background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.12)", color: "#fff", padding: "11px", borderRadius: 8, fontSize: 12, cursor: "pointer" }}>← Back</button>
-          <button onClick={() => setStep(3)} style={{ flex: 2, background: `linear-gradient(135deg,${school.g2},${school.color})`, border: "none", color: "#fff", padding: "11px", borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>Academic Info →</button>
+        <div style={{fontSize:11,color:school.accent,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:10}}>— Student Details —</div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+          <div><label style={ac}>Student First Name *</label><input style={{...inp,borderColor:errors.fname?"#EF4444":"rgba(255,255,255,.14)"}} placeholder="Student's first name" onChange={e=>set("fname",e.target.value)}/>{errors.fname&&<div style={{color:"#EF4444",fontSize:10}}>{errors.fname}</div>}</div>
+          <div><label style={ac}>Student Last Name *</label><input style={{...inp,borderColor:errors.lname?"#EF4444":"rgba(255,255,255,.14)"}} placeholder="Student's last name" onChange={e=>set("lname",e.target.value)}/>{errors.lname&&<div style={{color:"#EF4444",fontSize:10}}>{errors.lname}</div>}</div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+          <div><label style={ac}>Date of Birth *</label><input type="date" style={{...inp,borderColor:errors.dob?"#EF4444":"rgba(255,255,255,.14)"}} onChange={e=>set("dob",e.target.value)}/></div>
+          <div><label style={ac}>Gender *</label><select style={sel} onChange={e=>set("gender",e.target.value)}><option value="">Select</option><option>Male</option><option>Female</option></select></div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+          <div><label style={ac}>Nationality *</label><input style={inp} placeholder="e.g. Nigerian" onChange={e=>set("nationality",e.target.value)}/></div>
+          <div><label style={ac}>State of Origin *</label><input style={{...inp,borderColor:errors.state?"#EF4444":"rgba(255,255,255,.14)"}} placeholder="e.g. Lagos" onChange={e=>set("state",e.target.value)}/></div>
+        </div>
+        <label style={ac}>Local Government Area *</label>
+        <input style={inp} placeholder="e.g. Ikeja LGA" onChange={e=>set("lga",e.target.value)}/>
+        <label style={ac}>Residential Address *</label>
+        <input style={{...inp,borderColor:errors.address?"#EF4444":"rgba(255,255,255,.14)"}} placeholder="House no, street, town, state" onChange={e=>set("address",e.target.value)}/>
+        <button onClick={()=>{if(req(["fname","lname","dob","state","address"]))setStep(2);}} style={{width:"100%",background:`linear-gradient(135deg,${school.g2},${school.color})`,border:"none",color:"#fff",padding:"12px",borderRadius:8,fontSize:13,fontWeight:700,cursor:"pointer",marginTop:4}}>Next: Contact Info →</button>
+      </div>}
+
+      {/* STEP 2: Contact + Parent (if secondary) */}
+      {step === 2 && <div>
+        <div style={{fontSize:11,color:school.accent,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:10}}>— Contact Information —</div>
+        <label style={ac}>Student Email *</label>
+        <input style={{...inp,borderColor:errors.email?"#EF4444":"rgba(255,255,255,.14)"}} placeholder="email@example.com" onChange={e=>set("email",e.target.value)}/>
+        <label style={ac}>Student Phone / WhatsApp *</label>
+        <input style={{...inp,borderColor:errors.phone?"#EF4444":"rgba(255,255,255,.14)"}} placeholder="+234..." onChange={e=>set("phone",e.target.value)}/>
+        {isSec && appType === "parent" && <div>
+          <div style={{fontSize:11,color:school.accent,fontWeight:700,letterSpacing:1,textTransform:"uppercase",margin:"14px 0 10px"}}>— Parent / Guardian Details —</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+            <div><label style={ac}>Guardian Full Name *</label><input style={{...inp,borderColor:errors.pname?"#EF4444":"rgba(255,255,255,.14)"}} placeholder="Guardian's full name" onChange={e=>set("pname",e.target.value)}/></div>
+            <div><label style={ac}>Relationship *</label><select style={sel} onChange={e=>set("rel",e.target.value)}><option>Father</option><option>Mother</option><option>Uncle</option><option>Aunt</option><option>Guardian</option></select></div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+            <div><label style={ac}>Guardian Phone *</label><input style={inp} placeholder="+234..." onChange={e=>set("pphone",e.target.value)}/></div>
+            <div><label style={ac}>Guardian Email *</label><input style={inp} placeholder="guardian@email.com" onChange={e=>set("pemail",e.target.value)}/></div>
+          </div>
+          <label style={ac}>Guardian Occupation</label>
+          <input style={inp} placeholder="e.g. Teacher, Business Owner" onChange={e=>set("pocc",e.target.value)}/>
+        </div>}
+        <div style={{display:"flex",gap:10,marginTop:10}}>
+          <button onClick={()=>setStep(1)} style={{flex:1,background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.12)",color:"#fff",padding:"11px",borderRadius:8,fontSize:12,cursor:"pointer"}}>← Back</button>
+          <button onClick={()=>{const f=isSec&&appType==="parent"?["email","phone","pname"]:["email","phone"];if(req(f))setStep(3);}} style={{flex:2,background:`linear-gradient(135deg,${school.g2},${school.color})`,border:"none",color:"#fff",padding:"11px",borderRadius:8,fontSize:13,fontWeight:700,cursor:"pointer"}}>Next: Academic Info →</button>
         </div>
       </div>}
+
+      {/* STEP 3: Academic Details */}
       {step === 3 && <div>
-        {school.programs && <><label style={ac}>Programme *</label><select style={sel}><option value="">Select...</option>{school.programs.map(p => <option key={p}>{p}</option>)}</select></>}
-        {school.depts && <><label style={ac}>Department (SSS) *</label><select style={sel}><option value="">Select...</option>{school.depts.map(d => <option key={d}>{d}</option>)}</select></>}
-        {school.classes && <><label style={ac}>Class / Level *</label><select style={sel}><option value="">Select...</option>{school.classes.map(c => <option key={c}>{c}</option>)}</select></>}
-        <label style={ac}>Previous School</label><input style={inp} placeholder="Previous school name" />
-        <label style={ac}>How Did You Hear About Us?</label>
-        <select style={sel}><option>Social Media</option><option>Friend/Referral</option><option>Google</option><option>School Partnership</option><option>WhatsApp</option><option>Other</option></select>
-        <div style={{ background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 8, padding: "10px 12px", marginBottom: 12, fontSize: 11, color: "rgba(255,255,255,.45)", lineHeight: 1.6 }}>
-          💳 Admin reviews → payment details sent → student + parent portals activated after payment confirmation.
+        <div style={{fontSize:11,color:school.accent,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:10}}>— Academic Details —</div>
+        {school.programs && <><label style={ac}>Programme *</label><select style={sel} onChange={e=>set("prog",e.target.value)}><option value="">Select programme...</option>{school.programs.map(p=><option key={p}>{p}</option>)}</select></>}
+        {school.depts && <><label style={ac}>Department *</label><select style={{...sel,borderColor:errors.dept?"#EF4444":"rgba(255,255,255,.14)"}} onChange={e=>set("dept",e.target.value)}><option value="">Select department...</option>{school.depts.map(d=><option key={d}>{d}</option>)}</select></>}
+        {school.classes && <><label style={ac}>Class / Level *</label><select style={{...sel,borderColor:errors.cls?"#EF4444":"rgba(255,255,255,.14)"}} onChange={e=>set("cls",e.target.value)}><option value="">Select class...</option>{school.classes.map(c=><option key={c}>{c}</option>)}</select></>}
+        {school.subSchools && <><label style={ac}>Choose Programme Track *</label><select style={sel} onChange={e=>set("track",e.target.value)}><option value="">Select track...</option>{school.subSchools.map(s=><option key={s.id}>{s.name}</option>)}</select></>}
+        <label style={ac}>Previous School *</label>
+        <input style={{...inp,borderColor:errors.prevschool?"#EF4444":"rgba(255,255,255,.14)"}} placeholder="Name of most recent school attended" onChange={e=>set("prevschool",e.target.value)}/>
+        <label style={ac}>Last Class Attended</label>
+        <input style={inp} placeholder="e.g. SS2, Year 10" onChange={e=>set("lastcls",e.target.value)}/>
+        <label style={ac}>Medical / Health Information</label>
+        <textarea style={{...inp,minHeight:60,resize:"vertical"}} placeholder="Any medical conditions, allergies or special needs (optional)" onChange={e=>set("medical",e.target.value)}/>
+        <label style={ac}>How Did You Hear About SAMPACE?</label>
+        <select style={sel} onChange={e=>set("source",e.target.value)}><option>Social Media</option><option>Friend/Referral</option><option>Google</option><option>School</option><option>WhatsApp</option><option>Other</option></select>
+        <div style={{display:"flex",gap:10,marginTop:10}}>
+          <button onClick={()=>setStep(2)} style={{flex:1,background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.12)",color:"#fff",padding:"11px",borderRadius:8,fontSize:12,cursor:"pointer"}}>← Back</button>
+          <button onClick={()=>{if(req(["prevschool"]))setStep(4);}} style={{flex:2,background:`linear-gradient(135deg,${school.g2},${school.color})`,border:"none",color:"#fff",padding:"11px",borderRadius:8,fontSize:13,fontWeight:700,cursor:"pointer"}}>Next: Declaration →</button>
         </div>
-        <div style={{ display: "flex", gap: 10 }}>
-          <button onClick={() => setStep(2)} style={{ flex: 1, background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.12)", color: "#fff", padding: "11px", borderRadius: 8, fontSize: 12, cursor: "pointer" }}>← Back</button>
-          <button onClick={() => setDone(true)} style={{ flex: 2, background: `linear-gradient(135deg,${school.g2},${school.color})`, border: "none", color: "#fff", padding: "11px", borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>🎓 Submit Application</button>
+      </div>}
+
+      {/* STEP 4: Declaration & Submit */}
+      {step === 4 && <div>
+        <div style={{fontSize:11,color:school.accent,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:10}}>— Declaration —</div>
+        <div style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.09)",borderRadius:10,padding:"14px",marginBottom:14,fontSize:11,color:"rgba(255,255,255,.6)",lineHeight:1.8}}>
+          I, <strong style={{color:"#fff"}}>{form.fname} {form.lname}</strong>, hereby declare that all information provided in this application is true and correct. I understand that providing false information may result in cancellation of admission.
+        </div>
+        <div style={{display:"flex",alignItems:"flex-start",gap:10,marginBottom:14}}>
+          <input type="checkbox" id="decl" style={{marginTop:3,accentColor:school.color,width:16,height:16}} onChange={e=>set("declared",e.target.checked)}/>
+          <label htmlFor="decl" style={{fontSize:12,color:"rgba(255,255,255,.7)",lineHeight:1.6,cursor:"pointer"}}>
+            I confirm the information above is accurate and I agree to SAMPACE INSTITUTE's terms and conditions. <span style={{color:school.accent}}>*</span>
+          </label>
+        </div>
+        <div style={{background:"rgba(201,168,76,.06)",border:"1px solid rgba(201,168,76,.18)",borderRadius:8,padding:"10px 12px",marginBottom:14,fontSize:11,color:"rgba(255,255,255,.5)",lineHeight:1.6}}>
+          💳 After submission: Admin reviews → payment details sent → portals activated on confirmation.
+        </div>
+        <div style={{display:"flex",gap:10}}>
+          <button onClick={()=>setStep(3)} style={{flex:1,background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.12)",color:"#fff",padding:"11px",borderRadius:8,fontSize:12,cursor:"pointer"}}>← Back</button>
+          <button onClick={()=>{if(!form.declared){alert("Please tick the declaration checkbox to proceed.");return;}setDone(true);}} style={{flex:2,background:`linear-gradient(135deg,${school.g2},${school.color})`,border:"none",color:"#fff",padding:"11px",borderRadius:8,fontSize:13,fontWeight:700,cursor:"pointer"}}>🎓 Submit Application</button>
         </div>
       </div>}
     </div>
   );
 }
 
-// ─── SCHOOL PAGE ───
+
 function SchoolPage({ school, onBack, onLogin }) {
   const [showForm, setShowForm] = useState(false);
   const [openSub, setOpenSub] = useState(null);
@@ -369,7 +484,7 @@ function SchoolPage({ school, onBack, onLogin }) {
             </div>
           ))}
         </div>
-        {(school.applyType==="parent-student"||school.applyType==="student-only") && (
+        {(school.applyType==="parent-student") && (
           <div style={{ background:"rgba(255,255,255,.04)", border:"1px solid rgba(255,255,255,.08)", borderRadius:13, padding:"20px 16px", marginBottom:20 }}>
             <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:18, color:"#fff", fontWeight:700, marginBottom:4 }}>Already Enrolled? Login Here</h3>
             <p style={{ fontSize:11, color:"rgba(255,255,255,.4)", marginBottom:14 }}>Access your classes, timetable, CBT exams, virtual labs and report cards.</p>
@@ -426,7 +541,10 @@ function Homepage({ onSelect, onLogin }) {
             <div style={{ fontSize:8, color:"rgba(255,255,255,.28)", letterSpacing:2, textTransform:"uppercase" }}>INSTITUTE</div>
           </div>
         </div>
-        <div style={{ display:"flex", gap:7, alignItems:"center", position:"relative" }}>
+        <div style={{ display:"flex", gap:6, alignItems:"center", position:"relative" }}>
+          {["About","Schools","Contact"].map(item=>(
+            <button key={item} onClick={()=>item==="Schools"?document.getElementById("schools-sec")?.scrollIntoView({behavior:"smooth"}):item==="Contact"?document.getElementById("contact-sec")?.scrollIntoView({behavior:"smooth"}):document.getElementById("about-sec")?.scrollIntoView({behavior:"smooth"})} style={{ background:"transparent", border:"none", color:"rgba(255,255,255,.65)", padding:"6px 10px", borderRadius:6, fontSize:11, cursor:"pointer", fontWeight:600, display:scrollY>50?"inline":"none" }}>{item}</button>
+          ))}
           <a href={WA} style={{ background:"rgba(37,211,102,.1)", border:"1px solid rgba(37,211,102,.2)", color:"#fff", padding:"7px 12px", borderRadius:6, fontSize:11, textDecoration:"none", fontWeight:600 }}>💬 Community</a>
           <div style={{ position:"relative" }}>
             <button onClick={()=>setShowMenu(m=>!m)} style={{ background:"rgba(255,255,255,.08)", border:"1px solid rgba(255,255,255,.14)", color:"#fff", padding:"7px 12px", borderRadius:6, fontSize:11, fontWeight:600, cursor:"pointer" }}>🔐 Login ▾</button>
@@ -486,7 +604,7 @@ function Homepage({ onSelect, onLogin }) {
         </div>
         <div style={{ maxWidth:660, margin:"0 auto", display:"flex", flexDirection:"column", gap:11 }}>
           {SCHOOLS.map((s,i)=>(
-            <div key={s.id} className="hover-lift" onMouseEnter={()=>setHovered(s.id)} onMouseLeave={()=>setHovered(null)} onClick={()=>onSelect(s)} style={{ background:`linear-gradient(135deg,${s.g1}40,${s.color}20)`, border:`1px solid ${hovered===s.id?s.color:"rgba(255,255,255,.07)"}`, borderLeft:`4px solid ${s.color}`, borderRadius:13, padding:"18px 15px", transition:"all .3s ease", boxShadow:hovered===s.id?`0 8px 36px ${s.color}28`:"none", animation:`fadeUp .55s ${i*.07}s ease both` }}>
+            <div key={s.id} className="hover-lift" onMouseEnter={()=>setHovered(s.id)} onMouseLeave={()=>setHovered(null)} onClick={()=>onSelect(s)} style={{ background:hovered===s.id?`linear-gradient(135deg,${s.g1}80,${s.color}45)`:`linear-gradient(135deg,${s.g1}40,${s.color}20)`, border:`1px solid ${hovered===s.id?s.color:"rgba(255,255,255,.1)"}`, borderLeft:`4px solid ${s.color}`, borderRadius:13, padding:"18px 15px", transition:"all .3s ease", boxShadow:hovered===s.id?`0 8px 36px ${s.color}28`:"none", animation:`fadeUp .55s ${i*.07}s ease both` }}>
               <div style={{ display:"flex", alignItems:"center", gap:13 }}>
                 <div style={{ width:48, height:48, borderRadius:13, background:`${s.color}22`, border:`1px solid ${s.color}40`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:23, flexShrink:0, transition:"transform .3s", transform:hovered===s.id?"scale(1.12) rotate(6deg)":"scale(1)" }}>{s.emoji}</div>
                 <div style={{ flex:1 }}>
@@ -502,7 +620,7 @@ function Homepage({ onSelect, onLogin }) {
         </div>
       </section>
 
-      <section style={{ padding:"40px 16px 64px", maxWidth:520, margin:"0 auto" }}>
+      <section id="contact-sec" style={{ padding:"40px 16px 64px", maxWidth:520, margin:"0 auto" }}>
         <div style={{ background:"linear-gradient(135deg,rgba(21,101,192,.07),rgba(201,168,76,.04))", border:"1px solid rgba(255,255,255,.07)", borderRadius:18, padding:"26px 20px", textAlign:"center", animation:"borderPulse 5s ease-in-out infinite" }}>
           <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:"clamp(18px,3.5vw,26px)", color:"#fff", fontWeight:700, marginBottom:7 }}>Not sure where to start?</h3>
           <p style={{ fontSize:12, color:"rgba(255,255,255,.4)", lineHeight:1.7, marginBottom:18 }}>Our admissions team will guide you to the right school and programme.</p>
@@ -987,7 +1105,7 @@ function StudentPortal({ onLogout }) {
     {title:"Quadratic Equations Set 4",subject:"Mathematics",due:"3 days",submitted:true,marks:18},
     {title:"Cell Diagram Labelling",subject:"Biology",due:"Next week",submitted:false,marks:null},
   ];
-  const navItems = [["dashboard","🏠","Dashboard"],["classes","🎬","My Classes"],["timetable","📅","Timetable"],["assignments","📝","Assignments"],["library","📚","Library"],["labs","🧪","Virtual Lab"],["results","📊","Results"],["certificate","🏆","Certificates"]];
+  const navItems = [["dashboard","🏠","Dashboard"],["classes","🎬","My Classes"],["timetable","📅","Timetable"],["assignments","📝","Assignments"],["library","📚","Library"],["labs","🧪","Virtual Lab"],["results","📊","Results"],["certificate","🏆","Certificates"],["feedback","💬","Feedback"]];
 
   const renderMain = () => {
     if (tab==="dashboard") return (
@@ -1101,6 +1219,25 @@ function StudentPortal({ onLogout }) {
         </div>
       </div>
     );
+    if (tab==="feedback") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy, marginBottom:4 }}>Give Feedback</h2>
+        <p style={{ fontSize:12, color:C.slate, marginBottom:20 }}>Your feedback helps us improve. All responses are reviewed by the Director.</p>
+        {[{label:"Overall Platform Experience",type:"stars"},{label:"Quality of Live Classes",type:"stars"},{label:"Teacher Support & Communication",type:"stars"},{label:"Virtual Labs & Resources",type:"stars"}].map((item,i)=>(
+          <div key={i} style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 16px", marginBottom:10 }}>
+            <div style={{ fontSize:12, fontWeight:600, color:C.navy, marginBottom:8 }}>{item.label}</div>
+            <div style={{ display:"flex", gap:8 }}>
+              {[1,2,3,4,5].map(n=><button key={n} style={{ background:"none", border:"none", fontSize:22, cursor:"pointer" }}>⭐</button>)}
+            </div>
+          </div>
+        ))}
+        <div style={{ marginBottom:14 }}>
+          <label style={{ fontSize:10, color:C.blue, fontWeight:700, letterSpacing:1, display:"block", marginBottom:6, textTransform:"uppercase" }}>Any comments or suggestions?</label>
+          <textarea rows={4} placeholder="Tell us what we can improve, what you enjoy, or any issue you faced..." style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:8, padding:"10px 12px", fontSize:12, outline:"none", resize:"vertical", color:C.navy, fontFamily:"'Syne',sans-serif" }}/>
+        </div>
+        <button style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"11px 28px", borderRadius:8, fontSize:13, fontWeight:700, cursor:"pointer" }}>Submit Feedback ✓</button>
+      </div>
+    );
     if (tab==="certificate") return (
       <div>
         <h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy, marginBottom:8 }}>My Certificates</h2>
@@ -1186,65 +1323,318 @@ function StudentPortal({ onLogout }) {
 }
 
 // ─── PARENT PORTAL ───
+// ─── PARENT PORTAL (Full with navigation, communication, progress) ───
 function ParentPortal({ onLogout }) {
-  const C = { navy:"#0B1F3A", blue:"#1565C0", sky:"#42A5F5", cream:"#F8FAFF", slate:"#64748B", border:"#E2E8F0", green:"#10B981", red:"#EF4444", amber:"#F59E0B" };
+  const [tab, setTab] = useState("dashboard");
+  const C = { navy:"#0B1F3A", blue:"#1565C0", sky:"#42A5F5", cream:"#F8FAFF", slate:"#64748B", border:"#E2E8F0", green:"#10B981", red:"#EF4444", amber:"#F59E0B", gold:"#C9A84C" };
   const children = [
-    {name:"Adaeze Okonkwo",admission:"SC/2026/001",school:"School College",class:"SS1 Sciences",progress:65,fees:"paid"},
-    {name:"Emeka Okonkwo",admission:"SC/2026/022",school:"Tutorial & Exam",class:"WAEC Track",progress:38,fees:"pending"},
+    {id:1,name:"Adaeze Okonkwo",admission:"SC/2026/001",school:"School College",class:"SS1 Sciences",progress:65,fees:"paid",
+     subjects:[{sub:"English Language",ca1:8,ca2:9,proj:8,exam:56,att:92},{sub:"Mathematics",ca1:7,ca2:7,proj:8,exam:50,att:88},{sub:"Biology",ca1:6,ca2:7,proj:7,exam:48,att:79}]},
+    {id:2,name:"Emeka Okonkwo",admission:"SC/2026/022",school:"Tutorial & Exam",class:"WAEC Track",progress:38,fees:"pending",
+     subjects:[{sub:"Mathematics",ca1:7,ca2:6,proj:0,exam:0,att:75},{sub:"Physics",ca1:6,ca2:5,proj:0,exam:0,att:80}]},
   ];
-  return (
-    <div style={{ fontFamily:"'Syne',sans-serif", background:C.cream, minHeight:"100vh" }}>
-      <div style={{ background:C.navy, padding:"14px 20px", display:"flex", justifyContent:"space-between", alignItems:"center", position:"sticky", top:0, zIndex:100 }}>
-        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-          <div style={{ width:30, height:30, background:"linear-gradient(135deg,#C9A84C,#FFD54F)", borderRadius:7, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:900, color:C.navy }}>SI</div>
-          <div><div style={{ fontSize:12, fontWeight:800, color:"#C9A84C", letterSpacing:1.5 }}>PARENT PORTAL</div><div style={{ fontSize:9, color:"rgba(255,255,255,.4)" }}>SAMPACE INSTITUTE</div></div>
-        </div>
-        <button onClick={onLogout} style={{ background:"rgba(239,68,68,.15)", border:"none", color:"#EF4444", padding:"6px 14px", borderRadius:6, fontSize:11, cursor:"pointer", fontWeight:600 }}>Logout</button>
-      </div>
-      <div style={{ padding:"20px", maxWidth:900, margin:"0 auto" }}>
+  const [activeChild, setActiveChild] = useState(0);
+  const child = children[activeChild];
+  const [msgTo, setMsgTo] = useState("Mrs. Adeyemi");
+  const [msgText, setMsgText] = useState("");
+  const [messages, setMessages] = useState([
+    {from:"Mrs. Adeyemi (English)",text:"Adaeze performed excellently in this week's essay. Please encourage more reading at home.",time:"Today 9:12am",mine:false},
+    {from:"You",text:"Thank you ma. We will work on that. Is there any resource you recommend?",time:"Today 9:45am",mine:true},
+    {from:"Mrs. Adeyemi (English)",text:"Yes, I have uploaded a reading list to the digital library. She can access it from the student portal.",time:"Today 10:01am",mine:false},
+  ]);
+
+  const NAV = [
+    ["dashboard","🏠","Dashboard"],
+    ["progress","📊","Track Progress"],
+    ["communication","💬","Teacher Messages"],
+    ["activities","📅","Daily Activities"],
+    ["results","📋","Report Card"],
+    ["fees","💳","School Fees"],
+    ["profile","👤","Child Profile"],
+  ];
+
+  const sendMsg = () => {
+    if (!msgText.trim()) return;
+    setMessages(m => [...m, {from:"You", text:msgText, time:"Just now", mine:true}]);
+    setMsgText("");
+    setTimeout(()=>setMessages(m=>[...m,{from:msgTo,text:"Thank you for your message. I will respond shortly.",time:"Just now",mine:false}]),1500);
+  };
+
+  const renderTab = () => {
+    if (tab === "dashboard") return (
+      <div>
         <h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy, marginBottom:4 }}>Welcome, <em style={{ color:C.blue }}>Mrs. Okonkwo</em> 👋</h2>
-        <p style={{ fontSize:12, color:C.slate, marginBottom:20 }}>Parent Dashboard — Monitor your children's academic progress</p>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12, marginBottom:20 }}>
-          {[["2","Children Enrolled",C.blue],["65%","Avg Progress",C.green],["1 Pending","Fee Status",C.amber]].map(([val,label,color],i)=>(
-            <div key={i} style={{ background:"#fff", border:`1px solid ${color}22`, borderRadius:12, padding:"16px", borderTop:`3px solid ${color}` }}>
-              <div style={{ fontFamily:"Georgia,serif", fontSize:22, color, fontWeight:900 }}>{val}</div>
-              <div style={{ fontSize:11, color:C.slate, marginTop:3 }}>{label}</div>
+        <p style={{ fontSize:12, color:C.slate, marginBottom:16 }}>Parent Dashboard — Secondary School Portal</p>
+
+        {/* Child selector */}
+        <div style={{ display:"flex", gap:10, marginBottom:18 }}>
+          {children.map((ch,i)=>(
+            <button key={i} onClick={()=>setActiveChild(i)} style={{ flex:1, background:activeChild===i?`linear-gradient(135deg,${C.blue},${C.sky})`:"#fff", border:`1px solid ${activeChild===i?C.blue:C.border}`, color:activeChild===i?"#fff":C.navy, padding:"10px 14px", borderRadius:10, cursor:"pointer", fontWeight:activeChild===i?700:400, fontSize:12, transition:"all .2s" }}>
+              <div style={{ fontSize:18, marginBottom:4 }}>👤</div>
+              <div>{ch.name.split(" ")[0]}</div>
+              <div style={{ fontSize:10, opacity:.7 }}>{ch.class}</div>
+            </button>
+          ))}
+        </div>
+
+        {/* Stats */}
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12, marginBottom:16 }}>
+          {[[child.progress+"%","Progress",C.blue],["3","Subjects",C.sky],[child.fees==="paid"?"Paid":"Pending","Fees",child.fees==="paid"?C.green:C.amber]].map(([v,l,c],i)=>(
+            <div key={i} style={{ background:"#fff", border:`1px solid ${c}22`, borderRadius:12, padding:"14px", borderTop:`3px solid ${c}`, textAlign:"center" }}>
+              <div style={{ fontFamily:"Georgia,serif", fontSize:22, color:c, fontWeight:900 }}>{v}</div>
+              <div style={{ fontSize:11, color:C.slate, marginTop:2 }}>{l}</div>
             </div>
           ))}
         </div>
-        <div style={{ marginBottom:12, fontWeight:700, fontSize:14, color:C.navy }}>My Children</div>
-        {children.map((child,i)=>(
-          <div key={i} style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, marginBottom:12, padding:"16px" }}>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12 }}>
-              <div style={{ display:"flex", gap:12, alignItems:"center" }}>
-                <div style={{ width:44, height:44, borderRadius:"50%", background:`linear-gradient(135deg,${C.blue},${C.sky})`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, fontWeight:700, color:"#fff" }}>{child.name.charAt(0)}</div>
-                <div>
-                  <div style={{ fontWeight:700, fontSize:14, color:C.navy }}>{child.name}</div>
-                  <div style={{ fontSize:11, color:C.slate }}>{child.admission} · {child.class} · {child.school}</div>
-                  <div style={{ marginTop:6, background:"#F1F5F9", borderRadius:100, height:6, width:200, overflow:"hidden" }}><div style={{ width:`${child.progress}%`, height:"100%", background:`linear-gradient(90deg,${C.blue},${C.sky})`, borderRadius:100 }}/></div>
+
+        {/* Child card */}
+        <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, padding:"16px", marginBottom:14 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:10 }}>
+            <div style={{ display:"flex", gap:12, alignItems:"center" }}>
+              <div style={{ width:48, height:48, borderRadius:"50%", background:`linear-gradient(135deg,${C.blue},${C.sky})`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, fontWeight:700, color:"#fff" }}>{child.name.charAt(0)}</div>
+              <div>
+                <div style={{ fontWeight:700, fontSize:14, color:C.navy }}>{child.name}</div>
+                <div style={{ fontSize:11, color:C.slate }}>{child.admission} · {child.class} · {child.school}</div>
+                <div style={{ marginTop:6, background:"#F1F5F9", borderRadius:100, height:5, width:180, overflow:"hidden" }}>
+                  <div style={{ width:`${child.progress}%`, height:"100%", background:`linear-gradient(90deg,${C.blue},${C.sky})`, borderRadius:100 }}/>
                 </div>
               </div>
-              <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-                <span style={{ background:child.fees==="paid"?"rgba(16,185,129,.1)":"rgba(245,158,11,.1)", color:child.fees==="paid"?C.green:C.amber, padding:"4px 12px", borderRadius:100, fontSize:11, fontWeight:700 }}>Fees: {child.fees}</span>
-                <button style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"7px 14px", borderRadius:7, fontSize:11, fontWeight:700, cursor:"pointer" }}>View Report Card</button>
-                {child.fees==="pending" && <button style={{ background:"linear-gradient(135deg,#E65100,#FF6D00)", color:"#fff", border:"none", padding:"7px 14px", borderRadius:7, fontSize:11, fontWeight:700, cursor:"pointer" }}>Pay Fees</button>}
-              </div>
+            </div>
+            <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+              <button onClick={()=>setTab("progress")} style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"7px 14px", borderRadius:7, fontSize:11, fontWeight:700, cursor:"pointer" }}>📊 View Progress</button>
+              {child.fees==="pending" && <button onClick={()=>setTab("fees")} style={{ background:"linear-gradient(135deg,#E65100,#FF6D00)", color:"#fff", border:"none", padding:"7px 14px", borderRadius:7, fontSize:11, fontWeight:700, cursor:"pointer" }}>💳 Pay Fees</button>}
             </div>
           </div>
-        ))}
-        <div style={{ background:C.navy, borderRadius:12, padding:"18px 20px", textAlign:"center", marginTop:20 }}>
-          <div style={{ fontSize:11, color:"rgba(255,255,255,.4)", marginBottom:8 }}>Need help? Contact the school directly</div>
-          <div style={{ display:"flex", gap:10, justifyContent:"center" }}>
-            <a href={WA} style={{ background:"linear-gradient(135deg,#25D366,#128C7E)", color:"#fff", padding:"8px 16px", borderRadius:7, fontSize:12, fontWeight:700, textDecoration:"none" }}>💬 WhatsApp</a>
-            <a href={`mailto:${EMAIL}`} style={{ background:"rgba(255,255,255,.08)", border:"1px solid rgba(255,255,255,.12)", color:"#fff", padding:"8px 16px", borderRadius:7, fontSize:12, textDecoration:"none" }}>📧 Email</a>
-          </div>
         </div>
+
+        {/* Quick links */}
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+          {[["📊","Track Progress","progress"],["💬","Message Teacher","communication"],["📅","Daily Activities","activities"],["📋","Report Card","results"]].map(([icon,label,t])=>(
+            <button key={t} onClick={()=>setTab(t)} style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:10, padding:"14px", cursor:"pointer", textAlign:"left", transition:"all .2s" }} onMouseEnter={e=>e.currentTarget.style.borderColor=C.blue} onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
+              <div style={{ fontSize:22, marginBottom:6 }}>{icon}</div>
+              <div style={{ fontSize:12, fontWeight:600, color:C.navy }}>{label}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+
+    if (tab === "progress") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:20, fontWeight:700, color:C.navy, marginBottom:4 }}>Academic Progress</h2>
+        <p style={{ fontSize:12, color:C.slate, marginBottom:16 }}>{child.name} · {child.class} · First Term 2026</p>
+        <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, overflow:"hidden", marginBottom:14 }}>
+          <div style={{ padding:"12px 16px", borderBottom:`1px solid ${C.border}`, fontWeight:700, fontSize:13, color:C.navy }}>Subject Performance</div>
+          {child.subjects.map((s,i)=>{
+            const total = s.ca1+s.ca2+s.proj+s.exam;
+            const grade = total>=75?"A":total>=65?"B":total>=55?"C":total>=45?"D":"F";
+            const gc = grade==="A"?C.green:grade==="B"?C.blue:grade==="C"?C.amber:C.red;
+            return (
+              <div key={i} style={{ padding:"14px 16px", borderBottom:`1px solid #F8FAFF` }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+                  <div style={{ fontSize:13, fontWeight:600, color:C.navy }}>{s.sub}</div>
+                  <span style={{ background:`${gc}18`, color:gc, padding:"3px 10px", borderRadius:100, fontSize:11, fontWeight:700 }}>{grade} · {total>0?total:"—"}/100</span>
+                </div>
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:8, marginBottom:8 }}>
+                  {[["CA1",s.ca1,10],["CA2",s.ca2,10],["Project",s.proj,10],["Exam",s.exam,70]].map(([label,score,max])=>(
+                    <div key={label} style={{ background:"#F8FAFF", borderRadius:7, padding:"8px", textAlign:"center" }}>
+                      <div style={{ fontSize:9, color:C.slate, marginBottom:3, textTransform:"uppercase" }}>{label}/{max}</div>
+                      <div style={{ fontSize:15, fontWeight:700, color:C.navy }}>{score||"—"}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                  <div style={{ fontSize:10, color:C.slate }}>Attendance: {s.att}%</div>
+                  <div style={{ flex:1, background:"#F1F5F9", borderRadius:100, height:4, overflow:"hidden" }}>
+                    <div style={{ width:`${s.att}%`, height:"100%", background:s.att>=75?C.green:C.amber, borderRadius:100 }}/>
+                  </div>
+                  {s.att < 75 && <span style={{ fontSize:9, color:C.red, fontWeight:700 }}>⚠️ Below 75%</span>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ background:`linear-gradient(135deg,${C.blue}12,${C.sky}08)`, border:`1px solid ${C.blue}20`, borderRadius:10, padding:"12px 16px", fontSize:11, color:C.navy }}>
+          💡 Attendance below 75% may affect exam eligibility. Contact school admin if there are concerns.
+        </div>
+      </div>
+    );
+
+    if (tab === "communication") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:20, fontWeight:700, color:C.navy, marginBottom:4 }}>Parent-Teacher Messages</h2>
+        <p style={{ fontSize:12, color:C.slate, marginBottom:14 }}>Direct communication with {child.name}'s teachers. All messages are logged for quality assurance.</p>
+        <div style={{ marginBottom:12 }}>
+          <label style={{ fontSize:10, color:C.blue, fontWeight:700, letterSpacing:1, textTransform:"uppercase", display:"block", marginBottom:5 }}>Message To *</label>
+          <select style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:8, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }} value={msgTo} onChange={e=>setMsgTo(e.target.value)}>
+            <option>Mrs. Adeyemi (English)</option>
+            <option>Mr. Okafor (Mathematics)</option>
+            <option>Dr. Hassan (Biology)</option>
+            <option>School Admin</option>
+          </select>
+        </div>
+        <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, overflow:"hidden", marginBottom:12, maxHeight:320, overflowY:"auto" }}>
+          {messages.map((m,i)=>(
+            <div key={i} style={{ padding:"12px 16px", borderBottom:`1px solid #F8FAFF`, display:"flex", justifyContent:m.mine?"flex-end":"flex-start" }}>
+              <div style={{ maxWidth:"75%", background:m.mine?`${C.blue}18`:"#F8FAFF", borderRadius:m.mine?"12px 12px 0 12px":"12px 12px 12px 0", padding:"10px 14px" }}>
+                <div style={{ fontSize:10, color:C.slate, marginBottom:3, fontWeight:600 }}>{m.from} · {m.time}</div>
+                <div style={{ fontSize:12, color:C.navy, lineHeight:1.6 }}>{m.text}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ display:"flex", gap:10 }}>
+          <input value={msgText} onChange={e=>setMsgText(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendMsg()} placeholder="Type your message to the teacher..." style={{ flex:1, border:`1px solid ${C.border}`, borderRadius:8, padding:"10px 13px", fontSize:12, outline:"none", color:C.navy }}/>
+          <button onClick={sendMsg} style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"10px 20px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer" }}>Send →</button>
+        </div>
+        <div style={{ fontSize:10, color:C.slate, marginTop:8 }}>💡 Messages are responded to within 24 hours on school days.</div>
+      </div>
+    );
+
+    if (tab === "activities") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:20, fontWeight:700, color:C.navy, marginBottom:4 }}>Daily Activities</h2>
+        <p style={{ fontSize:12, color:C.slate, marginBottom:16 }}>What {child.name} did today — {new Date().toDateString()}</p>
+        {[
+          {time:"8:00am",event:"Joined English Language Live Class",icon:"🎬",status:"present"},
+          {time:"9:00am",event:"Submitted Essay: My Ideal Nigeria",icon:"📝",status:"submitted"},
+          {time:"10:00am",event:"Mathematics Class — Absent",icon:"⚠️",status:"absent"},
+          {time:"12:00pm",event:"Opened Digital Library — Biology notes",icon:"📚",status:"active"},
+          {time:"2:00pm",event:"Completed Biology virtual lab (PhET)",icon:"🧪",status:"completed"},
+          {time:"3:30pm",event:"Last active on platform",icon:"📱",status:"active"},
+        ].map((a,i)=>(
+          <div key={i} style={{ display:"flex", gap:14, alignItems:"flex-start", padding:"12px 0", borderBottom:`1px solid ${C.border}` }}>
+            <div style={{ fontSize:20, flexShrink:0, marginTop:2 }}>{a.icon}</div>
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:12, fontWeight:600, color:C.navy }}>{a.event}</div>
+              <div style={{ fontSize:10, color:C.slate, marginTop:2 }}>{a.time}</div>
+            </div>
+            <span style={{ background:a.status==="absent"?"rgba(239,68,68,.1)":a.status==="present"||a.status==="completed"?"rgba(16,185,129,.1)":"rgba(245,158,11,.1)", color:a.status==="absent"?C.red:a.status==="present"||a.status==="completed"?C.green:C.amber, padding:"3px 9px", borderRadius:100, fontSize:10, fontWeight:700 }}>{a.status}</span>
+          </div>
+        ))}
+      </div>
+    );
+
+    if (tab === "results") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:20, fontWeight:700, color:C.navy, marginBottom:4 }}>Report Card</h2>
+        <p style={{ fontSize:12, color:C.slate, marginBottom:14 }}>{child.name} · First Term 2026 · {child.class}</p>
+        <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, overflow:"hidden", marginBottom:12 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr 0.8fr 0.8fr", padding:"9px 16px", background:"#F8FAFF", borderBottom:`2px solid ${C.border}` }}>
+            {["Subject","CA1","CA2","Proj","Exam","Total","Grade"].map(h=><div key={h} style={{ fontSize:9, fontWeight:700, color:C.slate, letterSpacing:.5, textTransform:"uppercase" }}>{h}</div>)}
+          </div>
+          {child.subjects.map((s,i)=>{
+            const total = s.ca1+s.ca2+s.proj+s.exam;
+            const grade = total>=75?"A":total>=65?"B":total>=55?"C":total>=45?"D":"F";
+            const gc = grade==="A"?C.green:grade==="B"?C.blue:grade==="C"?C.amber:C.red;
+            return (
+              <div key={i} style={{ display:"grid", gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr 0.8fr 0.8fr", padding:"11px 16px", borderBottom:`1px solid #F8FAFF`, alignItems:"center" }}>
+                <div style={{ fontSize:11, fontWeight:600, color:C.navy }}>{s.sub}</div>
+                {[s.ca1,s.ca2,s.proj,s.exam].map((v,j)=><div key={j} style={{ fontSize:11, color:C.slate }}>{v||"—"}</div>)}
+                <div style={{ fontSize:12, fontWeight:700, color:C.navy }}>{total>0?total:"—"}</div>
+                <span style={{ background:`${gc}18`, color:gc, padding:"2px 7px", borderRadius:100, fontSize:10, fontWeight:700 }}>{total>0?grade:"—"}</span>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ display:"flex", gap:10 }}>
+          <button style={{ flex:1, background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"10px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer" }}>📥 Download Report Card (PDF)</button>
+        </div>
+        <div style={{ marginTop:12, background:"rgba(245,158,11,.08)", border:"1px solid rgba(245,158,11,.2)", borderRadius:8, padding:"10px 14px", fontSize:11, color:C.amber }}>
+          ⏳ Full downloadable PDF report will be available when Supabase is connected in Phase 2.
+        </div>
+      </div>
+    );
+
+    if (tab === "fees") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:20, fontWeight:700, color:C.navy, marginBottom:16 }}>School Fees</h2>
+        {children.map((ch,i)=>(
+          <div key={i} style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, padding:"16px", marginBottom:12 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+              <div><div style={{ fontWeight:700, fontSize:14, color:C.navy }}>{ch.name}</div><div style={{ fontSize:11, color:C.slate }}>{ch.class} · {ch.school}</div></div>
+              <span style={{ background:ch.fees==="paid"?"rgba(16,185,129,.1)":"rgba(245,158,11,.1)", color:ch.fees==="paid"?C.green:C.amber, padding:"4px 12px", borderRadius:100, fontSize:11, fontWeight:700 }}>Fees: {ch.fees}</span>
+            </div>
+            {ch.fees === "pending" ? (
+              <div>
+                <div style={{ background:"rgba(245,158,11,.06)", border:"1px solid rgba(245,158,11,.2)", borderRadius:8, padding:"10px 14px", marginBottom:10, fontSize:11, color:C.amber, lineHeight:1.6 }}>
+                  ⚠️ Payment is pending. Amount will be set by admin and sent to your email. Contact admin to confirm.
+                </div>
+                <div style={{ display:"flex", gap:10 }}>
+                  <a href={WA} style={{ flex:1, background:"linear-gradient(135deg,#25D366,#128C7E)", color:"#fff", padding:"10px", borderRadius:8, fontSize:11, fontWeight:700, textDecoration:"none", textAlign:"center" }}>💬 WhatsApp Admin</a>
+                  <button style={{ flex:1, background:"linear-gradient(135deg,#E65100,#FF6D00)", color:"#fff", border:"none", padding:"10px", borderRadius:8, fontSize:11, fontWeight:700, cursor:"pointer" }}>💳 Pay via Paystack</button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ background:"rgba(16,185,129,.06)", border:"1px solid rgba(16,185,129,.2)", borderRadius:8, padding:"10px 14px", fontSize:11, color:C.green }}>
+                ✅ Fees paid for this term. Thank you!
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+
+    if (tab === "profile") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:20, fontWeight:700, color:C.navy, marginBottom:16 }}>Child Profile</h2>
+        {[{label:"Full Name",value:child.name},{label:"Admission Number",value:child.admission},{label:"School",value:child.school},{label:"Class",value:child.class},{label:"Status",value:"Active"}].map((r,i)=>(
+          <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"12px 0", borderBottom:`1px solid ${C.border}` }}>
+            <div style={{ fontSize:12, color:C.slate }}>{r.label}</div>
+            <div style={{ fontSize:12, fontWeight:600, color:C.navy }}>{r.value}</div>
+          </div>
+        ))}
+        <div style={{ marginTop:16, background:"rgba(21,101,192,.06)", border:`1px solid rgba(21,101,192,.2)`, borderRadius:10, padding:"12px 14px", fontSize:11, color:C.navy }}>
+          💡 To update student profile details, contact admin via WhatsApp or email.
+        </div>
+      </div>
+    );
+
+    return <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:300, textAlign:"center" }}><div style={{ fontSize:48, marginBottom:12 }}>🚧</div><h2 style={{ fontFamily:"Georgia,serif", fontSize:20, fontWeight:700, color:C.navy, marginBottom:8, textTransform:"capitalize" }}>{tab}</h2><p style={{ color:C.slate, maxWidth:300, lineHeight:1.7 }}>Coming in Phase 2.</p></div>;
+  };
+
+  return (
+    <div style={{ fontFamily:"'Syne',sans-serif", background:C.cream, minHeight:"100vh", display:"flex" }}>
+      {/* Sidebar */}
+      <aside style={{ width:200, background:C.navy, minHeight:"100vh", display:"flex", flexDirection:"column", flexShrink:0, position:"sticky", top:0, height:"100vh", overflow:"hidden" }}>
+        <div style={{ padding:"14px 12px", borderBottom:"1px solid rgba(255,255,255,.07)", display:"flex", alignItems:"center", gap:9 }}>
+          <div style={{ width:28, height:28, background:"linear-gradient(135deg,#C9A84C,#FFD54F)", borderRadius:7, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:900, color:C.navy }}>SI</div>
+          <div><div style={{ fontSize:11, fontWeight:800, color:"#C9A84C", letterSpacing:1.5 }}>PARENT PORTAL</div><div style={{ fontSize:8, color:"rgba(255,255,255,.3)" }}>Secondary School</div></div>
+        </div>
+        <div style={{ padding:"12px 12px 10px", borderBottom:"1px solid rgba(255,255,255,.07)" }}>
+          <div style={{ width:36, height:36, borderRadius:"50%", background:"linear-gradient(135deg,#BF360C,#FF6D00)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:15, fontWeight:700, color:"#fff", marginBottom:6 }}>O</div>
+          <div style={{ fontSize:11, fontWeight:700, color:"#fff" }}>Mrs. Okonkwo</div>
+          <div style={{ fontSize:9, color:"rgba(255,255,255,.4)", marginTop:2 }}>{children.length} children enrolled</div>
+        </div>
+        <nav style={{ flex:1, padding:"9px 7px", overflowY:"auto" }}>
+          {NAV.map(([id,icon,label])=>(
+            <button key={id} onClick={()=>setTab(id)} style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"8px 9px", borderRadius:7, border:"none", background:tab===id?"linear-gradient(135deg,rgba(191,54,12,.35),rgba(255,109,0,.15))":"transparent", borderLeft:tab===id?"2px solid #FF6D00":"2px solid transparent", color:tab===id?"#fff":"rgba(255,255,255,.5)", cursor:"pointer", marginBottom:2, fontSize:11, fontWeight:tab===id?600:400, textAlign:"left" }}>
+              <span style={{ fontSize:13, flexShrink:0 }}>{icon}</span>
+              <span>{label}</span>
+            </button>
+          ))}
+        </nav>
+        <div style={{ padding:"10px", borderTop:"1px solid rgba(255,255,255,.07)" }}>
+          <button onClick={onLogout} style={{ width:"100%", background:"rgba(239,68,68,.15)", border:"none", color:C.red, padding:"7px", borderRadius:7, fontSize:11, cursor:"pointer", fontWeight:600 }}>Logout</button>
+        </div>
+      </aside>
+
+      {/* Main */}
+      <div style={{ flex:1, display:"flex", flexDirection:"column", minWidth:0 }}>
+        <header style={{ background:"#fff", borderBottom:`1px solid ${C.border}`, padding:"0 20px", height:50, display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:0, zIndex:100 }}>
+          <div style={{ display:"flex", gap:6, alignItems:"center", fontSize:10, color:C.slate }}>Parent Portal <span style={{ color:"#CBD5E1" }}>›</span> <span style={{ color:C.navy, fontWeight:600, textTransform:"capitalize" }}>{tab.replace("-"," ")}</span></div>
+          <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+            <div style={{ fontSize:10, color:C.slate }}>Viewing: <strong style={{ color:C.navy }}>{child.name.split(" ")[0]}</strong></div>
+            <div style={{ width:26, height:26, borderRadius:"50%", background:"linear-gradient(135deg,#BF360C,#FF6D00)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color:"#fff" }}>O</div>
+          </div>
+        </header>
+        <main style={{ flex:1, padding:"20px", overflowY:"auto" }}>{renderTab()}</main>
       </div>
     </div>
   );
 }
 
-// ─── ROOT APP ───
+
 function App() {
   const [view, setView] = useState("home");
   const [school, setSchool] = useState(null);
