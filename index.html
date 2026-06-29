@@ -4,7 +4,27 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="SAMPACE INSTITUTE — Where Excellence Begins. Nigeria's premier multi-school education platform." />
+    <meta name="theme-color" content="#0B1F3A" />
+    <meta property="og:title" content="SAMPACE INSTITUTE" />
+    <meta property="og:description" content="Nine world-class online schools. Virtual Labs · CBT Exams · Live Classes · Parent Portals." />
+    <meta property="og:type" content="website" />
     <title>SAMPACE INSTITUTE — Where Excellence Begins</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+    <!-- Paystack Inline JS -->
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+
+    <!-- Initialize Supabase globally so main.jsx can use it -->
+    <script>
+      window.__supabase = window.supabase.createClient(
+        'https://fjlwdfjneeicvaecjxlz.supabase.co',
+        'sb_publishable_y7Ug4vsOjJdQr0JmJU6aAQ_6c4QbOsJ'
+      );
+      console.log('[SAMPACE] Supabase client ready');
+    </script>
   </head>
   <body>
     <div id="root"></div>
