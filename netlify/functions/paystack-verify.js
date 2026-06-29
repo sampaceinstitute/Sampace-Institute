@@ -1,0 +1,48 @@
+// netlify/functions/paystack-verify.js
+// Verifies payment with Paystack and updates Supabase
+
+const { createClient } = require('@supabase/supabase-js');
+
+exports.handler = async (event) => {
+  const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY || 'sk_test_9eabc11647dc4840a5d8d486cbd85d2bd886ccfd';
+  const SUPABASE_URL    = process.env.SUPABASE_URL    || 'https://fjlwdfjneeicvaecjxlz.supabase.co';
+  const SUPABASE_KEY    = process.env.SUPABASE_SERVICE_KEY; // service key — server only
+
+  const reference = event.queryStringParameters?.reference;
+  if (!reference) {
+    return { statusCode: 400, body: JSON.stringify({ status: false, message: 'Reference required' }) };
+  }
+
+  try {
+    // Verify with Paystack
+    const response = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
+      headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` }
+    });
+    const result = await response.json();
+
+    if (result.status && result.data.status === 'success') {
+      // Update payment in Supabase if service key available
+      if (SUPABASE_KEY) {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+        await supabase
+          .from('payments')
+          .update({
+            status: 'success',
+            paystack_txn_id: result.data.id.toString(),
+          })
+          .eq('paystack_reference', reference);
+      }
+    }
+
+    return {
+      statusCode: 200,
+      headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' },
+      body: JSON.stringify(result),
+    };
+  } catch (err) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ status: false, message: err.message }),
+    };
+  }
+};
