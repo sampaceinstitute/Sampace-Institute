@@ -1,11 +1,29 @@
 [build]
   command = "npm run build"
   publish = "dist"
+  functions = "netlify/functions"
 
 [build.environment]
   NODE_VERSION = "18"
+
+# ── Environment Variables (also set these in Netlify Dashboard → Site Settings → Environment Variables)
+[build.environment.secrets]
+  PAYSTACK_SECRET_KEY  = "sk_test_9eabc11647dc4840a5d8d486cbd85d2bd886ccfd"
+  PAYSTACK_PUBLIC_KEY  = "pk_test_caf9fd2bb80bd0d8ade6e454730acd6c416adc13"
+  RESEND_API_KEY       = "re_UfJHX3Qj_CPTN1Xi6r5yZHNiz7HnAE2W3"
+  SUPABASE_URL         = "https://fjlwdfjneeicvaecjxlz.supabase.co"
+  SUPABASE_ANON_KEY    = "sb_publishable_y7Ug4vsOjJdQr0JmJU6aAQ_6c4QbOsJ"
+  CLOUDINARY_CLOUD     = "dsqz7kndw"
+  CLOUDINARY_API_KEY   = "681288674791894"
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
