@@ -1,10 +1,19 @@
 import { useState, useEffect, useRef } from "react";
 import ReactDOM from "react-dom/client";
 
+// ─── SUPABASE CLIENT (loaded via CDN in index.html) ───
+const _supa = () => window.__supabase || null;
+const supaQ = async (fn) => {
+  if (!_supa()) return { data: null, error: { message: "Supabase not loaded yet" } };
+  return fn(_supa());
+};
+
 // ─── CONFIG ───
 const WA = "https://chat.whatsapp.com/HLWOIKvXhjqIjYAfOFjvTp";
 const EMAIL = "info@sampacecampus.com.ng";
-const CLOUD_NAME = "dsqz7kndw";
+const CLOUD_NAME     = "dsqz7kndw";
+const PAYSTACK_PK    = "pk_test_caf9fd2bb80bd0d8ade6e454730acd6c416adc13";
+const FROM_EMAIL     = "info@sampacecampus.com.ng";
 const SUPABASE_URL = "https://fjlwdfjneeicvaecjxlz.supabase.co";
 const SUPABASE_ANON = "sb_publishable_y7Ug4vsOjJdQr0JmJU6aAQ_6c4QbOsJ";
 
@@ -124,12 +133,27 @@ function LoginScreen({ type, onLogin, onBack }) {
   const icon = isAdmin ? "⚙️" : isStaff ? "👔" : type === "student" ? "🎓" : "👨‍👩‍👧";
   const title = isAdmin ? "Admin Dashboard" : isStaff ? "Staff Portal" : type === "student" ? "Student Portal" : "Parent Portal";
 
-  const handle = () => {
+  const handle = async () => {
+    if (!email || !pass) { setErr("Please enter email and password."); return; }
     setErr(""); setLoading(true);
-    setTimeout(() => {
+    try {
+      // Real Supabase auth
+      const sb = window.__supabase;
+      if (sb) {
+        const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+        if (error) throw error;
+        const { data: profile } = await sb.from("users").select("role").eq("auth_id", data.user.id).single();
+        onLogin(profile?.role || type);
+        return;
+      }
+      // Demo fallback while Supabase schema is being set up
       if (email === creds.email && pass === creds.pass) { onLogin(type); }
-      else { setErr("Invalid email or password. Check demo credentials below."); setLoading(false); }
-    }, 600);
+      else { setErr("Invalid email or password."); setLoading(false); }
+    } catch (err) {
+      // Demo fallback
+      if (email === creds.email && pass === creds.pass) { onLogin(type); }
+      else { setErr(err.message || "Invalid email or password."); setLoading(false); }
+    }
   };
 
   return (
