@@ -1,12 +1,15 @@
 // netlify/functions/send-email.js
-// Sends transactional emails via Resend
+// Sends transactional emails via Resend - key from env only
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
   }
 
-  const RESEND_KEY = process.env.RESEND_API_KEY || 're_UfJHX3Qj_CPTN1Xi6r5yZHNiz7HnAE2W3';
+  const RESEND_KEY = process.env.RESEND_API_KEY;
+  if (!RESEND_KEY) {
+    return { statusCode: 500, body: JSON.stringify({ success: false, message: 'Resend not configured. Set RESEND_API_KEY in Netlify environment variables.' }) };
+  }
 
   try {
     const { to, subject, html, from = 'SAMPACE INSTITUTE <noreply@sampacecampus.com.ng>' } = JSON.parse(event.body);
