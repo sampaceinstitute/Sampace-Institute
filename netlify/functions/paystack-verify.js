@@ -1,5 +1,5 @@
 // netlify/functions/paystack-verify.js
-// Verifies payment with Paystack and updates Supabase - keys from env only
+// Verifies payment with Paystack and updates Supabase. Keys from environment ONLY.
 
 const { createClient } = require('@supabase/supabase-js');
 
