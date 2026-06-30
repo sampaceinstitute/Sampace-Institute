@@ -1,5 +1,6 @@
 // netlify/functions/send-email.js
-// Sends transactional emails via Resend - key from env only
+// Sends transactional emails via Resend
+// SECURITY: key comes ONLY from environment variable. No fallback value — ever.
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -8,7 +9,10 @@ exports.handler = async (event) => {
 
   const RESEND_KEY = process.env.RESEND_API_KEY;
   if (!RESEND_KEY) {
-    return { statusCode: 500, body: JSON.stringify({ success: false, message: 'Resend not configured. Set RESEND_API_KEY in Netlify environment variables.' }) };
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ success: false, message: 'Resend not configured. Set RESEND_API_KEY in Netlify Environment Variables.' })
+    };
   }
 
   try {
