@@ -1,12 +1,16 @@
 // netlify/functions/paystack-verify.js
-// Verifies payment with Paystack and updates Supabase
+// Verifies payment with Paystack and updates Supabase - keys from env only
 
 const { createClient } = require('@supabase/supabase-js');
 
 exports.handler = async (event) => {
-  const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY || 'sk_test_9eabc11647dc4840a5d8d486cbd85d2bd886ccfd';
-  const SUPABASE_URL    = process.env.SUPABASE_URL    || 'https://fjlwdfjneeicvaecjxlz.supabase.co';
-  const SUPABASE_KEY    = process.env.SUPABASE_SERVICE_KEY; // service key — server only
+  const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
+  const SUPABASE_URL    = process.env.SUPABASE_URL;
+  const SUPABASE_KEY    = process.env.SUPABASE_SERVICE_KEY;
+
+  if (!PAYSTACK_SECRET) {
+    return { statusCode: 500, body: JSON.stringify({ status: false, message: 'Paystack not configured.' }) };
+  }
 
   const reference = event.queryStringParameters?.reference;
   if (!reference) {
@@ -14,24 +18,20 @@ exports.handler = async (event) => {
   }
 
   try {
-    // Verify with Paystack
     const response = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
       headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` }
     });
     const result = await response.json();
 
-    if (result.status && result.data.status === 'success') {
-      // Update payment in Supabase if service key available
-      if (SUPABASE_KEY) {
-        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-        await supabase
-          .from('payments')
-          .update({
-            status: 'success',
-            paystack_txn_id: result.data.id.toString(),
-          })
-          .eq('paystack_reference', reference);
-      }
+    if (result.status && result.data.status === 'success' && SUPABASE_URL && SUPABASE_KEY) {
+      const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+      await supabase
+        .from('payments')
+        .update({
+          status: 'success',
+          paystack_txn_id: result.data.id.toString(),
+        })
+        .eq('paystack_reference', reference);
     }
 
     return {
