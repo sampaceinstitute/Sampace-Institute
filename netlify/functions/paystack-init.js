@@ -1,12 +1,15 @@
 // netlify/functions/paystack-init.js
-// Handles payment initialization - secret key stays server-side
+// Handles payment initialization - secret key stays server-side via env variable only
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
   }
 
-  const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY || 'sk_test_9eabc11647dc4840a5d8d486cbd85d2bd886ccfd';
+  const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
+  if (!PAYSTACK_SECRET) {
+    return { statusCode: 500, body: JSON.stringify({ status: false, message: 'Paystack not configured. Set PAYSTACK_SECRET_KEY in Netlify environment variables.' }) };
+  }
 
   try {
     const { email, amount, studentId, schoolId, description, applicationId } = JSON.parse(event.body);
@@ -21,7 +24,7 @@ exports.handler = async (event) => {
       },
       body: JSON.stringify({
         email,
-        amount: Math.round(amount * 100), // convert to kobo
+        amount: Math.round(amount * 100),
         reference,
         currency: 'NGN',
         callback_url: `${process.env.URL || 'https://sampaceinstitute.netlify.app'}/#payment-verify`,
