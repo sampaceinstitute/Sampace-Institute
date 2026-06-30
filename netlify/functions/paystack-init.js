@@ -1,5 +1,5 @@
 // netlify/functions/paystack-init.js
-// Handles payment initialization - secret key stays server-side via env variable only
+// Initializes a Paystack payment. Secret key from environment ONLY.
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -8,7 +8,10 @@ exports.handler = async (event) => {
 
   const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
   if (!PAYSTACK_SECRET) {
-    return { statusCode: 500, body: JSON.stringify({ status: false, message: 'Paystack not configured. Set PAYSTACK_SECRET_KEY in Netlify environment variables.' }) };
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ status: false, message: 'Paystack not configured. Set PAYSTACK_SECRET_KEY in Netlify Environment Variables.' })
+    };
   }
 
   try {
