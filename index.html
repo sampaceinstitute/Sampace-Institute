@@ -17,13 +17,16 @@
     <!-- Paystack Inline JS -->
     <script src="https://js.paystack.co/v1/inline.js"></script>
 
-    <!-- Initialize Supabase globally so main.jsx can use it -->
+    <!-- Initialize Supabase — values injected by Vite at build time -->
     <script>
-      window.__supabase = window.supabase.createClient(
-        'https://fjlwdfjneeicvaecjxlz.supabase.co',
-        'sb_publishable_y7Ug4vsOjJdQr0JmJU6aAQ_6c4QbOsJ'
-      );
-      console.log('[SAMPACE] Supabase client ready');
+      // These are PUBLIC anon keys — designed to be in client-side code
+      // Supabase Row Level Security (RLS) protects the data, not key secrecy
+      const _SUPA_URL  = "%VITE_SUPABASE_URL%";
+      const _SUPA_ANON = "%VITE_SUPABASE_ANON%";
+      const url  = (_SUPA_URL  && !_SUPA_URL.includes('%VITE'))  ? _SUPA_URL  : "https://fjlwdfjneeicvaecjxlz.supabase.co";
+      const anon = (_SUPA_ANON && !_SUPA_ANON.includes('%VITE')) ? _SUPA_ANON : "sb_publishable_y7Ug4vsOjJdQr0JmJU6aAQ_6c4QbOsJ";
+      window.__supabase = window.supabase.createClient(url, anon);
+      console.log('[SAMPACE] Supabase ready');
     </script>
   </head>
   <body>
