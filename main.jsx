@@ -11,11 +11,12 @@ const supaQ = async (fn) => {
 // ─── CONFIG ───
 const WA = "https://chat.whatsapp.com/HLWOIKvXhjqIjYAfOFjvTp";
 const EMAIL = "info@sampacecampus.com.ng";
-const CLOUD_NAME     = "dsqz7kndw";
-const PAYSTACK_PK    = "pk_test_caf9fd2bb80bd0d8ade6e454730acd6c416adc13";
-const FROM_EMAIL     = "info@sampacecampus.com.ng";
-const SUPABASE_URL = "https://fjlwdfjneeicvaecjxlz.supabase.co";
-const SUPABASE_ANON = "sb_publishable_y7Ug4vsOjJdQr0JmJU6aAQ_6c4QbOsJ";
+// Public config — loaded from .env via Vite (VITE_ prefix = safe to expose in frontend)
+const CLOUD_NAME  = import.meta.env.VITE_CLOUDINARY_CLOUD  || "dsqz7kndw";
+const PAYSTACK_PK = import.meta.env.VITE_PAYSTACK_PUBLIC   || "pk_test_caf9fd2bb80bd0d8ade6e454730acd6c416adc13";
+const FROM_EMAIL  = "info@sampacecampus.com.ng";
+const SUPABASE_URL  = import.meta.env.VITE_SUPABASE_URL  || "https://fjlwdfjneeicvaecjxlz.supabase.co";
+const SUPABASE_ANON = import.meta.env.VITE_SUPABASE_ANON || "sb_publishable_y7Ug4vsOjJdQr0JmJU6aAQ_6c4QbOsJ";
 
 // Demo credentials
 const DEMO = {
