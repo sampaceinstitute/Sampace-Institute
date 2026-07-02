@@ -5,28 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="SAMPACE INSTITUTE — Where Excellence Begins. Nigeria's premier multi-school education platform." />
     <meta name="theme-color" content="#0B1F3A" />
-    <meta property="og:title" content="SAMPACE INSTITUTE" />
-    <meta property="og:description" content="Nine world-class online schools. Virtual Labs · CBT Exams · Live Classes · Parent Portals." />
-    <meta property="og:type" content="website" />
     <title>SAMPACE INSTITUTE — Where Excellence Begins</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-
-    <!-- Supabase JS Client -->
+    <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-
-    <!-- Paystack Inline JS -->
+    <!-- Paystack -->
     <script src="https://js.paystack.co/v1/inline.js"></script>
-
-    <!-- Initialize Supabase — values injected by Vite at build time -->
+    <!-- Init Supabase from window vars set by Vite at build time -->
     <script>
-      // These are PUBLIC anon keys — designed to be in client-side code
-      // Supabase Row Level Security (RLS) protects the data, not key secrecy
-      const _SUPA_URL  = "%VITE_SUPABASE_URL%";
-      const _SUPA_ANON = "%VITE_SUPABASE_ANON%";
-      const url  = (_SUPA_URL  && !_SUPA_URL.includes('%VITE'))  ? _SUPA_URL  : "https://fjlwdfjneeicvaecjxlz.supabase.co";
-      const anon = (_SUPA_ANON && !_SUPA_ANON.includes('%VITE')) ? _SUPA_ANON : "sb_publishable_y7Ug4vsOjJdQr0JmJU6aAQ_6c4QbOsJ";
-      window.__supabase = window.supabase.createClient(url, anon);
-      console.log('[SAMPACE] Supabase ready');
+      window.__initSupabase = function(url, anon) {
+        if (url && anon && window.supabase) {
+          window.__supabase = window.supabase.createClient(url, anon);
+        }
+      };
     </script>
   </head>
   <body>
