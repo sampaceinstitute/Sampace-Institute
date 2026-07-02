@@ -1,22 +1,25 @@
 import { useState, useEffect, useRef } from "react";
 import ReactDOM from "react-dom/client";
 
-// ─── SUPABASE CLIENT (loaded via CDN in index.html) ───
+// ─── SUPABASE CLIENT (initialised from Vite env vars — no hardcoded values) ───
+if (typeof window !== "undefined" && window.__initSupabase) {
+  window.__initSupabase(
+    import.meta.env.VITE_SUPABASE_URL,
+    import.meta.env.VITE_SUPABASE_ANON
+  );
+}
 const _supa = () => window.__supabase || null;
-const supaQ = async (fn) => {
-  if (!_supa()) return { data: null, error: { message: "Supabase not loaded yet" } };
-  return fn(_supa());
-};
 
 // ─── CONFIG ───
 const WA = "https://chat.whatsapp.com/HLWOIKvXhjqIjYAfOFjvTp";
 const EMAIL = "info@sampacecampus.com.ng";
-// Public config — loaded from .env via Vite (VITE_ prefix = safe to expose in frontend)
-const CLOUD_NAME  = import.meta.env.VITE_CLOUDINARY_CLOUD  || "dsqz7kndw";
-const PAYSTACK_PK = import.meta.env.VITE_PAYSTACK_PUBLIC   || "pk_test_caf9fd2bb80bd0d8ade6e454730acd6c416adc13";
+// Public config — values come ONLY from Netlify environment variables
+// Set these in Netlify → Site Configuration → Environment Variables
+const CLOUD_NAME  = import.meta.env.VITE_CLOUDINARY_CLOUD;
+const PAYSTACK_PK = import.meta.env.VITE_PAYSTACK_PUBLIC;
 const FROM_EMAIL  = "info@sampacecampus.com.ng";
-const SUPABASE_URL  = import.meta.env.VITE_SUPABASE_URL  || "https://fjlwdfjneeicvaecjxlz.supabase.co";
-const SUPABASE_ANON = import.meta.env.VITE_SUPABASE_ANON || "sb_publishable_y7Ug4vsOjJdQr0JmJU6aAQ_6c4QbOsJ";
+const SUPABASE_URL  = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON = import.meta.env.VITE_SUPABASE_ANON;
 
 // Demo credentials
 const DEMO = {
