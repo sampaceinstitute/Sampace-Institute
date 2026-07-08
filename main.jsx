@@ -727,6 +727,149 @@ function Homepage({ onSelect, onLogin }) {
 
 // ─── ADMIN DASHBOARD ───
 // ─── ADMIN DASHBOARD (Supabase connected) ───
+// ─── TIMETABLE MANAGER INLINE ───
+function TimetableManagerInline({ C, sb }) {
+  const [school, setSchool] = useState("");
+  const [saved, setSaved] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  const schoolClasses = {
+    "School College": ["JSS1","JSS2","JSS3","SS1 Sciences","SS1 Humanities","SS1 Business","SS2 Sciences","SS2 Humanities","SS2 Business","SS3 Sciences","SS3 Humanities","SS3 Business"],
+    "Tutorial & Exam": ["BECE Track","WAEC Track","NECO Track","GCE Track","JAMB/UTME Track"],
+    "Digital Campus": ["Full-Stack Web Dev","Cybersecurity","Data Science","UI/UX","ACCA","ICAN","PMP","IELTS","SAT","French","Spanish","Arabic","Public Speaking"],
+    "Pre-University": ["IJMB Year 1","IJMB Year 2","JUPEB Year 1","JUPEB Year 2","Pre-Degree","Diploma"],
+    "Professional Services": ["CV Writing","Admissions Support","Study Abroad","Corporate Training"],
+  };
+
+  const [form, setForm] = useState({ school:"", cls:"", subject:"", teacher:"", day:"", time:"", link:"" });
+  const set = (k,v) => setForm(f=>({...f,[k]:v}));
+
+  const save = async () => {
+    if(!form.school||!form.cls||!form.subject||!form.day){
+      setMsg("⚠️ Please fill School, Class, Subject and Day");
+      setTimeout(()=>setMsg(""),3000); return;
+    }
+    if(sb){
+      const {error} = await sb.from("classes").insert({
+        school_id: form.school, title: form.subject,
+        day_of_week: form.day, start_time: form.time||null,
+        room_link: form.link||null, status:"scheduled",
+        created_at: new Date().toISOString()
+      });
+      if(error){ setMsg("❌ "+error.message); setTimeout(()=>setMsg(""),4000); return; }
+    }
+    setMsg("✅ Class saved to timetable!");
+    setForm({ school:"", cls:"", subject:"", teacher:"", day:"", time:"", link:"" });
+    setTimeout(()=>setMsg(""),3000);
+  };
+
+  return (
+    <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, padding:"20px", marginBottom:14 }}>
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:12 }}>
+        <div>
+          <label style={{ fontSize:11, color:C.blue, fontWeight:700, letterSpacing:1, display:"block", marginBottom:4, textTransform:"uppercase" }}>School *</label>
+          <select value={form.school} onChange={e=>{set("school",e.target.value);set("cls","");}} style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:8, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }}>
+            <option value="">Select school...</option>
+            {Object.keys(schoolClasses).map(s=><option key={s}>{s}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={{ fontSize:11, color:C.blue, fontWeight:700, letterSpacing:1, display:"block", marginBottom:4, textTransform:"uppercase" }}>Class / Level *</label>
+          <select value={form.cls} onChange={e=>set("cls",e.target.value)} style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:8, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }}>
+            <option value="">Select class...</option>
+            {(schoolClasses[form.school]||[]).map(c=><option key={c}>{c}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={{ fontSize:11, color:C.blue, fontWeight:700, letterSpacing:1, display:"block", marginBottom:4, textTransform:"uppercase" }}>Subject *</label>
+          <input value={form.subject} onChange={e=>set("subject",e.target.value)} placeholder="e.g. English Language" style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:8, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }}/>
+        </div>
+        <div>
+          <label style={{ fontSize:11, color:C.blue, fontWeight:700, letterSpacing:1, display:"block", marginBottom:4, textTransform:"uppercase" }}>Teacher</label>
+          <input value={form.teacher} onChange={e=>set("teacher",e.target.value)} placeholder="e.g. Mrs. Adeyemi" style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:8, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }}/>
+        </div>
+        <div>
+          <label style={{ fontSize:11, color:C.blue, fontWeight:700, letterSpacing:1, display:"block", marginBottom:4, textTransform:"uppercase" }}>Day *</label>
+          <select value={form.day} onChange={e=>set("day",e.target.value)} style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:8, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }}>
+            <option value="">Select day...</option>
+            {["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"].map(d=><option key={d}>{d}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={{ fontSize:11, color:C.blue, fontWeight:700, letterSpacing:1, display:"block", marginBottom:4, textTransform:"uppercase" }}>Start Time</label>
+          <input type="time" value={form.time} onChange={e=>set("time",e.target.value)} style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:8, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }}/>
+        </div>
+        <div style={{ gridColumn:"1/-1" }}>
+          <label style={{ fontSize:11, color:C.blue, fontWeight:700, letterSpacing:1, display:"block", marginBottom:4, textTransform:"uppercase" }}>Virtual Classroom Link (Google Meet / BigBlueButton)</label>
+          <input value={form.link} onChange={e=>set("link",e.target.value)} placeholder="https://meet.google.com/xxx-xxxx-xxx" style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:8, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }}/>
+        </div>
+      </div>
+      <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+        <button onClick={save} style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"10px 24px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer" }}>+ Save Class to Timetable</button>
+        {msg && <span style={{ fontSize:12, fontWeight:600, color:msg.startsWith("✅")?C.green:msg.startsWith("❌")?"#EF4444":"#F59E0B" }}>{msg}</span>}
+      </div>
+      <div style={{ marginTop:14, background:"rgba(21,101,192,.06)", border:"1px solid rgba(21,101,192,.15)", borderRadius:8, padding:"12px 16px", fontSize:11, color:C.navy }}>
+        💡 Google Meet is free and available now. BigBlueButton on Oracle Cloud coming after card issue resolved — better for recording and attendance.
+      </div>
+    </div>
+  );
+}
+
+// ─── INQUIRIES INLINE ───
+function InquiriesInline({ C, sb }) {
+  const [inquiries, setInquiries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [msg, setMsg] = useState("");
+
+  useEffect(()=>{
+    if(!sb){ setLoading(false); return; }
+    sb.from("applications")
+      .select("*").eq("school_id","services")
+      .order("created_at",{ascending:false}).limit(50)
+      .then(({data})=>{ setInquiries(data||[]); setLoading(false); });
+  },[]);
+
+  const updateStatus = async (id, status) => {
+    if(!sb) return;
+    await sb.from("applications").update({status}).eq("id",id);
+    setInquiries(prev=>prev.map(i=>i.id===id?{...i,status}:i));
+    setMsg("✅ Updated"); setTimeout(()=>setMsg(""),2000);
+  };
+
+  if(loading) return <div style={{padding:40,textAlign:"center",color:C.slate}}>Loading inquiries...</div>;
+
+  return (
+    <div>
+      {msg && <div style={{background:"rgba(16,185,129,.1)",border:"1px solid rgba(16,185,129,.2)",color:C.green,padding:"10px 16px",borderRadius:8,marginBottom:14,fontSize:13}}>{msg}</div>}
+      <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, overflow:"hidden" }}>
+        {inquiries.length===0
+          ? <div style={{padding:"40px 16px",textAlign:"center",color:C.slate}}>No inquiries yet. When someone submits a Professional Services inquiry, it appears here.</div>
+          : inquiries.map((inq,i)=>(
+          <div key={i} style={{ padding:"14px 18px", borderBottom:`1px solid #F8FAFF` }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
+              <div>
+                <div style={{ fontWeight:700, fontSize:13, color:C.navy }}>{inq.applicant_name}</div>
+                <div style={{ fontSize:11, color:C.slate }}>{inq.email} · {inq.phone}</div>
+                <div style={{ fontSize:11, color:C.blue, marginTop:3 }}>Service: {inq.program||"General Inquiry"}</div>
+              </div>
+              <div style={{ display:"flex", gap:6, alignItems:"center" }}>
+                <span style={{ background:inq.status==="pending"?"rgba(245,158,11,.1)":inq.status==="approved"?"rgba(16,185,129,.1)":"rgba(239,68,68,.1)", color:inq.status==="pending"?"#F59E0B":inq.status==="approved"?"#10B981":"#EF4444", padding:"3px 10px", borderRadius:100, fontSize:10, fontWeight:700 }}>{inq.status}</span>
+                {inq.status==="pending" && <>
+                  <button onClick={()=>updateStatus(inq.id,"approved")} style={{background:"rgba(16,185,129,.1)",border:"none",color:"#10B981",padding:"4px 10px",borderRadius:5,fontSize:10,cursor:"pointer",fontWeight:700}}>✓ Respond</button>
+                  <button onClick={()=>updateStatus(inq.id,"rejected")} style={{background:"rgba(239,68,68,.1)",border:"none",color:"#EF4444",padding:"4px 10px",borderRadius:5,fontSize:10,cursor:"pointer",fontWeight:700}}>✕</button>
+                </>}
+                <a href={`https://wa.me/${(inq.phone||"").replace(/[^0-9]/g,"")}`} target="_blank" rel="noreferrer" style={{background:"rgba(37,211,102,.1)",border:"none",color:"#25D366",padding:"4px 10px",borderRadius:5,fontSize:10,cursor:"pointer",fontWeight:700,textDecoration:"none"}}>💬 WhatsApp</a>
+              </div>
+            </div>
+            <div style={{ fontSize:11, color:C.slate }}>{new Date(inq.created_at).toLocaleString()}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
 function AdminDashboard({ onLogout }) {
   const [page, setPage] = useState("overview");
   const [sideOpen, setSideOpen] = useState(true);
@@ -1010,25 +1153,115 @@ function AdminDashboard({ onLogout }) {
       <div>
         <h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy, marginBottom:4 }}>Class Timetable Manager</h2>
         <p style={{ fontSize:12, color:C.slate, marginBottom:18 }}>Manage and publish the weekly timetable for all schools.</p>
-        <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, padding:"20px" }}>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-            {[["School","select",["School College","Tutorial","Digital Campus","Pre-University"]],["Class/Level","select",["JSS1","JSS2","JSS3","SS1","SS2","SS3","WAEC Track","IJMB","JUPEB"]],["Subject","text","e.g. English Language"],["Teacher","text","e.g. Mrs. Adeyemi"],["Day","select",["Monday","Tuesday","Wednesday","Thursday","Friday"]],["Time","time",""]].map(([label,type,opts],i)=>(
+        <TimetableManagerInline C={C} sb={sb()} />
+      </div>
+    );
+
+    if (page === "staff") return (
+      <div>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
+          <div><h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy }}>Staff Management</h2><div style={{ fontSize:12, color:C.slate }}>All teachers and staff members</div></div>
+          <button style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"9px 18px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer" }}>+ Add Staff</button>
+        </div>
+        <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, padding:"20px", marginBottom:14 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:16 }}>
+            {[["Full Name *","text","e.g. Mrs. Ngozi Adeyemi"],["Email *","email","staff@sampaceedu.com.ng"],["Phone","text","+234..."],["School","select",""],["Role","select",""],["Subject","text","e.g. English Language, Mathematics"]].map(([label,type,ph],i)=>(
               <div key={i}>
-                <label style={{ fontSize:11, color:C.blue, fontWeight:700, letterSpacing:1, display:"block", marginBottom:5, textTransform:"uppercase" }}>{label}</label>
-                {type==="select" ? <select style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:8, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }}><option>Select...</option>{opts.map(o=><option key={o}>{o}</option>)}</select>
-                : <input type={type} placeholder={opts} style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:8, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }}/>}
+                <label style={{ fontSize:11, color:C.blue, fontWeight:700, letterSpacing:1, display:"block", marginBottom:4, textTransform:"uppercase" }}>{label}</label>
+                {type==="select"&&label==="School" ? <select style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:7, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }}><option>School College</option><option>Tutorial & Exam</option><option>Digital Campus</option><option>Pre-University</option><option>All Schools</option></select>
+                :type==="select"&&label==="Role" ? <select style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:7, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }}><option>Subject Teacher</option><option>Class Teacher</option><option>School Admin</option><option>Counsellor</option><option>Support Staff</option></select>
+                :<input type={type} placeholder={ph} style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:7, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }}/>}
               </div>
             ))}
-            <div style={{ gridColumn:"1/-1" }}>
-              <label style={{ fontSize:11, color:C.blue, fontWeight:700, letterSpacing:1, display:"block", marginBottom:5, textTransform:"uppercase" }}>Virtual Classroom Link (BigBlueButton / Google Meet)</label>
-              <input placeholder="https://meet.google.com/xxx" style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:8, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }}/>
-            </div>
           </div>
-          <button style={{ marginTop:16, background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"10px 24px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer" }}>+ Save Class to Timetable</button>
+          <button style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"10px 24px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer" }}>+ Add Staff Member</button>
         </div>
-        <div style={{ marginTop:14, background:"rgba(21,101,192,.06)", border:"1px solid rgba(21,101,192,.2)", borderRadius:10, padding:"14px 18px", fontSize:12, color:C.navy }}>
-          💡 Live class links connect to BigBlueButton on Oracle Cloud (coming after card issue resolved) or Google Meet (free, available now).
+        <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, overflow:"hidden" }}>
+          <div style={{ padding:"12px 16px", borderBottom:`1px solid ${C.border}`, fontWeight:700, fontSize:13, color:C.navy }}>Staff List</div>
+          <div style={{ padding:"40px 16px", textAlign:"center", color:C.slate, fontSize:13 }}>
+            No staff added yet. Use the form above to add teachers and staff.
+          </div>
         </div>
+      </div>
+    );
+
+    if (page === "inquiries") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy, marginBottom:4 }}>Professional Service Inquiries</h2>
+        <p style={{ fontSize:12, color:C.slate, marginBottom:18 }}>Inquiries from the Professional Services school (CV writing, study abroad, admissions etc.)</p>
+        <InquiriesInline C={C} sb={sb()} />
+      </div>
+    );
+
+    if (page === "announcements") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy, marginBottom:18 }}>Announcements</h2>
+        <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, padding:"20px", marginBottom:16 }}>
+          <div style={{ fontWeight:700, fontSize:13, color:C.navy, marginBottom:14 }}>Create New Announcement</div>
+          {[["Title *","text","e.g. Term 2 Begins January 6th"],["Target Audience","select",""],["Message *","textarea","Type your announcement here..."]].map(([label,type,ph],i)=>(
+            <div key={i} style={{ marginBottom:12 }}>
+              <label style={{ fontSize:11, color:C.blue, fontWeight:700, letterSpacing:1, display:"block", marginBottom:4, textTransform:"uppercase" }}>{label}</label>
+              {type==="select" ? <select style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:7, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }}><option>All Students</option><option>School College Only</option><option>Tutorial Only</option><option>Digital Campus Only</option><option>Pre-University Only</option><option>All Staff</option><option>Everyone</option></select>
+              :type==="textarea" ? <textarea rows={4} placeholder={ph} style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:7, padding:"9px 12px", fontSize:12, outline:"none", resize:"vertical", fontFamily:"'Syne',sans-serif", color:C.navy }}/>
+              :<input type={type} placeholder={ph} style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:7, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }}/>}
+            </div>
+          ))}
+          <button style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"10px 24px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer" }}>📣 Publish Announcement</button>
+        </div>
+        <div style={{ background:"rgba(21,101,192,.06)", border:"1px solid rgba(21,101,192,.15)", borderRadius:10, padding:"14px 18px", fontSize:12, color:C.navy }}>
+          💡 Published announcements will appear on student and parent dashboards. WhatsApp broadcast coming soon.
+        </div>
+      </div>
+    );
+
+    if (page === "schools") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy, marginBottom:18 }}>Schools & Programmes</h2>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+          {[
+            {num:"01",name:"School College",desc:"JSS1–SS3 · Sciences, Humanities, Business",color:C.blue,active:true},
+            {num:"02",name:"Tutorial & Exam",desc:"BECE, WAEC, NECO, GCE, JAMB",color:"#00897B",active:true},
+            {num:"03–08",name:"Digital Campus",desc:"Technology, Business, Languages, Communication",color:"#7B1FA2",active:true},
+            {num:"04",name:"Pre-University",desc:"IJMB, JUPEB, Pre-Degree, Diploma",color:"#BF360C",active:true},
+            {num:"09",name:"Professional Services",desc:"CV, Admissions, Study Abroad, Corporate",color:"#E65100",active:true},
+          ].map((s,i)=>(
+            <div key={i} style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, padding:"16px", borderLeft:`4px solid ${s.color}` }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+                <div>
+                  <div style={{ fontSize:9, color:s.color, fontWeight:700, letterSpacing:2, textTransform:"uppercase", marginBottom:4 }}>School {s.num}</div>
+                  <div style={{ fontWeight:700, fontSize:14, color:C.navy, marginBottom:4 }}>{s.name}</div>
+                  <div style={{ fontSize:11, color:C.slate }}>{s.desc}</div>
+                </div>
+                <span style={{ background:s.active?"rgba(16,185,129,.1)":"rgba(239,68,68,.1)", color:s.active?C.green:C.red, padding:"3px 10px", borderRadius:100, fontSize:11, fontWeight:700 }}>{s.active?"Active":"Inactive"}</span>
+              </div>
+              <div style={{ marginTop:12, display:"flex", gap:8 }}>
+                <button style={{ background:`${s.color}12`, border:`1px solid ${s.color}25`, color:s.color, padding:"5px 12px", borderRadius:6, fontSize:11, cursor:"pointer", fontWeight:600 }}>Manage Courses</button>
+                <button style={{ background:"#F8FAFF", border:`1px solid ${C.border}`, color:C.slate, padding:"5px 12px", borderRadius:6, fontSize:11, cursor:"pointer" }}>Settings</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+
+    if (page === "settings") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy, marginBottom:18 }}>Platform Settings</h2>
+        {[
+          { title:"Platform Information", fields:[["Institution Name","SAMPACE INSTITUTE"],["Tagline","Where Excellence Begins"],["Contact Email","info@sampaceedu.com.ng"],["WhatsApp","https://chat.whatsapp.com/HLWOIKvXhjqIjYAfOFjvTp"],["Domain","sampaceedu.com.ng"]] },
+          { title:"Academic Settings", fields:[["Current Session","2026/2027"],["Current Term","First Term"],["Grading: CA1","10 marks"],["Grading: CA2","10 marks"],["Grading: Project","10 marks"],["Grading: Exam","70 marks"]] },
+        ].map((section,si)=>(
+          <div key={si} style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, overflow:"hidden", marginBottom:16 }}>
+            <div style={{ padding:"12px 18px", borderBottom:`1px solid ${C.border}`, fontWeight:700, fontSize:13, color:C.navy }}>{section.title}</div>
+            {section.fields.map(([label,value],i)=>(
+              <div key={i} style={{ display:"grid", gridTemplateColumns:"1fr 2fr", padding:"12px 18px", borderBottom:`1px solid #F8FAFF`, alignItems:"center" }}>
+                <div style={{ fontSize:12, color:C.slate, fontWeight:600 }}>{label}</div>
+                <input defaultValue={value} style={{ border:`1px solid ${C.border}`, borderRadius:7, padding:"7px 12px", fontSize:12, outline:"none", color:C.navy, width:"100%" }}/>
+              </div>
+            ))}
+            <div style={{ padding:"12px 18px" }}><button style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"8px 20px", borderRadius:7, fontSize:12, fontWeight:700, cursor:"pointer" }}>💾 Save {section.title}</button></div>
+          </div>
+        ))}
       </div>
     );
 
@@ -1090,4 +1323,936 @@ function StaffPortal({ onLogout }) {
   useEffect(() => {
     const sb = window.__supabase;
     if (!sb) return;
-    sb.auth.getUser().then(({ da
+    sb.auth.getUser().then(({ data }) => {
+      if (data?.user) {
+        sb.from("users").select("*").eq("auth_id", data.user.id).single()
+          .then(({ data: p }) => { if (p) setStaffProfile(p); });
+      }
+    });
+  }, []);
+
+  const saveGrades = async (studentId) => {
+    const sb = window.__supabase;
+    const sc = scores[studentId] || {};
+    if (!sb) { setSaveMsg("⚠️ Not connected to database"); return; }
+    const { error } = await sb.from("grades").upsert({
+      student_id: studentId,
+      subject: "General",
+      ca1: Number(sc.ca1||0), ca2: Number(sc.ca2||0),
+      project: Number(sc.proj||0), exam: Number(sc.exam||0),
+      term: "First Term", session: "2026/2027",
+      updated_at: new Date().toISOString()
+    }, { onConflict: "student_id,course_id,term,session" });
+    setSaveMsg(error ? "❌ Error: "+error.message : "✅ Grades saved to database!");
+    setTimeout(() => setSaveMsg(""), 3000);
+  };
+
+  const saveAttendance = async () => {
+    const sb = window.__supabase;
+    if (!sb) { setSaveMsg("⚠️ Not connected"); return; }
+    const records = Object.entries(marked).map(([studentId, status]) => ({
+      student_id: studentId, date: new Date().toISOString().split("T")[0],
+      status, created_at: new Date().toISOString()
+    }));
+    if (records.length === 0) { setSaveMsg("⚠️ Mark attendance first"); return; }
+    const { error } = await sb.from("attendance").upsert(records, { onConflict: "student_id,course_id,date" });
+    setSaveMsg(error ? "❌ Error: "+error.message : "✅ Attendance saved!");
+    setTimeout(() => setSaveMsg(""), 3000);
+  };
+  const C = { navy:"#0B1F3A", blue:"#1565C0", sky:"#42A5F5", cream:"#F8FAFF", slate:"#64748B", border:"#E2E8F0", green:"#10B981", red:"#EF4444", amber:"#F59E0B" };
+  const NAV = [
+    {id:"dashboard",icon:"🏠",label:"Dashboard"},
+    {id:"classes",icon:"📚",label:"My Classes"},
+    {id:"timetable",icon:"📅",label:"Timetable"},
+    {id:"grades",icon:"📊",label:"Enter Grades"},
+    {id:"attendance",icon:"✅",label:"Attendance"},
+    {id:"resources",icon:"📁",label:"Upload Resources"},
+    {id:"cbt",icon:"📝",label:"CBT Questions"},
+    {id:"messages",icon:"💬",label:"Messages"},
+  ];
+  const STUDS = [
+    {id:"SC/001",name:"Adaeze Okonkwo",cls:"SS1 Sciences",att:92,ca1:8,ca2:9,proj:8},
+    {id:"SC/002",name:"Emeka Nwosu",cls:"SS1 Sciences",att:88,ca1:7,ca2:8,proj:7},
+    {id:"SC/003",name:"Fatima Abdullahi",cls:"SS1 Sciences",att:79,ca1:6,ca2:7,proj:6},
+    {id:"SC/004",name:"David Adeleke",cls:"JSS2A",att:95,ca1:9,ca2:9,proj:9},
+    {id:"SC/005",name:"Grace Obi",cls:"JSS2A",att:71,ca1:5,ca2:6,proj:5},
+  ];
+  const TT = {
+    Monday:[{t:"8:00am",sub:"English Language",cls:"SS1 Sciences",live:true},{t:"10:00am",sub:"Literature",cls:"SS1 Sciences"},{t:"2:00pm",sub:"English Language",cls:"JSS2A"}],
+    Tuesday:[{t:"9:00am",sub:"Literature",cls:"SS1 Sciences"},{t:"11:00am",sub:"English",cls:"JSS2A"}],
+    Wednesday:[{t:"8:00am",sub:"English",cls:"SS1 Sciences"},{t:"1:00pm",sub:"Literature",cls:"JSS2A"}],
+    Thursday:[{t:"10:00am",sub:"Literature",cls:"SS1 Sciences"},{t:"2:00pm",sub:"English",cls:"JSS2A"}],
+    Friday:[{t:"8:00am",sub:"English",cls:"SS1 Sciences"},{t:"11:00am",sub:"Review",cls:"JSS2A"}],
+  };
+
+  const renderPage = () => {
+    if (page === "dashboard") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:20, fontWeight:700, color:C.navy, marginBottom:4 }}>Welcome, <em style={{ color:C.blue }}>Mrs. Adeyemi</em> 👋</h2>
+        <div style={{ fontSize:12, color:C.slate, marginBottom:16 }}>Class Teacher · School College · STF-2026-001</div>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12, marginBottom:16 }}>
+          {[{icon:"👥",l:"Students",v:60,c:C.blue},{icon:"📚",l:"Classes",v:2,c:"#7C3AED"},{icon:"📝",l:"Assignments",v:4,c:C.amber},{icon:"📅",l:"Today",v:3,c:C.green}].map((k,i)=>(
+            <div key={i} style={{ background:"#fff", border:`1px solid ${k.c}22`, borderRadius:11, padding:"15px", borderTop:`3px solid ${k.c}` }}>
+              <div style={{ fontSize:20, marginBottom:6 }}>{k.icon}</div>
+              <div style={{ fontFamily:"Georgia,serif", fontSize:24, color:k.c, fontWeight:900 }}>{k.v}</div>
+              <div style={{ fontSize:11, color:C.slate }}>{k.l}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, overflow:"hidden" }}>
+          <div style={{ padding:"12px 16px", borderBottom:`1px solid ${C.border}`, fontWeight:700, fontSize:13, color:C.navy }}>Today's Classes</div>
+          {TT.Monday.map((c,i)=>(
+            <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"11px 16px", borderBottom:"1px solid #F8FAFF" }}>
+              <div><div style={{ fontSize:13, fontWeight:700, color:C.navy }}>{c.sub}</div><div style={{ fontSize:11, color:C.slate }}>{c.cls} · {c.t}</div></div>
+              <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+                <div style={{ fontSize:12, fontWeight:600, color:C.blue }}>{c.t}</div>
+                <button style={{ background:c.live ? "linear-gradient(135deg,#10B981,#059669)" : `linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"6px 12px", borderRadius:6, fontSize:11, fontWeight:700, cursor:"pointer" }}>{c.live ? "🔴 Start Live" : "🎬 Start Class"}</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+    if (page === "grades") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:20, fontWeight:700, color:C.navy, marginBottom:6 }}>Enter Grades</h2>
+        <div style={{ fontSize:12, color:C.slate, marginBottom:16 }}>CA1(10) + CA2(10) + Project(10) + Exam(70) = 100</div>
+        <div style={{ background:"rgba(21,101,192,.06)", border:`1px solid rgba(21,101,192,.15)`, borderRadius:10, padding:"12px 16px", marginBottom:16, fontSize:12, color:C.navy }}>
+          📋 Grade A = 75–100 · B = 65–74 · C = 55–64 · D = 45–54 · E = 35–44 · F = 0–34
+        </div>
+        <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, overflow:"hidden" }}>
+          <div style={{ display:"grid", gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr 1fr 1fr", padding:"9px 16px", background:"#F8FAFF", borderBottom:`2px solid ${C.border}` }}>
+            {["Student","CA1","CA2","Project","Exam","Total","Grade"].map(h=><div key={h} style={{ fontSize:9, fontWeight:700, color:C.slate, letterSpacing:.5, textTransform:"uppercase" }}>{h}</div>)}
+          </div>
+          {STUDS.map(s=>{
+            const sc = scores[s.id] || {};
+            const ca1 = parseInt(sc.ca1 || s.ca1 || 0), ca2 = parseInt(sc.ca2 || s.ca2 || 0), proj = parseInt(sc.proj || s.proj || 0), exam = parseInt(sc.exam || 0);
+            const total = ca1+ca2+proj+exam;
+            const grade = total>=75?"A":total>=65?"B":total>=55?"C":total>=45?"D":total>=35?"E":"F";
+            const gc = grade==="A"?C.green:grade==="B"?C.blue:grade==="C"?C.amber:C.red;
+            return (
+              <div key={s.id} style={{ display:"grid", gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr 1fr 1fr", padding:"10px 16px", borderBottom:"1px solid #F8FAFF", alignItems:"center" }}>
+                <div style={{ fontSize:12, fontWeight:600, color:C.navy }}>{s.name}</div>
+                {["ca1","ca2","proj"].map(f=><input key={f} defaultValue={s[f]} onChange={e=>setScores(sc=>({...sc,[s.id]:{...sc[s.id],[f]:e.target.value}}))} style={{ width:44, border:`1px solid ${C.border}`, borderRadius:5, padding:"5px 6px", fontSize:11, outline:"none", textAlign:"center", color:C.navy }}/>)}
+                <input onChange={e=>setScores(sc=>({...sc,[s.id]:{...sc[s.id],exam:e.target.value}}))} placeholder="—" style={{ width:44, border:`1px solid ${C.border}`, borderRadius:5, padding:"5px 6px", fontSize:11, outline:"none", textAlign:"center", color:C.navy }}/>
+                <div style={{ fontFamily:"Georgia,serif", fontSize:13, fontWeight:700, color:C.navy }}>{total||"—"}</div>
+                <span style={{ background:`${gc}18`, color:gc, padding:"3px 8px", borderRadius:100, fontSize:11, fontWeight:700 }}>{total>0?grade:"—"}</span>
+              </div>
+            );
+          })}
+          <div style={{ padding:"12px 16px", display:"flex", alignItems:"center", gap:12 }}>
+            <button onClick={()=>STUDS.forEach(s=>saveGrades(s.id))} style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"9px 22px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer" }}>💾 Save All Scores</button>
+            {saveMsg && <span style={{ fontSize:12, fontWeight:600, color:saveMsg.startsWith("✅")?C.green:C.red }}>{saveMsg}</span>}
+          </div>
+        </div>
+      </div>
+    );
+    if (page === "attendance") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:20, fontWeight:700, color:C.navy, marginBottom:16 }}>Mark Attendance</h2>
+        <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, overflow:"hidden" }}>
+          {STUDS.map(s=>(
+            <div key={s.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"11px 16px", borderBottom:"1px solid #F8FAFF" }}>
+              <div style={{ display:"flex", gap:10, alignItems:"center" }}>
+                <div style={{ width:30, height:30, borderRadius:"50%", background:`linear-gradient(135deg,${C.blue},${C.sky})`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, color:"#fff" }}>{s.name.charAt(0)}</div>
+                <div><div style={{ fontSize:12, fontWeight:600, color:C.navy }}>{s.name}</div><div style={{ fontSize:10, color:C.slate }}>{s.cls} · Avg: {s.att}%</div></div>
+              </div>
+              <div style={{ display:"flex", gap:7 }}>
+                {["present","absent","late"].map(v=>(
+                  <button key={v} onClick={()=>setMarked(m=>({...m,[s.id]:v}))} style={{ padding:"6px 12px", borderRadius:7, border:`1px solid ${marked[s.id]===v?(v==="present"?C.green:v==="absent"?C.red:C.amber):C.border}`, background:marked[s.id]===v?(v==="present"?"rgba(16,185,129,.1)":v==="absent"?"rgba(239,68,68,.1)":"rgba(245,158,11,.1)"):"#fff", color:marked[s.id]===v?(v==="present"?C.green:v==="absent"?C.red:C.amber):C.slate, fontSize:10, fontWeight:600, cursor:"pointer", textTransform:"capitalize" }}>{v==="present"?"✓":v==="absent"?"✗":"⏰"} {v}</button>
+                ))}
+              </div>
+            </div>
+          ))}
+          <div style={{ padding:"12px 16px", display:"flex", alignItems:"center", gap:12 }}>
+            <button onClick={saveAttendance} style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"9px 22px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer" }}>💾 Submit Attendance</button>
+            {saveMsg && <span style={{ fontSize:12, fontWeight:600, color:saveMsg.startsWith("✅")?C.green:C.red }}>{saveMsg}</span>}
+          </div>
+        </div>
+      </div>
+    );
+    if (page === "cbt") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:20, fontWeight:700, color:C.navy, marginBottom:4 }}>CBT Question Bank</h2>
+        <p style={{ fontSize:12, color:C.slate, marginBottom:16 }}>Upload questions individually or in bulk via CSV.</p>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
+          <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, padding:"18px" }}>
+            <div style={{ fontWeight:700, fontSize:13, color:C.navy, marginBottom:14 }}>Add Single Question</div>
+            {[["Question Type","select",["Multiple Choice","True/False","Fill in the Blank","Short Answer","Essay"]],["Subject","select",["English Language","Mathematics","Biology","Chemistry","Physics"]],["Question Text","textarea","Type the question here..."],["Option A","text","First option"],["Option B","text","Second option"],["Correct Answer","select",["A","B","C","D"]],["Marks","text","e.g. 1"]].map(([label,type,opts],i)=>(
+              <div key={i} style={{ marginBottom:10 }}>
+                <label style={{ fontSize:10, color:C.blue, fontWeight:700, letterSpacing:1, display:"block", marginBottom:4, textTransform:"uppercase" }}>{label}</label>
+                {type==="textarea" ? <textarea placeholder={opts} rows={3} style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:7, padding:"8px 11px", fontSize:12, outline:"none", resize:"vertical", color:C.navy }}/>
+                : type==="select" ? <select style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:7, padding:"8px 11px", fontSize:12, outline:"none", color:C.navy }}><option>Select...</option>{opts.map(o=><option key={o}>{o}</option>)}</select>
+                : <input placeholder={opts} style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:7, padding:"8px 11px", fontSize:12, outline:"none", color:C.navy }}/>}
+              </div>
+            ))}
+            <button style={{ width:"100%", background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"10px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer" }}>+ Add Question</button>
+          </div>
+          <div>
+            <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, padding:"18px", marginBottom:14 }}>
+              <div style={{ fontWeight:700, fontSize:13, color:C.navy, marginBottom:10 }}>📋 Bulk Upload via CSV</div>
+              <div style={{ fontSize:12, color:C.slate, lineHeight:1.6, marginBottom:12 }}>Download template, fill questions, upload — supports hundreds of questions at once.</div>
+              <div style={{ display:"flex", gap:8 }}>
+                <button style={{ flex:1, background:"#F8FAFF", border:`1px solid ${C.border}`, color:C.navy, padding:"8px", borderRadius:7, fontSize:11, cursor:"pointer" }}>📥 Download Template</button>
+                <button style={{ flex:1, background:`${C.blue}12`, border:`1px solid ${C.blue}25`, color:C.blue, padding:"8px", borderRadius:7, fontSize:11, fontWeight:600, cursor:"pointer" }}>📤 Upload CSV</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+    if (page === "resources") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:20, fontWeight:700, color:C.navy, marginBottom:16 }}>Upload Resources</h2>
+        <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, padding:"18px" }}>
+          <div style={{ border:`2px dashed ${C.border}`, borderRadius:9, padding:"32px", textAlign:"center", cursor:"pointer" }}>
+            <div style={{ fontSize:28, marginBottom:8 }}>📎</div>
+            <div style={{ fontSize:13, fontWeight:600, color:C.navy, marginBottom:4 }}>Click to upload lesson material</div>
+            <div style={{ fontSize:11, color:C.slate }}>PDF, Video, DOCX, MP4 — uploaded to Cloudinary</div>
+          </div>
+        </div>
+      </div>
+    );
+    if (page === "timetable") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:20, fontWeight:700, color:C.navy, marginBottom:16 }}>My Timetable</h2>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:10 }}>
+          {Object.entries(TT).map(([day,classes])=>(
+            <div key={day} style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:11, overflow:"hidden" }}>
+              <div style={{ background:`linear-gradient(135deg,${C.navy},${C.blue})`, padding:"9px 12px" }}><div style={{ fontFamily:"Georgia,serif", fontSize:13, fontWeight:700, color:"#C9A84C" }}>{day}</div></div>
+              <div style={{ padding:"10px" }}>
+                {classes.map((c,i)=>(
+                  <div key={i} style={{ background:`${C.blue}08`, border:`1px solid ${C.blue}15`, borderRadius:7, padding:"8px 9px", marginBottom:6 }}>
+                    <div style={{ fontSize:10, fontWeight:700, color:C.blue }}>{c.t}</div>
+                    <div style={{ fontSize:11, fontWeight:600, color:C.navy }}>{c.sub}</div>
+                    <div style={{ fontSize:9, color:C.slate }}>{c.cls}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+    return <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:300, textAlign:"center" }}><div style={{ fontSize:44, marginBottom:12 }}>🚧</div><h2 style={{ fontFamily:"Georgia,serif", fontSize:20, fontWeight:700, color:C.navy, marginBottom:8, textTransform:"capitalize" }}>{page}</h2><p style={{ color:C.slate, maxWidth:300, lineHeight:1.7 }}>Connects to Supabase in Phase 2.</p></div>;
+  };
+
+  return (
+    <div style={{ fontFamily:"'Syne',sans-serif", background:C.cream, minHeight:"100vh", display:"flex" }}>
+      <aside style={{ width:sideOpen?210:54, background:C.navy, minHeight:"100vh", display:"flex", flexDirection:"column", transition:"width .3s ease", flexShrink:0, position:"sticky", top:0, height:"100vh", overflow:"hidden" }}>
+        <div style={{ padding:"14px 11px", borderBottom:"1px solid rgba(255,255,255,.07)", display:"flex", alignItems:"center", gap:9, flexShrink:0 }}>
+          <div style={{ width:28, height:28, background:"linear-gradient(135deg,#C9A84C,#FFD54F)", borderRadius:7, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:900, color:C.navy, flexShrink:0 }}>SI</div>
+          {sideOpen && <div style={{ overflow:"hidden" }}><div style={{ fontSize:11, fontWeight:800, color:"#C9A84C", letterSpacing:1.5, whiteSpace:"nowrap" }}>STAFF PORTAL</div><div style={{ fontSize:9, color:"rgba(255,255,255,.3)" }}>SAMPACE</div></div>}
+          <button onClick={()=>setSideOpen(o=>!o)} style={{ marginLeft:"auto", background:"rgba(255,255,255,.06)", border:"none", color:"rgba(255,255,255,.4)", width:22, height:22, borderRadius:5, cursor:"pointer", fontSize:11, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>{sideOpen?"←":"→"}</button>
+        </div>
+        {sideOpen && <div style={{ padding:"12px 13px 10px", borderBottom:"1px solid rgba(255,255,255,.07)" }}>
+          <div style={{ width:38, height:38, borderRadius:"50%", background:"linear-gradient(135deg,#1565C0,#42A5F5)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:700, color:"#fff", marginBottom:7 }}>N</div>
+          <div style={{ fontSize:11, fontWeight:700, color:"#fff" }}>Mrs. Ngozi Adeyemi</div>
+          <div style={{ fontSize:9, color:"#42A5F5", marginTop:2 }}>Class Teacher</div>
+          <div style={{ fontSize:9, color:"rgba(255,255,255,.35)" }}>School College</div>
+        </div>}
+        <nav style={{ flex:1, padding:"9px 7px", overflowY:"auto" }}>
+          {NAV.map(item=>(
+            <button key={item.id} onClick={()=>setPage(item.id)} style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"8px 9px", borderRadius:7, border:"none", background:page===item.id?"linear-gradient(135deg,rgba(21,101,192,.35),rgba(66,165,245,.15))":"transparent", borderLeft:page===item.id?"2px solid #42A5F5":"2px solid transparent", color:page===item.id?"#fff":"rgba(255,255,255,.5)", cursor:"pointer", marginBottom:2, fontSize:11, fontWeight:page===item.id?600:400, textAlign:"left", whiteSpace:"nowrap" }}>
+              <span style={{ fontSize:13, flexShrink:0 }}>{item.icon}</span>
+              {sideOpen && <span>{item.label}</span>}
+            </button>
+          ))}
+        </nav>
+        <div style={{ padding:"10px", borderTop:"1px solid rgba(255,255,255,.07)" }}>
+          {sideOpen ? <button onClick={onLogout} style={{ width:"100%", background:"rgba(239,68,68,.15)", border:"none", color:C.red, padding:"7px", borderRadius:7, fontSize:11, cursor:"pointer", fontWeight:600 }}>Logout</button> : <button onClick={onLogout} style={{ background:"rgba(239,68,68,.15)", border:"none", color:C.red, width:32, height:32, borderRadius:7, fontSize:12, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>↩</button>}
+        </div>
+      </aside>
+      <div style={{ flex:1, display:"flex", flexDirection:"column", minWidth:0 }}>
+        <header style={{ background:"#fff", borderBottom:`1px solid ${C.border}`, padding:"0 20px", height:48, display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:0, zIndex:100 }}>
+          <div style={{ display:"flex", gap:6, fontSize:10, color:C.slate, alignItems:"center" }}>Staff Portal <span style={{ color:"#CBD5E1" }}>›</span> <span style={{ color:C.navy, fontWeight:600, textTransform:"capitalize" }}>{page}</span></div>
+          <div style={{ width:26, height:26, borderRadius:"50%", background:"linear-gradient(135deg,#1565C0,#42A5F5)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color:"#fff" }}>N</div>
+        </header>
+        <main style={{ flex:1, padding:"20px", overflowY:"auto" }}>{renderPage()}</main>
+      </div>
+    </div>
+  );
+}
+
+// ─── STUDENT PORTAL ───
+function StudentPortal({ onLogout }) {
+  const [tab, setTab] = useState("dashboard");
+  const [sideOpen, setSideOpen] = useState(true);
+  const [realGrades, setRealGrades] = useState([]);
+  const [userProfile, setUserProfile] = useState(null);
+
+  useEffect(() => {
+    const sb = window.__supabase;
+    if (!sb) return;
+    // Load current user profile
+    sb.auth.getUser().then(({ data }) => {
+      if (data?.user) {
+        sb.from("users").select("*, student_profiles(*)").eq("auth_id", data.user.id).single()
+          .then(({ data: profile }) => { if (profile) setUserProfile(profile); });
+        // Load grades
+        sb.from("grades").select("*").eq("student_id", data.user.id)
+          .then(({ data: grades }) => { if (grades?.length) setRealGrades(grades); });
+      }
+    });
+  }, []);
+  const C = { navy:"#0B1F3A", blue:"#1565C0", sky:"#42A5F5", cream:"#F8FAFF", slate:"#64748B", border:"#E2E8F0", green:"#10B981", gold:"#C9A84C", red:"#EF4444", amber:"#F59E0B", purple:"#7C3AED" };
+  const courses = [
+    {id:1,name:"English Language SS1",school:"School College",progress:65,nextLesson:"Essay Writing — Argumentative",teacher:"Mrs. Ngozi Adeyemi",color:C.blue,emoji:"📚"},
+    {id:2,name:"WAEC Mathematics Prep",school:"Tutorial & Exam",progress:42,nextLesson:"Quadratic Equations — Practice",teacher:"Mr. Chidi Okafor",color:C.purple,emoji:"📐"},
+    {id:3,name:"Biology SS1",school:"School College",progress:28,nextLesson:"Cell Structure & Functions",teacher:"Dr. Amina Hassan",color:C.green,emoji:"🔬"},
+  ];
+  const timetable = [
+    {day:"Mon",time:"8:00am",subject:"English Language",teacher:"Mrs. Adeyemi",isLive:true},
+    {day:"Mon",time:"10:00am",subject:"Mathematics",teacher:"Mr. Okafor",isLive:false},
+    {day:"Tue",time:"9:00am",subject:"Biology",teacher:"Dr. Hassan",isLive:false},
+    {day:"Wed",time:"8:00am",subject:"Chemistry",teacher:"Mr. Bello",isLive:false},
+    {day:"Thu",time:"10:00am",subject:"Physics",teacher:"Mrs. Zainab",isLive:false},
+    {day:"Fri",time:"8:00am",subject:"Literature",teacher:"Mrs. Adeyemi",isLive:false},
+  ];
+  const assignments = [
+    {title:"Essay: My Ideal Nigeria",subject:"English Language",due:"Tomorrow",submitted:false,marks:null},
+    {title:"Quadratic Equations Set 4",subject:"Mathematics",due:"3 days",submitted:true,marks:18},
+    {title:"Cell Diagram Labelling",subject:"Biology",due:"Next week",submitted:false,marks:null},
+  ];
+  const navItems = [["dashboard","🏠","Dashboard"],["classes","🎬","My Classes"],["timetable","📅","Timetable"],["assignments","📝","Assignments"],["library","📚","Library"],["labs","🧪","Virtual Lab"],["results","📊","Results"],["certificate","🏆","Certificates"],["feedback","💬","Feedback"]];
+
+  const renderMain = () => {
+    if (tab==="dashboard") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy, marginBottom:4 }}>Welcome back, <em style={{ color:C.blue }}>Adaeze</em> 👋</h2>
+        <div style={{ fontSize:12, color:C.slate, marginBottom:20 }}>Admission No: SC/2026/001 · SS1 Sciences · School College</div>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12, marginBottom:20 }}>
+          {[["65%","Progress",C.blue],["2 Due","Assignments",C.amber],["18/28","Lessons Done",C.green],["0","Certificates",C.gold]].map(([val,label,color],i)=>(
+            <div key={i} style={{ background:"#fff", border:`1px solid ${color}22`, borderRadius:12, padding:"16px", borderTop:`3px solid ${color}` }}>
+              <div style={{ fontFamily:"Georgia,serif", fontSize:22, color, fontWeight:900, lineHeight:1 }}>{val}</div>
+              <div style={{ fontSize:11, color:C.slate, marginTop:3 }}>{label}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ display:"grid", gridTemplateColumns:"1.5fr 1fr", gap:14 }}>
+          <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, overflow:"hidden" }}>
+            <div style={{ padding:"12px 16px", borderBottom:`1px solid ${C.border}`, fontWeight:700, fontSize:13, color:C.navy }}>My Courses</div>
+            {courses.map(c=>(
+              <div key={c.id} style={{ padding:"12px 16px", borderBottom:`1px solid #F8FAFF` }}>
+                <div style={{ display:"flex", gap:10, alignItems:"center", marginBottom:8 }}>
+                  <div style={{ width:32, height:32, borderRadius:8, background:`${c.color}18`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:16 }}>{c.emoji}</div>
+                  <div style={{ flex:1 }}><div style={{ fontSize:12, fontWeight:700, color:C.navy }}>{c.name}</div><div style={{ fontSize:10, color:C.slate }}>{c.teacher}</div></div>
+                  <div style={{ fontSize:11, fontWeight:700, color:c.color }}>{c.progress}%</div>
+                </div>
+                <div style={{ background:"#F1F5F9", borderRadius:100, height:5, overflow:"hidden" }}><div style={{ width:`${c.progress}%`, height:"100%", background:`linear-gradient(90deg,${c.color},${c.color}99)`, borderRadius:100 }}/></div>
+                <button onClick={()=>setTab("classes")} style={{ marginTop:8, background:`linear-gradient(135deg,${c.color},${c.color}cc)`, color:"#fff", border:"none", padding:"6px 14px", borderRadius:6, fontSize:11, fontWeight:700, cursor:"pointer" }}>Continue →</button>
+              </div>
+            ))}
+          </div>
+          <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, overflow:"hidden" }}>
+            <div style={{ padding:"12px 16px", borderBottom:`1px solid ${C.border}`, fontWeight:700, fontSize:13, color:C.navy }}>Today's Classes</div>
+            {timetable.filter(t=>t.day==="Mon").map((t,i)=>(
+              <div key={i} style={{ padding:"10px 16px", borderBottom:`1px solid #F8FAFF`, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                <div><div style={{ fontSize:12, fontWeight:700, color:C.navy }}>{t.subject}</div><div style={{ fontSize:10, color:C.slate }}>{t.time}</div></div>
+                {t.isLive ? <button onClick={()=>setTab("classes")} style={{ background:"linear-gradient(135deg,#10B981,#059669)", color:"#fff", border:"none", padding:"5px 10px", borderRadius:5, fontSize:10, fontWeight:700, cursor:"pointer" }}>🔴 LIVE</button> : <span style={{ fontSize:10, color:C.slate }}>Upcoming</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+    if (tab==="classes") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy, marginBottom:4 }}>My Classes</h2>
+        <p style={{ fontSize:12, color:C.slate, marginBottom:20 }}>Live and recorded classes. Click Join to enter a live session.</p>
+        {courses.map(c=>(
+          <div key={c.id} style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, marginBottom:14, overflow:"hidden" }}>
+            <div style={{ background:`linear-gradient(135deg,${c.color}20,${c.color}08)`, padding:"14px 18px", borderBottom:`1px solid ${C.border}`, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+              <div style={{ display:"flex", gap:10, alignItems:"center" }}><div style={{ fontSize:22 }}>{c.emoji}</div><div><div style={{ fontWeight:700, fontSize:14, color:C.navy }}>{c.name}</div><div style={{ fontSize:11, color:C.slate }}>{c.teacher} · {c.school}</div></div></div>
+              <div style={{ fontSize:12, fontWeight:700, color:c.color }}>{c.progress}% complete</div>
+            </div>
+            <div style={{ padding:"14px 18px" }}>
+              <div style={{ background:`${c.color}08`, border:`1px solid ${c.color}20`, borderRadius:10, padding:"14px 16px", marginBottom:12 }}>
+                <div style={{ fontSize:11, fontWeight:700, color:c.color, marginBottom:4 }}>🔴 LIVE NOW</div>
+                <div style={{ fontSize:12, color:C.navy, marginBottom:8 }}>Teacher: {c.teacher} · Started 8:00 AM</div>
+                <a href={WA} target="_blank" rel="noreferrer" style={{ background:`linear-gradient(135deg,${c.color},${c.color}cc)`, color:"#fff", padding:"9px 20px", borderRadius:7, fontSize:12, fontWeight:700, textDecoration:"none", display:"inline-flex", alignItems:"center", gap:6 }}>🎬 Join Live Class</a>
+              </div>
+              <div style={{ fontSize:12, fontWeight:700, color:C.navy, marginBottom:8 }}>📹 Recorded Lessons</div>
+              {["Introduction & Overview","Core Concepts Part 1","Core Concepts Part 2","Practice Session"].map((lesson,i)=>(
+                <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:`1px solid #F8FAFF` }}>
+                  <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+                    <div style={{ width:22, height:22, borderRadius:"50%", background:i<2?"rgba(16,185,129,.12)":i===2?`${c.color}18`:"#F1F5F9", display:"flex", alignItems:"center", justifyContent:"center", fontSize:10 }}>{i<2?"✅":i===2?"▶️":"🔒"}</div>
+                    <div style={{ fontSize:12, color:i<2?C.slate:i===2?C.navy:"#CBD5E1", fontWeight:i===2?600:400 }}>Lesson {i+1}: {lesson}</div>
+                  </div>
+                  <button style={{ background:i===2?`${c.color}18`:"#F1F5F9", color:i===2?c.color:C.slate, border:`1px solid ${i===2?c.color:C.border}`, padding:"4px 10px", borderRadius:5, fontSize:10, cursor:"pointer" }}>{i<2?"Rewatch":"Watch"}</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+    if (tab==="labs") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy, marginBottom:4 }}>Virtual Science Laboratory</h2>
+        <p style={{ fontSize:12, color:C.slate, marginBottom:20 }}>Interactive simulations from University of Colorado Boulder (PhET) — free, no download needed.</p>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
+          {[{name:"Physics — Forces & Motion",desc:"Explore Newton's laws",url:"https://phet.colorado.edu/sims/html/forces-and-motion-basics/latest/forces-and-motion-basics_en.html",color:C.blue,emoji:"⚛️"},{name:"Chemistry — Build a Molecule",desc:"Build molecules, understand bonds",url:"https://phet.colorado.edu/sims/html/build-a-molecule/latest/build-a-molecule_en.html",color:C.purple,emoji:"🧪"},{name:"Biology — Gene Expression",desc:"DNA, RNA and protein synthesis",url:"https://phet.colorado.edu/sims/html/gene-expression-essentials/latest/gene-expression-essentials_en.html",color:C.green,emoji:"🔬"},{name:"Physics — Electric Circuits",desc:"Build and test circuits virtually",url:"https://phet.colorado.edu/sims/html/circuit-construction-kit-dc/latest/circuit-construction-kit-dc_en.html",color:C.amber,emoji:"⚡"}].map((lab,i)=>(
+            <div key={i} style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, overflow:"hidden" }}>
+              <div style={{ background:`${lab.color}12`, padding:"16px" }}>
+                <div style={{ display:"flex", gap:10, alignItems:"center" }}><div style={{ fontSize:28 }}>{lab.emoji}</div><div><div style={{ fontWeight:700, fontSize:13, color:C.navy }}>{lab.name}</div><div style={{ fontSize:11, color:C.slate }}>{lab.desc}</div></div></div>
+              </div>
+              <div style={{ padding:"12px 16px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                <span style={{ fontSize:10, color:C.slate }}>PhET · Univ. of Colorado</span>
+                <a href={lab.url} target="_blank" rel="noreferrer" style={{ background:`linear-gradient(135deg,${lab.color},${lab.color}cc)`, color:"#fff", padding:"7px 14px", borderRadius:6, fontSize:11, fontWeight:700, textDecoration:"none" }}>Open Lab →</a>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+    if (tab==="results") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy, marginBottom:20 }}>Academic Results</h2>
+        <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, overflow:"hidden" }}>
+          <div style={{ padding:"12px 18px", borderBottom:`1px solid ${C.border}`, fontWeight:700, fontSize:13, color:C.navy }}>First Term 2026 — SS1 Sciences</div>
+          <div style={{ display:"grid", gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr 0.8fr", padding:"9px 16px", background:"#F8FAFF", borderBottom:`2px solid ${C.border}` }}>
+            {["Subject","CA1/10","CA2/10","Proj/10","Exam/70","Grade"].map(h=><div key={h} style={{ fontSize:9, fontWeight:700, color:C.slate, letterSpacing:.5, textTransform:"uppercase" }}>{h}</div>)}
+          </div>
+          {[["English Language",8,9,8,56,"A"],["Mathematics",7,7,8,50,"B"],["Biology",6,7,7,48,"B"],["Chemistry",8,8,7,52,"A"],["Physics",5,6,6,44,"C"]].map(([sub,...scores],i)=>{
+            const grade = scores[4]; const gc = grade==="A"?C.green:grade==="B"?C.blue:grade==="C"?C.amber:C.red;
+            return (
+              <div key={i} style={{ display:"grid", gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr 0.8fr", padding:"11px 16px", borderBottom:`1px solid #F8FAFF`, alignItems:"center" }}>
+                <div style={{ fontSize:12, fontWeight:600, color:C.navy }}>{sub}</div>
+                {scores.slice(0,4).map((s,j)=><div key={j} style={{ fontSize:12, color:C.slate }}>{s}</div>)}
+                <span style={{ background:`${gc}18`, color:gc, padding:"3px 8px", borderRadius:100, fontSize:11, fontWeight:700 }}>{grade}</span>
+              </div>
+            );
+          })}
+          <div style={{ padding:"12px 16px", background:"#F0F4FF", fontWeight:700, fontSize:13, color:C.blue }}>Total: 314/400 · Average: 78.5% · Position: 3rd of 32</div>
+        </div>
+      </div>
+    );
+    if (tab==="feedback") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy, marginBottom:4 }}>Give Feedback</h2>
+        <p style={{ fontSize:12, color:C.slate, marginBottom:20 }}>Your feedback helps us improve. All responses are reviewed by the Director.</p>
+        {[{label:"Overall Platform Experience",type:"stars"},{label:"Quality of Live Classes",type:"stars"},{label:"Teacher Support & Communication",type:"stars"},{label:"Virtual Labs & Resources",type:"stars"}].map((item,i)=>(
+          <div key={i} style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 16px", marginBottom:10 }}>
+            <div style={{ fontSize:12, fontWeight:600, color:C.navy, marginBottom:8 }}>{item.label}</div>
+            <div style={{ display:"flex", gap:8 }}>
+              {[1,2,3,4,5].map(n=><button key={n} style={{ background:"none", border:"none", fontSize:22, cursor:"pointer" }}>⭐</button>)}
+            </div>
+          </div>
+        ))}
+        <div style={{ marginBottom:14 }}>
+          <label style={{ fontSize:10, color:C.blue, fontWeight:700, letterSpacing:1, display:"block", marginBottom:6, textTransform:"uppercase" }}>Any comments or suggestions?</label>
+          <textarea rows={4} placeholder="Tell us what we can improve, what you enjoy, or any issue you faced..." style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:8, padding:"10px 12px", fontSize:12, outline:"none", resize:"vertical", color:C.navy, fontFamily:"'Syne',sans-serif" }}/>
+        </div>
+        <button style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"11px 28px", borderRadius:8, fontSize:13, fontWeight:700, cursor:"pointer" }}>Submit Feedback ✓</button>
+      </div>
+    );
+    if (tab==="certificate") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy, marginBottom:8 }}>My Certificates</h2>
+        <div style={{ background:`linear-gradient(135deg,${C.navy},${C.blue})`, borderRadius:16, padding:"40px 32px", textAlign:"center", marginBottom:20, border:"2px solid rgba(201,168,76,.3)" }}>
+          <div style={{ fontFamily:"'Space Mono',monospace", fontSize:11, color:C.gold, letterSpacing:4, marginBottom:12 }}>SAMPACE INSTITUTE</div>
+          <div style={{ fontFamily:"'Playfair Display',serif", fontSize:26, fontWeight:700, color:"#fff", marginBottom:6 }}>Certificate of Completion</div>
+          <div style={{ fontSize:13, color:"rgba(255,255,255,.6)", marginBottom:16 }}>This is to certify that</div>
+          <div style={{ fontFamily:"'Playfair Display',serif", fontSize:32, fontWeight:700, color:C.gold, marginBottom:16, fontStyle:"italic" }}>Adaeze Okonkwo</div>
+          <div style={{ fontSize:13, color:"rgba(255,255,255,.7)" }}>has successfully completed</div>
+          <div style={{ fontFamily:"'Playfair Display',serif", fontSize:18, fontWeight:700, color:"#fff" }}>English Language — SS1 Course</div>
+        </div>
+        <div style={{ background:"rgba(245,158,11,.08)", border:"1px solid rgba(245,158,11,.2)", borderRadius:10, padding:"14px 20px", textAlign:"center" }}>
+          <div style={{ fontSize:13, color:C.amber, fontWeight:600 }}>⏳ Complete 35% more to unlock your official certificate</div>
+        </div>
+      </div>
+    );
+    if (tab==="library") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy, marginBottom:4 }}>Digital Library</h2>
+        <p style={{ fontSize:12, color:C.slate, marginBottom:20 }}>Textbooks, past questions and e-resources.</p>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+          {[["📖","WAEC Past Questions 2015–2024","All Subjects"],["📖","NECO Past Questions 2015–2024","All Subjects"],["📖","New General Mathematics SS1","Textbook"],["📹","English Comprehension Video Series","English"]].map(([icon,title,subject],i)=>(
+            <div key={i} style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, padding:"16px" }}>
+              <div style={{ display:"flex", gap:10, alignItems:"center", marginBottom:10 }}><div style={{ fontSize:24 }}>{icon}</div><div><div style={{ fontSize:12, fontWeight:700, color:C.navy }}>{title}</div><div style={{ fontSize:10, color:C.slate }}>{subject}</div></div></div>
+              <button style={{ width:"100%", background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"8px", borderRadius:7, fontSize:11, fontWeight:700, cursor:"pointer" }}>📥 Download / View</button>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+    if (tab==="assignments") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy, marginBottom:20 }}>Assignments</h2>
+        {assignments.map((a,i)=>(
+          <div key={i} style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, marginBottom:12, padding:"16px" }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:10 }}>
+              <div><div style={{ fontWeight:700, fontSize:14, color:C.navy }}>{a.title}</div><div style={{ fontSize:11, color:C.slate }}>{a.subject} · Due: {a.due}</div></div>
+              <span style={{ background:a.submitted?"rgba(16,185,129,.1)":"rgba(245,158,11,.1)", color:a.submitted?C.green:C.amber, padding:"4px 12px", borderRadius:100, fontSize:11, fontWeight:700 }}>{a.submitted?`✓ Submitted — ${a.marks}/20`:"Pending"}</span>
+            </div>
+            {!a.submitted && <button style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"9px 20px", borderRadius:7, fontSize:12, fontWeight:700, cursor:"pointer" }}>📤 Submit Assignment</button>}
+          </div>
+        ))}
+      </div>
+    );
+    return <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:300, textAlign:"center" }}><div style={{ fontSize:48, marginBottom:12 }}>🚧</div><h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy, marginBottom:8, textTransform:"capitalize" }}>{tab}</h2><p style={{ color:C.slate, maxWidth:300, lineHeight:1.7 }}>Connects to Supabase in Phase 2.</p></div>;
+  };
+
+  return (
+    <div style={{ fontFamily:"'Syne',sans-serif", background:C.cream, minHeight:"100vh", display:"flex" }}>
+      <aside style={{ width:sideOpen?210:54, background:C.navy, minHeight:"100vh", display:"flex", flexDirection:"column", transition:"width .3s ease", flexShrink:0, position:"sticky", top:0, height:"100vh", overflow:"hidden" }}>
+        <div style={{ padding:"14px 11px", borderBottom:"1px solid rgba(255,255,255,.07)", display:"flex", alignItems:"center", gap:9, flexShrink:0 }}>
+          <div style={{ width:28, height:28, background:"linear-gradient(135deg,#C9A84C,#FFD54F)", borderRadius:7, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:900, color:C.navy, flexShrink:0 }}>SI</div>
+          {sideOpen && <div style={{ overflow:"hidden" }}><div style={{ fontSize:11, fontWeight:800, color:"#C9A84C", letterSpacing:1.5, whiteSpace:"nowrap" }}>STUDENT PORTAL</div><div style={{ fontSize:9, color:"rgba(255,255,255,.3)" }}>School College</div></div>}
+          <button onClick={()=>setSideOpen(o=>!o)} style={{ marginLeft:"auto", background:"rgba(255,255,255,.06)", border:"none", color:"rgba(255,255,255,.4)", width:22, height:22, borderRadius:5, cursor:"pointer", fontSize:11, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>{sideOpen?"←":"→"}</button>
+        </div>
+        {sideOpen && <div style={{ padding:"12px 13px 10px", borderBottom:"1px solid rgba(255,255,255,.07)" }}>
+          <div style={{ width:38, height:38, borderRadius:"50%", background:"linear-gradient(135deg,#1565C0,#42A5F5)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:700, color:"#fff", marginBottom:7 }}>A</div>
+          <div style={{ fontSize:11, fontWeight:700, color:"#fff" }}>Adaeze Okonkwo</div>
+          <div style={{ fontSize:9, color:"#42A5F5", marginTop:2 }}>SC/2026/001 · SS1</div>
+          <div style={{ fontSize:9, color:"rgba(255,255,255,.35)" }}>Sciences Department</div>
+        </div>}
+        <nav style={{ flex:1, padding:"10px 7px", overflowY:"auto" }}>
+          {navItems.map(([id,icon,label])=>(
+            <button key={id} onClick={()=>setTab(id)} style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"9px 10px", borderRadius:7, border:"none", background:tab===id?"linear-gradient(135deg,rgba(21,101,192,.35),rgba(66,165,245,.15))":"transparent", borderLeft:tab===id?"2px solid #42A5F5":"2px solid transparent", color:tab===id?"#fff":"rgba(255,255,255,.5)", cursor:"pointer", marginBottom:2, fontSize:12, fontWeight:tab===id?600:400, textAlign:"left", whiteSpace:"nowrap" }}>
+              <span style={{ fontSize:14, flexShrink:0 }}>{icon}</span>
+              {sideOpen && <span>{label}</span>}
+            </button>
+          ))}
+        </nav>
+        <div style={{ padding:"10px", borderTop:"1px solid rgba(255,255,255,.07)" }}>
+          {sideOpen ? <button onClick={onLogout} style={{ width:"100%", background:"rgba(239,68,68,.15)", border:"none", color:C.red, padding:"7px", borderRadius:7, fontSize:11, cursor:"pointer", fontWeight:600 }}>Logout</button> : <button onClick={onLogout} style={{ background:"rgba(239,68,68,.15)", border:"none", color:C.red, width:32, height:32, borderRadius:7, fontSize:12, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>↩</button>}
+        </div>
+      </aside>
+      <div style={{ flex:1, display:"flex", flexDirection:"column", minWidth:0 }}>
+        <header style={{ background:"#fff", borderBottom:`1px solid ${C.border}`, padding:"0 20px", height:50, display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:0, zIndex:100 }}>
+          <div style={{ display:"flex", gap:6, alignItems:"center", fontSize:10, color:C.slate }}>Student Portal <span style={{ color:"#CBD5E1" }}>›</span> <span style={{ color:C.navy, fontWeight:600, textTransform:"capitalize" }}>{tab}</span></div>
+          <div style={{ width:26, height:26, borderRadius:"50%", background:"linear-gradient(135deg,#1565C0,#42A5F5)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color:"#fff" }}>A</div>
+        </header>
+        <main style={{ flex:1, padding:"20px", overflowY:"auto" }}>{renderMain()}</main>
+      </div>
+    </div>
+  );
+}
+
+// ─── PARENT PORTAL ───
+// ─── PARENT PORTAL (Full with navigation, communication, progress) ───
+function ParentPortal({ onLogout }) {
+  const [tab, setTab] = useState("dashboard");
+  const [realChildren, setRealChildren] = useState([]);
+  const [realMessages, setRealMessages] = useState([]);
+  const [sendingMsg, setSendingMsg] = useState(false);
+  const C = { navy:"#0B1F3A", blue:"#1565C0", sky:"#42A5F5", cream:"#F8FAFF", slate:"#64748B", border:"#E2E8F0", green:"#10B981", red:"#EF4444", amber:"#F59E0B", gold:"#C9A84C" };
+
+  useEffect(() => {
+    const sb = window.__supabase;
+    if (!sb) return;
+    sb.auth.getUser().then(async ({ data }) => {
+      if (!data?.user) return;
+      // Get parent's children
+      const { data: links } = await sb.from("parent_children")
+        .select("student_id, users!parent_children_student_id_fkey(id,full_name,email,student_profiles(*))")
+        .eq("parent_id", data.user.id);
+      if (links?.length) setRealChildren(links.map(l=>l.users));
+      // Get messages
+      const { data: msgs } = await sb.from("messages")
+        .select("*").eq("receiver_id", data.user.id).order("created_at",{ascending:true});
+      if (msgs?.length) setRealMessages(msgs);
+    });
+  }, []);
+
+  const sendMessage = async (body, receiverId, studentId) => {
+    const sb = window.__supabase;
+    if (!sb || !body.trim()) return;
+    setSendingMsg(true);
+    const { data: user } = await sb.auth.getUser();
+    if (user?.user) {
+      const { data: profile } = await sb.from("users").select("id").eq("auth_id", user.user.id).single();
+      if (profile) {
+        await sb.from("messages").insert({ sender_id: profile.id, receiver_id: receiverId, student_id: studentId, body });
+        const { data: msgs } = await sb.from("messages").select("*").eq("receiver_id", profile.id).order("created_at",{ascending:true});
+        if (msgs) setRealMessages(msgs);
+      }
+    }
+    setSendingMsg(false);
+  };
+
+  const children = [
+    {id:1,name:"Adaeze Okonkwo",admission:"SC/2026/001",school:"School College",class:"SS1 Sciences",progress:65,fees:"paid",
+     subjects:[{sub:"English Language",ca1:8,ca2:9,proj:8,exam:56,att:92},{sub:"Mathematics",ca1:7,ca2:7,proj:8,exam:50,att:88},{sub:"Biology",ca1:6,ca2:7,proj:7,exam:48,att:79}]},
+    {id:2,name:"Emeka Okonkwo",admission:"SC/2026/022",school:"Tutorial & Exam",class:"WAEC Track",progress:38,fees:"pending",
+     subjects:[{sub:"Mathematics",ca1:7,ca2:6,proj:0,exam:0,att:75},{sub:"Physics",ca1:6,ca2:5,proj:0,exam:0,att:80}]},
+  ];
+  const [activeChild, setActiveChild] = useState(0);
+  const child = children[activeChild];
+  const [msgTo, setMsgTo] = useState("Mrs. Adeyemi");
+  const [msgText, setMsgText] = useState("");
+  const [messages, setMessages] = useState([
+    {from:"Mrs. Adeyemi (English)",text:"Adaeze performed excellently in this week's essay. Please encourage more reading at home.",time:"Today 9:12am",mine:false},
+    {from:"You",text:"Thank you ma. We will work on that. Is there any resource you recommend?",time:"Today 9:45am",mine:true},
+    {from:"Mrs. Adeyemi (English)",text:"Yes, I have uploaded a reading list to the digital library. She can access it from the student portal.",time:"Today 10:01am",mine:false},
+  ]);
+
+  const NAV = [
+    ["dashboard","🏠","Dashboard"],
+    ["progress","📊","Track Progress"],
+    ["communication","💬","Teacher Messages"],
+    ["activities","📅","Daily Activities"],
+    ["results","📋","Report Card"],
+    ["fees","💳","School Fees"],
+    ["profile","👤","Child Profile"],
+  ];
+
+  const sendMsg = () => {
+    if (!msgText.trim()) return;
+    setMessages(m => [...m, {from:"You", text:msgText, time:"Just now", mine:true}]);
+    setMsgText("");
+    setTimeout(()=>setMessages(m=>[...m,{from:msgTo,text:"Thank you for your message. I will respond shortly.",time:"Just now",mine:false}]),1500);
+  };
+
+  const renderTab = () => {
+    if (tab === "dashboard") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy, marginBottom:4 }}>Welcome, <em style={{ color:C.blue }}>Mrs. Okonkwo</em> 👋</h2>
+        <p style={{ fontSize:12, color:C.slate, marginBottom:16 }}>Parent Dashboard — Secondary School Portal</p>
+
+        {/* Child selector */}
+        <div style={{ display:"flex", gap:10, marginBottom:18 }}>
+          {children.map((ch,i)=>(
+            <button key={i} onClick={()=>setActiveChild(i)} style={{ flex:1, background:activeChild===i?`linear-gradient(135deg,${C.blue},${C.sky})`:"#fff", border:`1px solid ${activeChild===i?C.blue:C.border}`, color:activeChild===i?"#fff":C.navy, padding:"10px 14px", borderRadius:10, cursor:"pointer", fontWeight:activeChild===i?700:400, fontSize:12, transition:"all .2s" }}>
+              <div style={{ fontSize:18, marginBottom:4 }}>👤</div>
+              <div>{ch.name.split(" ")[0]}</div>
+              <div style={{ fontSize:10, opacity:.7 }}>{ch.class}</div>
+            </button>
+          ))}
+        </div>
+
+        {/* Stats */}
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12, marginBottom:16 }}>
+          {[[child.progress+"%","Progress",C.blue],["3","Subjects",C.sky],[child.fees==="paid"?"Paid":"Pending","Fees",child.fees==="paid"?C.green:C.amber]].map(([v,l,c],i)=>(
+            <div key={i} style={{ background:"#fff", border:`1px solid ${c}22`, borderRadius:12, padding:"14px", borderTop:`3px solid ${c}`, textAlign:"center" }}>
+              <div style={{ fontFamily:"Georgia,serif", fontSize:22, color:c, fontWeight:900 }}>{v}</div>
+              <div style={{ fontSize:11, color:C.slate, marginTop:2 }}>{l}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Child card */}
+        <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, padding:"16px", marginBottom:14 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:10 }}>
+            <div style={{ display:"flex", gap:12, alignItems:"center" }}>
+              <div style={{ width:48, height:48, borderRadius:"50%", background:`linear-gradient(135deg,${C.blue},${C.sky})`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, fontWeight:700, color:"#fff" }}>{child.name.charAt(0)}</div>
+              <div>
+                <div style={{ fontWeight:700, fontSize:14, color:C.navy }}>{child.name}</div>
+                <div style={{ fontSize:11, color:C.slate }}>{child.admission} · {child.class} · {child.school}</div>
+                <div style={{ marginTop:6, background:"#F1F5F9", borderRadius:100, height:5, width:180, overflow:"hidden" }}>
+                  <div style={{ width:`${child.progress}%`, height:"100%", background:`linear-gradient(90deg,${C.blue},${C.sky})`, borderRadius:100 }}/>
+                </div>
+              </div>
+            </div>
+            <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+              <button onClick={()=>setTab("progress")} style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"7px 14px", borderRadius:7, fontSize:11, fontWeight:700, cursor:"pointer" }}>📊 View Progress</button>
+              {child.fees==="pending" && <button onClick={()=>setTab("fees")} style={{ background:"linear-gradient(135deg,#E65100,#FF6D00)", color:"#fff", border:"none", padding:"7px 14px", borderRadius:7, fontSize:11, fontWeight:700, cursor:"pointer" }}>💳 Pay Fees</button>}
+            </div>
+          </div>
+        </div>
+
+        {/* Quick links */}
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+          {[["📊","Track Progress","progress"],["💬","Message Teacher","communication"],["📅","Daily Activities","activities"],["📋","Report Card","results"]].map(([icon,label,t])=>(
+            <button key={t} onClick={()=>setTab(t)} style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:10, padding:"14px", cursor:"pointer", textAlign:"left", transition:"all .2s" }} onMouseEnter={e=>e.currentTarget.style.borderColor=C.blue} onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
+              <div style={{ fontSize:22, marginBottom:6 }}>{icon}</div>
+              <div style={{ fontSize:12, fontWeight:600, color:C.navy }}>{label}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+
+    if (tab === "progress") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:20, fontWeight:700, color:C.navy, marginBottom:4 }}>Academic Progress</h2>
+        <p style={{ fontSize:12, color:C.slate, marginBottom:16 }}>{child.name} · {child.class} · First Term 2026</p>
+        <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, overflow:"hidden", marginBottom:14 }}>
+          <div style={{ padding:"12px 16px", borderBottom:`1px solid ${C.border}`, fontWeight:700, fontSize:13, color:C.navy }}>Subject Performance</div>
+          {child.subjects.map((s,i)=>{
+            const total = s.ca1+s.ca2+s.proj+s.exam;
+            const grade = total>=75?"A":total>=65?"B":total>=55?"C":total>=45?"D":"F";
+            const gc = grade==="A"?C.green:grade==="B"?C.blue:grade==="C"?C.amber:C.red;
+            return (
+              <div key={i} style={{ padding:"14px 16px", borderBottom:`1px solid #F8FAFF` }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+                  <div style={{ fontSize:13, fontWeight:600, color:C.navy }}>{s.sub}</div>
+                  <span style={{ background:`${gc}18`, color:gc, padding:"3px 10px", borderRadius:100, fontSize:11, fontWeight:700 }}>{grade} · {total>0?total:"—"}/100</span>
+                </div>
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:8, marginBottom:8 }}>
+                  {[["CA1",s.ca1,10],["CA2",s.ca2,10],["Project",s.proj,10],["Exam",s.exam,70]].map(([label,score,max])=>(
+                    <div key={label} style={{ background:"#F8FAFF", borderRadius:7, padding:"8px", textAlign:"center" }}>
+                      <div style={{ fontSize:9, color:C.slate, marginBottom:3, textTransform:"uppercase" }}>{label}/{max}</div>
+                      <div style={{ fontSize:15, fontWeight:700, color:C.navy }}>{score||"—"}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                  <div style={{ fontSize:10, color:C.slate }}>Attendance: {s.att}%</div>
+                  <div style={{ flex:1, background:"#F1F5F9", borderRadius:100, height:4, overflow:"hidden" }}>
+                    <div style={{ width:`${s.att}%`, height:"100%", background:s.att>=75?C.green:C.amber, borderRadius:100 }}/>
+                  </div>
+                  {s.att < 75 && <span style={{ fontSize:9, color:C.red, fontWeight:700 }}>⚠️ Below 75%</span>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ background:`linear-gradient(135deg,${C.blue}12,${C.sky}08)`, border:`1px solid ${C.blue}20`, borderRadius:10, padding:"12px 16px", fontSize:11, color:C.navy }}>
+          💡 Attendance below 75% may affect exam eligibility. Contact school admin if there are concerns.
+        </div>
+      </div>
+    );
+
+    if (tab === "communication") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:20, fontWeight:700, color:C.navy, marginBottom:4 }}>Parent-Teacher Messages</h2>
+        <p style={{ fontSize:12, color:C.slate, marginBottom:14 }}>Direct communication with {child.name}'s teachers. All messages are logged for quality assurance.</p>
+        <div style={{ marginBottom:12 }}>
+          <label style={{ fontSize:10, color:C.blue, fontWeight:700, letterSpacing:1, textTransform:"uppercase", display:"block", marginBottom:5 }}>Message To *</label>
+          <select style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:8, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }} value={msgTo} onChange={e=>setMsgTo(e.target.value)}>
+            <option>Mrs. Adeyemi (English)</option>
+            <option>Mr. Okafor (Mathematics)</option>
+            <option>Dr. Hassan (Biology)</option>
+            <option>School Admin</option>
+          </select>
+        </div>
+        <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, overflow:"hidden", marginBottom:12, maxHeight:320, overflowY:"auto" }}>
+          {messages.map((m,i)=>(
+            <div key={i} style={{ padding:"12px 16px", borderBottom:`1px solid #F8FAFF`, display:"flex", justifyContent:m.mine?"flex-end":"flex-start" }}>
+              <div style={{ maxWidth:"75%", background:m.mine?`${C.blue}18`:"#F8FAFF", borderRadius:m.mine?"12px 12px 0 12px":"12px 12px 12px 0", padding:"10px 14px" }}>
+                <div style={{ fontSize:10, color:C.slate, marginBottom:3, fontWeight:600 }}>{m.from} · {m.time}</div>
+                <div style={{ fontSize:12, color:C.navy, lineHeight:1.6 }}>{m.text}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ display:"flex", gap:10 }}>
+          <input value={msgText} onChange={e=>setMsgText(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendMsg()} placeholder="Type your message to the teacher..." style={{ flex:1, border:`1px solid ${C.border}`, borderRadius:8, padding:"10px 13px", fontSize:12, outline:"none", color:C.navy }}/>
+          <button onClick={sendMsg} style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"10px 20px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer" }}>Send →</button>
+        </div>
+        <div style={{ fontSize:10, color:C.slate, marginTop:8 }}>💡 Messages are responded to within 24 hours on school days.</div>
+      </div>
+    );
+
+    if (tab === "activities") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:20, fontWeight:700, color:C.navy, marginBottom:4 }}>Daily Activities</h2>
+        <p style={{ fontSize:12, color:C.slate, marginBottom:16 }}>What {child.name} did today — {new Date().toDateString()}</p>
+        {[
+          {time:"8:00am",event:"Joined English Language Live Class",icon:"🎬",status:"present"},
+          {time:"9:00am",event:"Submitted Essay: My Ideal Nigeria",icon:"📝",status:"submitted"},
+          {time:"10:00am",event:"Mathematics Class — Absent",icon:"⚠️",status:"absent"},
+          {time:"12:00pm",event:"Opened Digital Library — Biology notes",icon:"📚",status:"active"},
+          {time:"2:00pm",event:"Completed Biology virtual lab (PhET)",icon:"🧪",status:"completed"},
+          {time:"3:30pm",event:"Last active on platform",icon:"📱",status:"active"},
+        ].map((a,i)=>(
+          <div key={i} style={{ display:"flex", gap:14, alignItems:"flex-start", padding:"12px 0", borderBottom:`1px solid ${C.border}` }}>
+            <div style={{ fontSize:20, flexShrink:0, marginTop:2 }}>{a.icon}</div>
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:12, fontWeight:600, color:C.navy }}>{a.event}</div>
+              <div style={{ fontSize:10, color:C.slate, marginTop:2 }}>{a.time}</div>
+            </div>
+            <span style={{ background:a.status==="absent"?"rgba(239,68,68,.1)":a.status==="present"||a.status==="completed"?"rgba(16,185,129,.1)":"rgba(245,158,11,.1)", color:a.status==="absent"?C.red:a.status==="present"||a.status==="completed"?C.green:C.amber, padding:"3px 9px", borderRadius:100, fontSize:10, fontWeight:700 }}>{a.status}</span>
+          </div>
+        ))}
+      </div>
+    );
+
+    if (tab === "results") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:20, fontWeight:700, color:C.navy, marginBottom:4 }}>Report Card</h2>
+        <p style={{ fontSize:12, color:C.slate, marginBottom:14 }}>{child.name} · First Term 2026 · {child.class}</p>
+        <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, overflow:"hidden", marginBottom:12 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr 0.8fr 0.8fr", padding:"9px 16px", background:"#F8FAFF", borderBottom:`2px solid ${C.border}` }}>
+            {["Subject","CA1","CA2","Proj","Exam","Total","Grade"].map(h=><div key={h} style={{ fontSize:9, fontWeight:700, color:C.slate, letterSpacing:.5, textTransform:"uppercase" }}>{h}</div>)}
+          </div>
+          {child.subjects.map((s,i)=>{
+            const total = s.ca1+s.ca2+s.proj+s.exam;
+            const grade = total>=75?"A":total>=65?"B":total>=55?"C":total>=45?"D":"F";
+            const gc = grade==="A"?C.green:grade==="B"?C.blue:grade==="C"?C.amber:C.red;
+            return (
+              <div key={i} style={{ display:"grid", gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr 0.8fr 0.8fr", padding:"11px 16px", borderBottom:`1px solid #F8FAFF`, alignItems:"center" }}>
+                <div style={{ fontSize:11, fontWeight:600, color:C.navy }}>{s.sub}</div>
+                {[s.ca1,s.ca2,s.proj,s.exam].map((v,j)=><div key={j} style={{ fontSize:11, color:C.slate }}>{v||"—"}</div>)}
+                <div style={{ fontSize:12, fontWeight:700, color:C.navy }}>{total>0?total:"—"}</div>
+                <span style={{ background:`${gc}18`, color:gc, padding:"2px 7px", borderRadius:100, fontSize:10, fontWeight:700 }}>{total>0?grade:"—"}</span>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ display:"flex", gap:10 }}>
+          <button style={{ flex:1, background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"10px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer" }}>📥 Download Report Card (PDF)</button>
+        </div>
+        <div style={{ marginTop:12, background:"rgba(245,158,11,.08)", border:"1px solid rgba(245,158,11,.2)", borderRadius:8, padding:"10px 14px", fontSize:11, color:C.amber }}>
+          ⏳ Full downloadable PDF report will be available when Supabase is connected in Phase 2.
+        </div>
+      </div>
+    );
+
+    if (tab === "fees") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:20, fontWeight:700, color:C.navy, marginBottom:16 }}>School Fees</h2>
+        {children.map((ch,i)=>(
+          <div key={i} style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, padding:"16px", marginBottom:12 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+              <div><div style={{ fontWeight:700, fontSize:14, color:C.navy }}>{ch.name}</div><div style={{ fontSize:11, color:C.slate }}>{ch.class} · {ch.school}</div></div>
+              <span style={{ background:ch.fees==="paid"?"rgba(16,185,129,.1)":"rgba(245,158,11,.1)", color:ch.fees==="paid"?C.green:C.amber, padding:"4px 12px", borderRadius:100, fontSize:11, fontWeight:700 }}>Fees: {ch.fees}</span>
+            </div>
+            {ch.fees === "pending" ? (
+              <div>
+                <div style={{ background:"rgba(245,158,11,.06)", border:"1px solid rgba(245,158,11,.2)", borderRadius:8, padding:"10px 14px", marginBottom:10, fontSize:11, color:C.amber, lineHeight:1.6 }}>
+                  ⚠️ Payment is pending. Amount will be set by admin and sent to your email. Contact admin to confirm.
+                </div>
+                <div style={{ display:"flex", gap:10 }}>
+                  <a href={WA} style={{ flex:1, background:"linear-gradient(135deg,#25D366,#128C7E)", color:"#fff", padding:"10px", borderRadius:8, fontSize:11, fontWeight:700, textDecoration:"none", textAlign:"center" }}>💬 WhatsApp Admin</a>
+                  <button onClick={async()=>{
+                    const pk = import.meta.env.VITE_PAYSTACK_PUBLIC;
+                    if(!pk||!window.PaystackPop){alert("Paystack not loaded. Check your connection.");return;}
+                    const sb=window.__supabase;
+                    const {data:user}=sb?await sb.auth.getUser():{data:{}};
+                    const handler = window.PaystackPop.setup({
+                      key: pk,
+                      email: user?.user?.email||"student@sampaceedu.com.ng",
+                      amount: 4500000, // ₦45,000 in kobo — admin sets real amount later
+                      currency: "NGN",
+                      ref: "SAMP-"+Date.now(),
+                      callback: (res) => alert("Payment successful! Reference: "+res.reference+". Admin will activate your access within 24 hours."),
+                      onClose: () => {}
+                    });
+                    handler.openIframe();
+                  }} style={{ flex:1, background:"linear-gradient(135deg,#E65100,#FF6D00)", color:"#fff", border:"none", padding:"10px", borderRadius:8, fontSize:11, fontWeight:700, cursor:"pointer" }}>💳 Pay via Paystack</button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ background:"rgba(16,185,129,.06)", border:"1px solid rgba(16,185,129,.2)", borderRadius:8, padding:"10px 14px", fontSize:11, color:C.green }}>
+                ✅ Fees paid for this term. Thank you!
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+
+    if (tab === "profile") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:20, fontWeight:700, color:C.navy, marginBottom:16 }}>Child Profile</h2>
+        {[{label:"Full Name",value:child.name},{label:"Admission Number",value:child.admission},{label:"School",value:child.school},{label:"Class",value:child.class},{label:"Status",value:"Active"}].map((r,i)=>(
+          <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"12px 0", borderBottom:`1px solid ${C.border}` }}>
+            <div style={{ fontSize:12, color:C.slate }}>{r.label}</div>
+            <div style={{ fontSize:12, fontWeight:600, color:C.navy }}>{r.value}</div>
+          </div>
+        ))}
+        <div style={{ marginTop:16, background:"rgba(21,101,192,.06)", border:`1px solid rgba(21,101,192,.2)`, borderRadius:10, padding:"12px 14px", fontSize:11, color:C.navy }}>
+          💡 To update student profile details, contact admin via WhatsApp or email.
+        </div>
+      </div>
+    );
+
+    return <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:300, textAlign:"center" }}><div style={{ fontSize:48, marginBottom:12 }}>🚧</div><h2 style={{ fontFamily:"Georgia,serif", fontSize:20, fontWeight:700, color:C.navy, marginBottom:8, textTransform:"capitalize" }}>{tab}</h2><p style={{ color:C.slate, maxWidth:300, lineHeight:1.7 }}>Coming in Phase 2.</p></div>;
+  };
+
+  return (
+    <div style={{ fontFamily:"'Syne',sans-serif", background:C.cream, minHeight:"100vh", display:"flex" }}>
+      {/* Sidebar */}
+      <aside style={{ width:200, background:C.navy, minHeight:"100vh", display:"flex", flexDirection:"column", flexShrink:0, position:"sticky", top:0, height:"100vh", overflow:"hidden" }}>
+        <div style={{ padding:"14px 12px", borderBottom:"1px solid rgba(255,255,255,.07)", display:"flex", alignItems:"center", gap:9 }}>
+          <div style={{ width:28, height:28, background:"linear-gradient(135deg,#C9A84C,#FFD54F)", borderRadius:7, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:900, color:C.navy }}>SI</div>
+          <div><div style={{ fontSize:11, fontWeight:800, color:"#C9A84C", letterSpacing:1.5 }}>PARENT PORTAL</div><div style={{ fontSize:8, color:"rgba(255,255,255,.3)" }}>Secondary School</div></div>
+        </div>
+        <div style={{ padding:"12px 12px 10px", borderBottom:"1px solid rgba(255,255,255,.07)" }}>
+          <div style={{ width:36, height:36, borderRadius:"50%", background:"linear-gradient(135deg,#BF360C,#FF6D00)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:15, fontWeight:700, color:"#fff", marginBottom:6 }}>O</div>
+          <div style={{ fontSize:11, fontWeight:700, color:"#fff" }}>Mrs. Okonkwo</div>
+          <div style={{ fontSize:9, color:"rgba(255,255,255,.4)", marginTop:2 }}>{children.length} children enrolled</div>
+        </div>
+        <nav style={{ flex:1, padding:"9px 7px", overflowY:"auto" }}>
+          {NAV.map(([id,icon,label])=>(
+            <button key={id} onClick={()=>setTab(id)} style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"8px 9px", borderRadius:7, border:"none", background:tab===id?"linear-gradient(135deg,rgba(191,54,12,.35),rgba(255,109,0,.15))":"transparent", borderLeft:tab===id?"2px solid #FF6D00":"2px solid transparent", color:tab===id?"#fff":"rgba(255,255,255,.5)", cursor:"pointer", marginBottom:2, fontSize:11, fontWeight:tab===id?600:400, textAlign:"left" }}>
+              <span style={{ fontSize:13, flexShrink:0 }}>{icon}</span>
+              <span>{label}</span>
+            </button>
+          ))}
+        </nav>
+        <div style={{ padding:"10px", borderTop:"1px solid rgba(255,255,255,.07)" }}>
+          <button onClick={onLogout} style={{ width:"100%", background:"rgba(239,68,68,.15)", border:"none", color:C.red, padding:"7px", borderRadius:7, fontSize:11, cursor:"pointer", fontWeight:600 }}>Logout</button>
+        </div>
+      </aside>
+
+      {/* Main */}
+      <div style={{ flex:1, display:"flex", flexDirection:"column", minWidth:0 }}>
+        <header style={{ background:"#fff", borderBottom:`1px solid ${C.border}`, padding:"0 20px", height:50, display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:0, zIndex:100 }}>
+          <div style={{ display:"flex", gap:6, alignItems:"center", fontSize:10, color:C.slate }}>Parent Portal <span style={{ color:"#CBD5E1" }}>›</span> <span style={{ color:C.navy, fontWeight:600, textTransform:"capitalize" }}>{tab.replace("-"," ")}</span></div>
+          <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+            <div style={{ fontSize:10, color:C.slate }}>Viewing: <strong style={{ color:C.navy }}>{child.name.split(" ")[0]}</strong></div>
+            <div style={{ width:26, height:26, borderRadius:"50%", background:"linear-gradient(135deg,#BF360C,#FF6D00)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color:"#fff" }}>O</div>
+          </div>
+        </header>
+        <main style={{ flex:1, padding:"20px", overflowY:"auto" }}>{renderTab()}</main>
+      </div>
+    </div>
+  );
+}
+
+
+function App() {
+  const [view, setView] = useState("home");
+  const [school, setSchool] = useState(null);
+
+  // Push state so browser back button works correctly
+  const go = s => {
+    setSchool(s); setView("school"); window.scrollTo(0,0);
+    window.history.pushState({view:"school", schoolId:s.id}, "", "#"+s.id);
+  };
+  const login = type => {
+    setView("login-"+type); window.scrollTo(0,0);
+    window.history.pushState({view:"login-"+type}, "", "#login-"+type);
+  };
+  const afterLogin = type => {
+    setView(type); window.scrollTo(0,0);
+    window.history.pushState({view:type}, "", "#"+type);
+  };
+  const back = () => {
+    setSchool(null); setView("home"); window.scrollTo(0,0);
+    window.history.pushState({view:"home"}, "", window.location.pathname);
+  };
+
+  // Handle browser back/forward buttons
+  useEffect(() => {
+    const onPop = (e) => {
+      const state = e.state;
+      if (!state || state.view === "home") { setSchool(null); setView("home"); window.scrollTo(0,0); }
+      else if (state.view === "school" && state.schoolId) {
+        const f = SCHOOLS.find(s=>s.id===state.schoolId);
+        if (f) { setSchool(f); setView("school"); window.scrollTo(0,0); }
+      } else if (state.view && state.view.startsWith("login-")) { setView(state.view); window.scrollTo(0,0); }
+      else { setSchool(null); setView("home"); window.scrollTo(0,0); }
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
+  useEffect(() => {
+    const h = window.location.hash.replace("#","");
+    if (h) { const f = SCHOOLS.find(s=>s.id===h); if (f) { setSchool(f); setView("school"); } }
+  }, []);
+  return (
+    <>
+      <style>{G}</style>
+      {view==="home"          && <Homepage onSelect={go} onLogin={login} />}
+      {view==="school"        && school && <SchoolPage school={school} onBack={back} onLogin={login} />}
+      {view==="login-admin"   && <LoginScreen type="admin"   onLogin={()=>afterLogin("admin")}   onBack={()=>setView("home")} />}
+      {view==="login-staff"   && <LoginScreen type="staff"   onLogin={()=>afterLogin("staff")}   onBack={()=>setView("home")} />}
+      {view==="login-student" && <LoginScreen type="student" onLogin={()=>afterLogin("student")} onBack={()=>setView("home")} />}
+      {view==="login-parent"  && <LoginScreen type="parent"  onLogin={()=>afterLogin("parent")}  onBack={()=>setView("home")} />}
+      {view==="admin"         && <AdminDashboard onLogout={back} />}
+      {view==="staff"         && <StaffPortal onLogout={back} />}
+      {view==="student"       && <StudentPortal onLogout={back} />}
+      {view==="parent"        && <ParentPortal onLogout={back} />}
+    </>
+  );
+}
+
+const el = document.getElementById("root");
+if (el) ReactDOM.createRoot(el).render(<App />);
