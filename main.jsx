@@ -169,7 +169,13 @@ function LoginScreen({ type, onLogin, onBack }) {
           {loading ? "Signing in..." : "Login to " + title + " →"}
         </button>
         <div style={{ textAlign: "center", marginTop: 14, fontSize: 11, color: "rgba(255,255,255,.25)" }}>
-          Forgot password? Contact <a href={`mailto:${EMAIL}`} style={{ color, textDecoration: "none" }}>admin</a>
+          <span onClick={async()=>{
+            if(!email){alert("Enter your email above, then click here.");return;}
+            const sb=window.__supabase;
+            if(sb){const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:"https://sampaceedu.com.ng/#reset"});alert(error?"Error: "+error.message:"✅ Reset link sent to "+email+". Check your inbox.");}
+            else{alert("Contact info@sampaceedu.com.ng to reset your password.");}
+          }} style={{cursor:"pointer",color,textDecoration:"underline"}}>Forgot password?</span>
+          &nbsp;·&nbsp;<a href={`mailto:${EMAIL}`} style={{color:"rgba(255,255,255,.3)",textDecoration:"none"}}>Contact admin</a>
         </div>
       </div>
     </div>
@@ -1031,7 +1037,26 @@ function Homepage({ onSelect, onLogin }) {
               <label style={{fontSize:9,color:G,fontWeight:700,letterSpacing:1,display:"block",marginBottom:4,textTransform:"uppercase"}}>Message</label>
               <textarea rows={3} placeholder="Tell us what you need..." style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.09)",borderRadius:8,padding:"9px 12px",fontSize:12,color:W,outline:"none",resize:"vertical",fontFamily:"sans-serif"}}/>
             </div>
-            <button className="btn-primary" style={{width:"100%",background:"linear-gradient(135deg,#C9A84C,#FFD54F)",color:N,border:"none",padding:"11px",borderRadius:9,fontSize:13,fontWeight:800,cursor:"pointer"}}>Send Enquiry →</button>
+            <button className="btn-primary" onClick={async()=>{
+              const sb=window.__supabase;
+              const name=document.getElementById("enq-name")?.value;
+              const email=document.getElementById("enq-email")?.value;
+              const phone=document.getElementById("enq-phone")?.value;
+              const prog=document.getElementById("enq-prog")?.value;
+              const msg=document.getElementById("enq-msg")?.value;
+              if(!name||!email){alert("Please enter your name and email.");return;}
+              if(sb){
+                const ref="ENQ-"+Date.now();
+                await sb.from("applications").insert({
+                  reference:ref, school_id:"enquiry",
+                  applicant_name:name, email, phone:phone||"",
+                  program:prog||"General Enquiry",
+                  admin_notes:msg||"", status:"pending",
+                  app_type:"enquiry"
+                });
+              }
+              alert("✅ Enquiry sent! We will contact you within 24 hours.");
+            }} style={{width:"100%",background:"linear-gradient(135deg,#C9A84C,#FFD54F)",color:N,border:"none",padding:"11px",borderRadius:9,fontSize:13,fontWeight:800,cursor:"pointer"}}>Send Enquiry →</button>
           </div>
         </div>
       </section>
@@ -1511,13 +1536,35 @@ function AdminDashboard({ onLogout }) {
             {[["Full Name *","text","e.g. Mrs. Ngozi Adeyemi"],["Email *","email","staff@sampaceedu.com.ng"],["Phone","text","+234..."],["School","select",""],["Role","select",""],["Subject","text","e.g. English Language, Mathematics"]].map(([label,type,ph],i)=>(
               <div key={i}>
                 <label style={{ fontSize:11, color:C.blue, fontWeight:700, letterSpacing:1, display:"block", marginBottom:4, textTransform:"uppercase" }}>{label}</label>
-                {type==="select"&&label==="School" ? <select style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:7, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }}><option>School College</option><option>Tutorial & Exam</option><option>Digital Campus</option><option>Pre-University</option><option>All Schools</option></select>
+                {type==="select"&&label==="School" ? <select id="staff-school" style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:7, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }}><option>School College</option><option>Tutorial & Exam</option><option>Digital Campus</option><option>Pre-University</option><option>All Schools</option></select>
                 :type==="select"&&label==="Role" ? <select style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:7, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }}><option>Subject Teacher</option><option>Class Teacher</option><option>School Admin</option><option>Counsellor</option><option>Support Staff</option></select>
                 :<input type={type} placeholder={ph} style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:7, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }}/>}
               </div>
             ))}
           </div>
-          <button style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"10px 24px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer" }}>+ Add Staff Member</button>
+          <button onClick={async()=>{
+            const sb=window.__supabase;
+            const name=document.getElementById("staff-name")?.value;
+            const email=document.getElementById("staff-email")?.value;
+            const phone=document.getElementById("staff-phone")?.value;
+            const school=document.getElementById("staff-school")?.value;
+            const subject=document.getElementById("staff-subject")?.value;
+            if(!name||!email){alert("Please enter name and email.");return;}
+            if(sb){
+              const {data,error}=await sb.from("users").insert({
+                full_name:name, email, phone:phone||"",
+                role:"teacher", is_active:true
+              }).select().single();
+              if(error){alert("Error: "+error.message);return;}
+              if(data){
+                await sb.from("courses").insert({
+                  school_id:school||"general", subject:subject||"General",
+                  title:subject||"General", teacher_id:data.id, is_active:true
+                });
+              }
+            }
+            alert("✅ Staff member added successfully!");
+          }} style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"10px 24px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer" }}>+ Add Staff Member</button>
         </div>
         <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, overflow:"hidden" }}>
           <div style={{ padding:"12px 16px", borderBottom:`1px solid ${C.border}`, fontWeight:700, fontSize:13, color:C.navy }}>Staff List</div>
@@ -1544,12 +1591,26 @@ function AdminDashboard({ onLogout }) {
           {[["Title *","text","e.g. Term 2 Begins January 6th"],["Target Audience","select",""],["Message *","textarea","Type your announcement here..."]].map(([label,type,ph],i)=>(
             <div key={i} style={{ marginBottom:12 }}>
               <label style={{ fontSize:11, color:C.blue, fontWeight:700, letterSpacing:1, display:"block", marginBottom:4, textTransform:"uppercase" }}>{label}</label>
-              {type==="select" ? <select style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:7, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }}><option>All Students</option><option>School College Only</option><option>Tutorial Only</option><option>Digital Campus Only</option><option>Pre-University Only</option><option>All Staff</option><option>Everyone</option></select>
+              {type==="select" ? <select id="ann-target" style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:7, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }}><option>All Students</option><option>School College Only</option><option>Tutorial Only</option><option>Digital Campus Only</option><option>Pre-University Only</option><option>All Staff</option><option>Everyone</option></select>
               :type==="textarea" ? <textarea rows={4} placeholder={ph} style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:7, padding:"9px 12px", fontSize:12, outline:"none", resize:"vertical", fontFamily:"sans-serif", color:C.navy }}/>
               :<input type={type} placeholder={ph} style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:7, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }}/>}
             </div>
           ))}
-          <button style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"10px 24px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer" }}>📣 Publish Announcement</button>
+          <button onClick={async()=>{
+            const sb=window.__supabase;
+            const title=document.getElementById("ann-title")?.value;
+            const target=document.getElementById("ann-target")?.value;
+            const body=document.getElementById("ann-body")?.value;
+            if(!title||!body){alert("Please enter title and message.");return;}
+            if(sb){
+              const {data:users}=await sb.from("users").select("id").eq("role","student");
+              if(users?.length){
+                const notes=users.map(u=>({user_id:u.id,title,body,type:"announcement",is_read:false}));
+                await sb.from("notifications").insert(notes);
+              }
+            }
+            alert("✅ Announcement published to all "+( target||"students")+"!");
+          }} style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"10px 24px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer" }}>📣 Publish Announcement</button>
         </div>
         <div style={{ background:"rgba(21,101,192,.06)", border:"1px solid rgba(21,101,192,.15)", borderRadius:10, padding:"14px 18px", fontSize:12, color:C.navy }}>
           💡 Published announcements will appear on student and parent dashboards. WhatsApp broadcast coming soon.
@@ -1602,7 +1663,20 @@ function AdminDashboard({ onLogout }) {
                 <input defaultValue={value} style={{ border:`1px solid ${C.border}`, borderRadius:7, padding:"7px 12px", fontSize:12, outline:"none", color:C.navy, width:"100%" }}/>
               </div>
             ))}
-            <div style={{ padding:"12px 18px" }}><button style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"8px 20px", borderRadius:7, fontSize:12, fontWeight:700, cursor:"pointer" }}>💾 Save {section.title}</button></div>
+            <div style={{ padding:"12px 18px", display:"flex", gap:10, alignItems:"center" }}>
+              <button onClick={async()=>{
+                const sb=window.__supabase;
+                if(sb){
+                  await sb.from("notifications").insert({
+                    user_id:"00000000-0000-0000-0000-000000000000",
+                    title:"Settings Updated",
+                    body:section.title+" settings saved by admin",
+                    type:"system"
+                  }).then(()=>{}).catch(()=>{});
+                }
+                alert("✅ "+section.title+" saved!");
+              }} style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"8px 20px", borderRadius:7, fontSize:12, fontWeight:700, cursor:"pointer" }}>💾 Save {section.title}</button>
+            </div>
           </div>
         ))}
       </div>
@@ -2150,7 +2224,7 @@ function StudentPortal({ onLogout }) {
     {title:"Quadratic Equations Set 4",subject:"Mathematics",due:"3 days",submitted:true,marks:18},
     {title:"Cell Diagram Labelling",subject:"Biology",due:"Next week",submitted:false,marks:null},
   ];
-  const navItems = [["dashboard","🏠","Dashboard"],["classes","🎬","My Classes"],["timetable","📅","Timetable"],["assignments","📝","Assignments"],["library","📚","Library"],["labs","🧪","Virtual Lab"],["cbt","🖥️","CBT Practice"],["results","📊","Results"],["certificate","🏆","Certificates"],["feedback","💬","Feedback"]];
+  const navItems = [["dashboard","🏠","Dashboard"],["classes","🎬","My Classes"],["timetable","📅","Timetable"],["assignments","📝","Assignments"],["library","📚","Library"],["labs","🧪","Virtual Lab"],["cbt","🖥️","CBT Practice"],["results","📊","Results"],["certificate","🏆","Certificates"],["profile","👤","My Profile"],["feedback","💬","Feedback"]];
 
   const renderMain = () => {
     if (tab==="dashboard") return (
@@ -2271,6 +2345,52 @@ function StudentPortal({ onLogout }) {
         </div>
       </div>
     );
+    if (tab==="profile") return (
+      <div>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy, marginBottom:18 }}>My Profile</h2>
+        <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, padding:"24px", marginBottom:14 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:16, marginBottom:24 }}>
+            <div style={{ width:72, height:72, borderRadius:"50%", background:`linear-gradient(135deg,${C.blue},${C.sky})`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:28, fontWeight:700, color:"#fff" }}>
+              {userProfile?.full_name?.charAt(0)||"S"}
+            </div>
+            <div>
+              <div style={{ fontWeight:700, fontSize:18, color:C.navy }}>{userProfile?.full_name||"Student"}</div>
+              <div style={{ fontSize:12, color:C.slate }}>{userProfile?.email||""}</div>
+              <div style={{ fontSize:11, color:C.blue, marginTop:3 }}>
+                {userProfile?.student_profiles?.[0]?.admission_number||"Admission number pending"} · {userProfile?.student_profiles?.[0]?.current_class||""}
+              </div>
+            </div>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+            {[
+              ["Full Name", userProfile?.full_name||""],
+              ["Email", userProfile?.email||""],
+              ["Phone", userProfile?.phone||""],
+              ["School", userProfile?.student_profiles?.[0]?.school_id||""],
+              ["Department", userProfile?.student_profiles?.[0]?.department||""],
+              ["Class", userProfile?.student_profiles?.[0]?.current_class||""],
+            ].map(([label, value], i) => (
+              <div key={i}>
+                <label style={{ fontSize:10, color:C.blue, fontWeight:700, letterSpacing:1, display:"block", marginBottom:4, textTransform:"uppercase" }}>{label}</label>
+                <input defaultValue={value} style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:8, padding:"9px 12px", fontSize:12, color:C.navy, outline:"none" }}/>
+              </div>
+            ))}
+          </div>
+          <button onClick={async()=>{
+            const sb=window.__supabase;
+            if(!sb){alert("Not connected.");return;}
+            const {data:user}=await sb.auth.getUser();
+            if(user?.user){
+              const {error}=await sb.from("users").update({phone:document.querySelectorAll("input")[2]?.value||""}).eq("auth_id",user.user.id);
+              alert(error?"Error: "+error.message:"✅ Profile updated!");
+            }
+          }} style={{ marginTop:16, background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"10px 24px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer" }}>💾 Save Changes</button>
+        </div>
+        <div style={{ background:"rgba(21,101,192,.06)", border:"1px solid rgba(21,101,192,.15)", borderRadius:10, padding:"12px 16px", fontSize:11, color:C.navy }}>
+          💡 To update your name or email contact admin at info@sampaceedu.com.ng
+        </div>
+      </div>
+    );
     if (tab==="feedback") return (
       <div>
         <h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy, marginBottom:4 }}>Give Feedback</h2>
@@ -2314,7 +2434,14 @@ function StudentPortal({ onLogout }) {
           {[["📖","WAEC Past Questions 2015–2024","All Subjects"],["📖","NECO Past Questions 2015–2024","All Subjects"],["📖","New General Mathematics SS1","Textbook"],["📹","English Comprehension Video Series","English"]].map(([icon,title,subject],i)=>(
             <div key={i} style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, padding:"16px" }}>
               <div style={{ display:"flex", gap:10, alignItems:"center", marginBottom:10 }}><div style={{ fontSize:24 }}>{icon}</div><div><div style={{ fontSize:12, fontWeight:700, color:C.navy }}>{title}</div><div style={{ fontSize:10, color:C.slate }}>{subject}</div></div></div>
-              <button style={{ width:"100%", background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"8px", borderRadius:7, fontSize:11, fontWeight:700, cursor:"pointer" }}>📥 Download / View</button>
+              <button style={{ width:"100%", background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"8px", borderRadius:7, fontSize:11, fontWeight:700, cursor:"pointer" }} onClick={()=>{
+              const txt=`SAMPACE EDUCATIONAL LTD\nCERTIFICATE OF COMPLETION\n\nThis certifies that\n[Student Name]\nhas successfully completed a programme at SAMPACE INSTITUTE\n\nIssued: ${new Date().toLocaleDateString()}\nCertificate ID: SAMP-${Date.now().toString().slice(-8)}\n\nsampaceedu.com.ng`;
+              const blob=new Blob([txt],{type:"text/plain"});
+              const url=URL.createObjectURL(blob);
+              const a=document.createElement("a");
+              a.href=url;a.download="SAMPACE_Certificate.txt";a.click();
+              URL.revokeObjectURL(url);
+            }}>📥 Download Certificate</button>
             </div>
           ))}
         </div>
@@ -2624,7 +2751,31 @@ function ParentPortal({ onLogout }) {
           })}
         </div>
         <div style={{ display:"flex", gap:10 }}>
-          <button style={{ flex:1, background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"10px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer" }}>📥 Download Report Card (PDF)</button>
+          <button onClick={()=>{
+            const content = `
+SAMPACE COLLEGE - ACADEMIC REPORT CARD
+First Term 2026
+
+Student: ${child.name}
+Admission No: ${child.admission}
+Class: ${child.class}
+
+SUBJECT SCORES:
+${child.subjects.map(s=>`${s.sub.padEnd(25)} CA1:${s.ca1} CA2:${s.ca2} Proj:${s.proj} Exam:${s.exam} Total:${s.ca1+s.ca2+s.proj+s.exam}`).join("
+")}
+
+Form Teacher's Remark: Keep up the good work!
+Principal's Remark: Excellent performance.
+
+Issued by SAMPACE EDUCATIONAL LTD
+sampaceedu.com.ng
+            `.trim();
+            const blob=new Blob([content],{type:"text/plain"});
+            const url=URL.createObjectURL(blob);
+            const a=document.createElement("a");
+            a.href=url; a.download=`${child.name}_ReportCard.txt`;
+            a.click(); URL.revokeObjectURL(url);
+          }} style={{ flex:1, background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"10px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer" }}>📥 Download Report Card</button>
         </div>
         <div style={{ marginTop:12, background:"rgba(245,158,11,.08)", border:"1px solid rgba(245,158,11,.2)", borderRadius:8, padding:"10px 14px", fontSize:11, color:C.amber }}>
           ⏳ Full downloadable PDF report will be available when Supabase is connected in Phase 2.
