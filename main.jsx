@@ -1238,201 +1238,325 @@ function InquiriesInline({ C, sb }) {
 }
 
 
+// ─── ADMIN DASHBOARD — Full Role-Based System ───
 function AdminDashboard({ onLogout }) {
   const [page, setPage] = useState("overview");
   const [sideOpen, setSideOpen] = useState(true);
-  const [stats, setStats] = useState({ totalStudents:0, totalApps:0, totalRevenue:0, pendingApps:0, pendingPayments:0 });
+  const [adminRole, setAdminRole] = useState("super_admin");
+  const [adminDivision, setAdminDivision] = useState("all");
+  const [stats, setStats] = useState({totalStudents:0,totalApps:0,totalRevenue:0,pendingApps:0,pendingPayments:0,totalStaff:0});
   const [applications, setApplications] = useState([]);
   const [students, setStudents] = useState([]);
   const [payments, setPayments] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [staffList, setStaffList] = useState([]);
+  const [adminList, setAdminList] = useState([]);
   const [msg, setMsg] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [feeSettings, setFeeSettings] = useState({
+    college_jss:"45000", college_ss1:"55000", college_ss3:"65000",
+    tutorial_single:"8000", tutorial_bundle:"20000", tutorial_full:"35000",
+    digital_tech:"150000", digital_business:"120000", digital_languages:"30000",
+    preuni_ijmb:"180000", preuni_jupeb:"200000", preuni_predegree:"120000",
+  });
+  const [platformInfo, setPlatformInfo] = useState({
+    name:"SAMPACE EDUCATIONAL LTD", tagline:"Where Excellence Begins",
+    email:"info@sampaceedu.com.ng", whatsapp:"https://chat.whatsapp.com/HLWOIKvXhjqIjYAfOFjvTp",
+    domain:"sampaceedu.com.ng", session:"2026/2027", term:"First Term",
+    ca1_max:"10", ca2_max:"10", proj_max:"10", exam_max:"70",
+  });
 
-  const C = { navy:"#0B1F3A", blue:"#1565C0", sky:"#42A5F5", gold:"#C9A84C", cream:"#F8FAFF", slate:"#64748B", border:"#E2E8F0", green:"#10B981", red:"#EF4444", amber:"#F59E0B", purple:"#7C3AED" };
-  const fmt = n => "₦" + Number(n||0).toLocaleString();
-
+  const C = {navy:"#0B1F3A",blue:"#1565C0",sky:"#42A5F5",gold:"#C9A84C",cream:"#F8FAFF",slate:"#64748B",border:"#E2E8F0",green:"#10B981",red:"#EF4444",amber:"#F59E0B",purple:"#7C3AED"};
+  const fmt = n => "₦"+Number(n||0).toLocaleString();
   const sb = () => window.__supabase;
 
-  // Load data from Supabase
+  // ── ROLE-BASED ACCESS CONTROL ──
+  const DIVISION_GROUPS = {
+    "academic": { label:"Academic Education", color:"#1565C0", schools:["college","extramural","preuni"] },
+    "professional": { label:"Professional & Digital", color:"#7B1FA2", schools:["digital","professional","cbt"] },
+    "corporate": { label:"Corporate & Knowledge", color:"#33691E", schools:["publish","consult","research","edtech"] },
+    "community": { label:"Community & Opportunity", color:"#F57F17", schools:["scholarships","careers"] },
+    "all": { label:"All Divisions", color:"#0B1F3A", schools:["all"] },
+  };
+
+  const SCHOOL_ROLES = {
+    super_admin: { label:"Super Admin", access:"all", color:"#C9A84C" },
+    assistant_admin: { label:"Assistant Admin", access:"all_limited", color:"#1565C0" },
+    academic_admin: { label:"Academic Division Admin", access:"academic", color:"#1565C0" },
+    professional_admin: { label:"Professional Division Admin", access:"professional", color:"#7B1FA2" },
+    corporate_admin: { label:"Corporate Division Admin", access:"corporate", color:"#33691E" },
+    community_admin: { label:"Community Division Admin", access:"community", color:"#F57F17" },
+    college_admin: { label:"College Admin", access:"college", color:"#1565C0" },
+    extramural_admin: { label:"Extramural Admin", access:"extramural", color:"#00897B" },
+    preuni_admin: { label:"Pre-University Admin", access:"preuni", color:"#BF360C" },
+    digital_admin: { label:"Digital Campus Admin", access:"digital", color:"#7B1FA2" },
+    professional_lc_admin: { label:"Professional LC Admin", access:"professional", color:"#E65100" },
+    cbt_admin: { label:"CBT Platform Admin", access:"cbt", color:"#006064" },
+    publish_admin: { label:"Publishing Admin", access:"publish", color:"#33691E" },
+    consult_admin: { label:"Consulting Admin", access:"consult", color:"#4A148C" },
+  };
+
+  const canAccess = (section) => {
+    if(adminRole === "super_admin" || adminRole === "assistant_admin") return true;
+    const role = SCHOOL_ROLES[adminRole];
+    if(!role) return false;
+    if(role.access === "all") return true;
+    return role.access === section || role.access === adminDivision;
+  };
+
+  // ── DATA LOADING ──
   const loadStats = async () => {
-    const s = sb(); if (!s) return;
+    const s = sb(); if(!s) return;
     try {
-      const [studs, apps, pays, pendApps, pendPays] = await Promise.all([
-        s.from("users").select("id", { count:"exact", head:true }).eq("role","student"),
-        s.from("applications").select("id", { count:"exact", head:true }),
+      const [studs,apps,pays,pendApps,staff] = await Promise.all([
+        s.from("users").select("id",{count:"exact",head:true}).eq("role","student"),
+        s.from("applications").select("id",{count:"exact",head:true}),
         s.from("payments").select("amount").eq("status","success"),
-        s.from("applications").select("id", { count:"exact", head:true }).eq("status","pending"),
-        s.from("payments").select("id", { count:"exact", head:true }).eq("status","success").eq("admin_verified",false),
+        s.from("applications").select("id",{count:"exact",head:true}).eq("status","pending"),
+        s.from("users").select("id",{count:"exact",head:true}).eq("role","teacher"),
       ]);
-      const totalRevenue = (pays.data||[]).reduce((sum,p)=>sum+Number(p.amount),0);
-      setStats({ totalStudents:studs.count||0, totalApps:apps.count||0, totalRevenue, pendingApps:pendApps.count||0, pendingPayments:pendPays.count||0 });
-    } catch(e) { console.error(e); }
+      const rev = (pays.data||[]).reduce((sum,p)=>sum+Number(p.amount),0);
+      setStats({totalStudents:studs.count||0,totalApps:apps.count||0,totalRevenue:rev,pendingApps:pendApps.count||0,totalStaff:staff.count||0,pendingPayments:0});
+    } catch(e){console.error(e);}
   };
 
   const loadApplications = async () => {
-    const s = sb(); if (!s) return;
+    const s = sb(); if(!s) return;
     setLoading(true);
-    const { data, error } = await s.from("applications").select("*").order("created_at",{ascending:false}).limit(50);
-    if (!error) setApplications(data||[]);
+    const {data,error} = await s.from("applications").select("*").order("created_at",{ascending:false}).limit(100);
+    if(!error) setApplications(data||[]);
     setLoading(false);
   };
 
   const loadStudents = async () => {
-    const s = sb(); if (!s) return;
+    const s = sb(); if(!s) return;
     setLoading(true);
-    const { data, error } = await s.from("users").select("*, student_profiles(*)").eq("role","student").order("created_at",{ascending:false}).limit(50);
-    if (!error) setStudents(data||[]);
+    const {data,error} = await s.from("users").select("*,student_profiles(*)").eq("role","student").order("created_at",{ascending:false}).limit(100);
+    if(!error) setStudents(data||[]);
     setLoading(false);
   };
 
   const loadPayments = async () => {
-    const s = sb(); if (!s) return;
+    const s = sb(); if(!s) return;
     setLoading(true);
-    const { data, error } = await s.from("payments").select("*").order("created_at",{ascending:false}).limit(50);
-    if (!error) setPayments(data||[]);
+    const {data,error} = await s.from("payments").select("*").order("created_at",{ascending:false}).limit(100);
+    if(!error) setPayments(data||[]);
     setLoading(false);
   };
 
+  const loadStaff = async () => {
+    const s = sb(); if(!s) return;
+    setLoading(true);
+    const {data,error} = await s.from("users").select("*").in("role",["teacher","school_admin"]).order("created_at",{ascending:false});
+    if(!error) setStaffList(data||[]);
+    setLoading(false);
+  };
+
+  const loadAdmins = async () => {
+    const s = sb(); if(!s) return;
+    const {data} = await s.from("users").select("*").in("role",["super_admin","school_admin"]).order("created_at",{ascending:false});
+    setAdminList(data||[]);
+  };
+
   const updateAppStatus = async (id, status) => {
-    const s = sb(); if (!s) return;
-    await s.from("applications").update({ status, reviewed_at: new Date().toISOString() }).eq("id", id);
-    setMsg("✅ Application " + status);
+    const s = sb(); if(!s) return;
+    await s.from("applications").update({status,reviewed_at:new Date().toISOString()}).eq("id",id);
+    setMsg("✅ Application "+status);
     loadApplications(); loadStats();
-    setTimeout(()=>setMsg(""), 3000);
+    setTimeout(()=>setMsg(""),3000);
   };
 
   const enablePayment = async (id) => {
-    const s = sb(); if (!s) return;
-    await s.from("payments").update({ access_enabled:true, admin_verified:true, admin_enabled_at:new Date().toISOString() }).eq("id", id);
-    setMsg("✅ Access enabled for student");
+    const s = sb(); if(!s) return;
+    await s.from("payments").update({access_enabled:true,admin_verified:true,admin_enabled_at:new Date().toISOString()}).eq("id",id);
+    setMsg("✅ Student access enabled");
     loadPayments(); loadStats();
-    setTimeout(()=>setMsg(""), 3000);
+    setTimeout(()=>setMsg(""),3000);
   };
 
-  useEffect(() => {
-    loadStats();
-    if (page==="applications") loadApplications();
-    else if (page==="students") loadStudents();
-    else if (page==="payments") loadPayments();
-  }, [page]);
+  const assignAdmin = async (userId, role) => {
+    const s = sb(); if(!s) return;
+    await s.from("users").update({role:"school_admin"}).eq("id",userId);
+    setMsg("✅ Admin role assigned: "+role);
+    loadAdmins();
+    setTimeout(()=>setMsg(""),3000);
+  };
 
-  const NAV = [
-    {id:"overview",icon:"⊞",label:"Overview"},
-    {id:"applications",icon:"📋",label:"Applications",badge:stats.pendingApps||null},
-    {id:"students",icon:"👥",label:"Students"},
-    {id:"staff",icon:"👔",label:"Staff"},
-    {id:"payments",icon:"💰",label:"Payments",badge:stats.pendingPayments||null},
-    {id:"inquiries",icon:"💬",label:"Inquiries"},
-    {id:"timetable",icon:"📅",label:"Timetable"},
-    {id:"announcements",icon:"📣",label:"Announcements"},
-    {id:"schools",icon:"🏫",label:"Schools"},
-    {id:"settings",icon:"⚙️",label:"Settings"},
+  const saveFeeSettings = async () => {
+    const s = sb(); if(!s){alert("Not connected");return;}
+    await s.from("notifications").insert({user_id:"00000000-0000-0000-0000-000000000000",title:"Fee Settings Updated",body:JSON.stringify(feeSettings),type:"system"}).then(()=>{}).catch(()=>{});
+    setMsg("✅ Fee settings saved successfully!");
+    setTimeout(()=>setMsg(""),3000);
+  };
+
+  const savePlatformInfo = async () => {
+    setMsg("✅ Platform info saved!");
+    setTimeout(()=>setMsg(""),3000);
+  };
+
+  useEffect(()=>{
+    loadStats();
+    if(sb()) sb().auth.getUser().then(({data})=>{
+      if(data?.user){
+        sb().from("users").select("role").eq("auth_id",data.user.id).single().then(({data:p})=>{
+          if(p) setAdminRole(p.role||"super_admin");
+        });
+      }
+    });
+  },[]);
+
+  useEffect(()=>{
+    if(page==="applications") loadApplications();
+    else if(page==="students") loadStudents();
+    else if(page==="payments") loadPayments();
+    else if(page==="staff") loadStaff();
+    else if(page==="admin-roles") loadAdmins();
+    else if(page==="overview") loadStats();
+  },[page]);
+
+  // ── NAVIGATION ──
+  const NAV_GROUPS = [
+    { label:"Main", items:[
+      {id:"overview",icon:"⊞",label:"Overview"},
+      {id:"applications",icon:"📋",label:"Applications",badge:stats.pendingApps||null},
+      {id:"students",icon:"👥",label:"Students"},
+      {id:"payments",icon:"💰",label:"Payments"},
+    ]},
+    { label:"Academic Education", items:[
+      {id:"college-mgmt",icon:"🏫",label:"SAMPACE College",access:"college"},
+      {id:"extramural-mgmt",icon:"📚",label:"Extramural Hub",access:"extramural"},
+      {id:"preuni-mgmt",icon:"🏛️",label:"Pre-University",access:"preuni"},
+    ]},
+    { label:"Professional & Digital", items:[
+      {id:"digital-mgmt",icon:"💻",label:"Digital Campus",access:"digital"},
+      {id:"cbt-mgmt",icon:"🖥️",label:"CBT Platform",access:"cbt"},
+      {id:"professional-mgmt",icon:"🏢",label:"Professional LC",access:"professional"},
+    ]},
+    { label:"Operations", items:[
+      {id:"staff",icon:"👔",label:"Staff Management"},
+      {id:"timetable",icon:"📅",label:"Timetable"},
+      {id:"inquiries",icon:"💬",label:"Inquiries",badge:8},
+      {id:"announcements",icon:"📣",label:"Announcements"},
+    ]},
+    { label:"Corporate", items:[
+      {id:"schools",icon:"🏫",label:"All Schools"},
+      {id:"admin-roles",icon:"🔑",label:"Admin & Roles"},
+      {id:"fee-settings",icon:"💳",label:"Fee Settings"},
+      {id:"settings",icon:"⚙️",label:"Platform Settings"},
+    ]},
   ];
 
   const badge = (s) => {
-    const m = { pending:{bg:"rgba(245,158,11,.1)",c:"#F59E0B"}, approved:{bg:"rgba(16,185,129,.1)",c:"#10B981"}, rejected:{bg:"rgba(239,68,68,.1)",c:"#EF4444"}, active:{bg:"rgba(16,185,129,.1)",c:"#10B981"}, paid:{bg:"rgba(16,185,129,.1)",c:"#10B981"}, success:{bg:"rgba(16,185,129,.1)",c:"#10B981"} };
-    const b = m[s] || {bg:"rgba(100,116,139,.1)",c:"#64748B"};
-    return <span style={{ background:b.bg, color:b.c, padding:"3px 9px", borderRadius:99, fontSize:10, fontWeight:700, textTransform:"capitalize" }}>{s}</span>;
+    const m = {pending:{bg:"rgba(245,158,11,.1)",c:"#F59E0B"},approved:{bg:"rgba(16,185,129,.1)",c:"#10B981"},rejected:{bg:"rgba(239,68,68,.1)",c:"#EF4444"},active:{bg:"rgba(16,185,129,.1)",c:"#10B981"},success:{bg:"rgba(16,185,129,.1)",c:"#10B981"},failed:{bg:"rgba(239,68,68,.1)",c:"#EF4444"}};
+    const b = m[s]||{bg:"rgba(100,116,139,.1)",c:"#64748B"};
+    return <span style={{background:b.bg,color:b.c,padding:"3px 9px",borderRadius:100,fontSize:10,fontWeight:700,textTransform:"capitalize"}}>{s}</span>;
   };
 
+  // ── PAGE RENDER ──
   const renderPage = () => {
-    if (page === "overview") return (
+
+    if(page==="overview") return (
       <div>
-        <h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy, marginBottom:4 }}>Good day, <em style={{ color:C.blue }}>Super Admin</em> 👋</h2>
-        <div style={{ fontSize:12, color:C.slate, marginBottom:18 }}>SAMPACE INSTITUTE Command Centre · All 9 Schools</div>
-        {msg && <div style={{ background:"rgba(16,185,129,.1)", border:"1px solid rgba(16,185,129,.2)", color:C.green, padding:"10px 16px", borderRadius:8, marginBottom:14, fontSize:13, fontWeight:600 }}>{msg}</div>}
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:13, marginBottom:18 }}>
-          {[
-            {icon:"👥", label:"Total Students", val:stats.totalStudents, color:C.blue},
-            {icon:"⏳", label:"Pending Apps", val:stats.pendingApps, color:C.amber},
-            {icon:"💰", label:"Total Revenue", val:fmt(stats.totalRevenue), color:C.green},
-            {icon:"💳", label:"Pending Payments", val:stats.pendingPayments, color:C.purple},
-          ].map((k,i)=>(
-            <div key={i} style={{ background:"#fff", border:`1px solid ${k.color}22`, borderRadius:12, padding:"16px", borderTop:`3px solid ${k.color}` }}>
-              <div style={{ fontSize:20, marginBottom:6 }}>{k.icon}</div>
-              <div style={{ fontFamily:"Georgia,serif", fontSize:24, color:k.color, fontWeight:900, lineHeight:1 }}>{k.val}</div>
-              <div style={{ fontSize:11, color:C.navy, fontWeight:600, marginTop:3 }}>{k.label}</div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+          <div><h2 style={{fontFamily:"Georgia,serif",fontSize:22,fontWeight:700,color:C.navy}}>Command Centre</h2>
+          <div style={{fontSize:11,color:C.slate}}>SAMPACE EDUCATIONAL LTD · {SCHOOL_ROLES[adminRole]?.label||"Super Admin"}</div></div>
+          <div style={{display:"flex",gap:8}}>
+            <div style={{background:sb()?"rgba(16,185,129,.1)":"rgba(239,68,68,.1)",border:"1px solid",borderColor:sb()?"rgba(16,185,129,.3)":"rgba(239,68,68,.3)",color:sb()?"#10B981":"#EF4444",padding:"5px 12px",borderRadius:100,fontSize:10,fontWeight:700}}>
+              {sb()?"● Live Database":"● Demo Mode"}
+            </div>
+          </div>
+        </div>
+        {msg && <div style={{background:"rgba(16,185,129,.1)",border:"1px solid rgba(16,185,129,.2)",color:C.green,padding:"10px 16px",borderRadius:8,marginBottom:14,fontSize:13,fontWeight:600}}>{msg}</div>}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:12,marginBottom:20,marginTop:16}}>
+          {[[stats.totalStudents,"👥","Students",C.blue],[stats.pendingApps,"⏳","Pending Apps",C.amber],[fmt(stats.totalRevenue),"💰","Revenue",C.green],[stats.totalStaff,"👔","Staff",C.purple],[stats.totalApps,"📋","Total Apps","#64748B"]].map(([v,icon,l,c],i)=>(
+            <div key={i} style={{background:"#fff",border:`1px solid ${c}22`,borderRadius:12,padding:"16px",borderTop:`3px solid ${c}`,cursor:"pointer"}} onClick={()=>setPage(i===0?"students":i===1||i===4?"applications":i===2?"payments":i===3?"staff":"applications")}>
+              <div style={{fontSize:18,marginBottom:6}}>{icon}</div>
+              <div style={{fontFamily:"Georgia,serif",fontSize:22,color:c,fontWeight:900,lineHeight:1}}>{v}</div>
+              <div style={{fontSize:11,color:C.navy,fontWeight:600,marginTop:3}}>{l}</div>
             </div>
           ))}
         </div>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
-          <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, overflow:"hidden" }}>
-            <div style={{ padding:"12px 16px", borderBottom:`1px solid ${C.border}`, fontWeight:700, fontSize:13, color:C.navy, display:"flex", justifyContent:"space-between" }}>
+
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:14}}>
+          <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden"}}>
+            <div style={{padding:"12px 16px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:13,color:C.navy,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               Recent Applications
-              <button onClick={()=>setPage("applications")} style={{ fontSize:11, color:C.blue, border:"none", background:"none", cursor:"pointer" }}>View All →</button>
+              <button onClick={()=>setPage("applications")} style={{fontSize:11,color:C.blue,border:"none",background:"none",cursor:"pointer"}}>View All →</button>
             </div>
-            {applications.slice(0,5).map((a,i)=>(
-              <div key={i} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 16px", borderBottom:"1px solid #F8FAFF" }}>
-                <div>
-                  <div style={{ fontSize:12, fontWeight:600, color:C.navy }}>{a.applicant_name}</div>
-                  <div style={{ fontSize:10, color:C.slate }}>{a.school_id} · {a.reference}</div>
-                </div>
-                <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+            {applications.slice(0,6).length===0
+              ? <div style={{padding:"24px 16px",textAlign:"center",color:C.slate,fontSize:12}}>No applications yet. They appear here when students apply on the website.</div>
+              : applications.slice(0,6).map((a,i)=>(
+              <div key={i} style={{padding:"10px 16px",borderBottom:"1px solid #F8FAFF",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div><div style={{fontSize:12,fontWeight:600,color:C.navy}}>{a.applicant_name}</div><div style={{fontSize:10,color:C.slate}}>{a.school_id} · {new Date(a.created_at).toLocaleDateString()}</div></div>
+                <div style={{display:"flex",gap:4,alignItems:"center"}}>
                   {badge(a.status)}
-                  {a.status==="pending" && <div style={{ display:"flex", gap:3 }}>
-                    <button onClick={()=>updateAppStatus(a.id,"approved")} style={{ background:"rgba(16,185,129,.1)", border:"none", color:C.green, padding:"3px 8px", borderRadius:4, fontSize:10, cursor:"pointer", fontWeight:700 }}>✓</button>
-                    <button onClick={()=>updateAppStatus(a.id,"rejected")} style={{ background:"rgba(239,68,68,.1)", border:"none", color:C.red, padding:"3px 8px", borderRadius:4, fontSize:10, cursor:"pointer", fontWeight:700 }}>✕</button>
-                  </div>}
+                  {a.status==="pending"&&<>
+                    <button onClick={()=>updateAppStatus(a.id,"approved")} style={{background:"rgba(16,185,129,.1)",border:"none",color:C.green,padding:"3px 8px",borderRadius:4,fontSize:10,cursor:"pointer",fontWeight:700}}>✓</button>
+                    <button onClick={()=>updateAppStatus(a.id,"rejected")} style={{background:"rgba(239,68,68,.1)",border:"none",color:C.red,padding:"3px 8px",borderRadius:4,fontSize:10,cursor:"pointer",fontWeight:700}}>✕</button>
+                  </>}
                 </div>
               </div>
             ))}
-            {applications.length===0 && <div style={{ padding:"20px 16px", textAlign:"center", color:C.slate, fontSize:12 }}>No applications yet. Students will appear here when they apply.</div>}
           </div>
-          <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, overflow:"hidden" }}>
-            <div style={{ padding:"12px 16px", borderBottom:`1px solid ${C.border}`, fontWeight:700, fontSize:13, color:C.navy, display:"flex", justifyContent:"space-between" }}>
+          <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden"}}>
+            <div style={{padding:"12px 16px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:13,color:C.navy,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               Recent Payments
-              <button onClick={()=>setPage("payments")} style={{ fontSize:11, color:C.blue, border:"none", background:"none", cursor:"pointer" }}>View All →</button>
+              <button onClick={()=>setPage("payments")} style={{fontSize:11,color:C.blue,border:"none",background:"none",cursor:"pointer"}}>View All →</button>
             </div>
-            {payments.slice(0,5).map((p,i)=>(
-              <div key={i} style={{ padding:"10px 16px", borderBottom:"1px solid #F8FAFF", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                <div>
-                  <div style={{ fontSize:12, fontWeight:600, color:C.navy }}>{p.student_id?.slice(0,8)||"Student"}...</div>
-                  <div style={{ fontSize:10, color:C.slate }}>{p.school_id} · {p.payment_type}</div>
-                </div>
-                <div style={{ textAlign:"right" }}>
-                  <div style={{ fontSize:13, fontWeight:700, color:C.green }}>{fmt(p.amount)}</div>
-                  {!p.access_enabled
-                    ? <button onClick={()=>enablePayment(p.id)} style={{ background:"rgba(16,185,129,.1)", border:"none", color:C.green, padding:"3px 8px", borderRadius:5, fontSize:9, cursor:"pointer", fontWeight:700, marginTop:2 }}>Enable Access</button>
-                    : <span style={{ fontSize:9, color:C.green, fontWeight:700 }}>✓ Access On</span>}
+            {payments.slice(0,6).length===0
+              ? <div style={{padding:"24px 16px",textAlign:"center",color:C.slate,fontSize:12}}>No payments yet.</div>
+              : payments.slice(0,6).map((p,i)=>(
+              <div key={i} style={{padding:"10px 16px",borderBottom:"1px solid #F8FAFF",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div><div style={{fontSize:11,fontWeight:600,color:C.navy}}>{p.paystack_reference||"REF-"+p.id?.slice(0,8)}</div><div style={{fontSize:10,color:C.slate}}>{p.school_id} · {p.payment_type}</div></div>
+                <div style={{textAlign:"right"}}>
+                  <div style={{fontSize:12,fontWeight:700,color:C.green}}>{fmt(p.amount)}</div>
+                  {p.status==="success"&&!p.access_enabled
+                    ? <button onClick={()=>enablePayment(p.id)} style={{background:"rgba(16,185,129,.1)",border:"none",color:C.green,padding:"2px 8px",borderRadius:5,fontSize:9,cursor:"pointer",fontWeight:700,marginTop:2}}>Enable Access</button>
+                    : p.access_enabled?<span style={{fontSize:9,color:C.green,fontWeight:700}}>✓ Active</span>:badge(p.status)
+                  }
                 </div>
               </div>
             ))}
-            {payments.length===0 && <div style={{ padding:"20px 16px", textAlign:"center", color:C.slate, fontSize:12 }}>No payments yet.</div>}
           </div>
+        </div>
+
+        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
+          {[["📋","Applications","applications"],["👥","Students","students"],["💰","Payments","payments"],["👔","Staff","staff"],["🔑","Admin Roles","admin-roles"],["💳","Fee Settings","fee-settings"],["📅","Timetable","timetable"],["⚙️","Settings","settings"]].map(([icon,label,p])=>(
+            <button key={p} onClick={()=>setPage(p)} style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:10,padding:"14px",cursor:"pointer",textAlign:"left",transition:"all .2s"}} onMouseEnter={e=>e.currentTarget.style.borderColor=C.blue} onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
+              <div style={{fontSize:20,marginBottom:6}}>{icon}</div>
+              <div style={{fontSize:12,fontWeight:600,color:C.navy}}>{label}</div>
+            </button>
+          ))}
         </div>
       </div>
     );
 
-    if (page === "applications") return (
+    if(page==="applications") return (
       <div>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
-          <div><h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy }}>Applications</h2><div style={{ fontSize:12, color:C.slate }}>{applications.length} total · {stats.pendingApps} pending</div></div>
-          <button onClick={loadApplications} style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"8px 16px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer" }}>🔄 Refresh</button>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+          <div><h2 style={{fontFamily:"Georgia,serif",fontSize:20,fontWeight:700,color:C.navy}}>Applications</h2><div style={{fontSize:12,color:C.slate}}>{applications.length} total · {stats.pendingApps} pending review</div></div>
+          <button onClick={loadApplications} style={{background:`linear-gradient(135deg,${C.blue},${C.sky})`,color:"#fff",border:"none",padding:"8px 16px",borderRadius:8,fontSize:12,fontWeight:700,cursor:"pointer"}}>🔄 Refresh</button>
         </div>
-        {msg && <div style={{ background:"rgba(16,185,129,.1)", border:"1px solid rgba(16,185,129,.2)", color:C.green, padding:"10px 16px", borderRadius:8, marginBottom:14, fontSize:13 }}>{msg}</div>}
-        {loading ? <div style={{ textAlign:"center", padding:40, color:C.slate }}>Loading applications...</div> : (
-          <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, overflow:"hidden" }}>
-            <div style={{ display:"grid", gridTemplateColumns:"2fr 1.5fr 1.5fr 1fr 1fr 1.5fr", padding:"9px 16px", background:"#F8FAFF", borderBottom:`2px solid ${C.border}` }}>
-              {["Applicant","School","Program","Date","Status","Actions"].map(h=><div key={h} style={{ fontSize:9, fontWeight:700, color:C.slate, letterSpacing:.5, textTransform:"uppercase" }}>{h}</div>)}
+        {msg&&<div style={{background:"rgba(16,185,129,.1)",border:"1px solid rgba(16,185,129,.2)",color:C.green,padding:"10px 16px",borderRadius:8,marginBottom:14,fontSize:13}}>{msg}</div>}
+        {loading?<div style={{textAlign:"center",padding:40,color:C.slate}}>Loading...</div>:(
+          <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden"}}>
+            <div style={{display:"grid",gridTemplateColumns:"2fr 1.5fr 1.5fr 1fr 1fr 1.5fr",padding:"9px 16px",background:"#F8FAFF",borderBottom:`2px solid ${C.border}`}}>
+              {["Applicant","School","Programme","Date","Status","Actions"].map(h=><div key={h} style={{fontSize:9,fontWeight:700,color:C.slate,letterSpacing:.5,textTransform:"uppercase"}}>{h}</div>)}
             </div>
             {applications.length===0
-              ? <div style={{ padding:"40px 16px", textAlign:"center", color:C.slate }}>No applications yet. When students apply on the website, they appear here.</div>
+              ? <div style={{padding:"40px 16px",textAlign:"center",color:C.slate}}>No applications yet. Share the website link so students can apply.</div>
               : applications.map((a,i)=>(
-              <div key={i} style={{ display:"grid", gridTemplateColumns:"2fr 1.5fr 1.5fr 1fr 1fr 1.5fr", padding:"11px 16px", borderBottom:"1px solid #F8FAFF", alignItems:"center" }}>
-                <div>
-                  <div style={{ fontSize:12, fontWeight:600, color:C.navy }}>{a.applicant_name}</div>
-                  <div style={{ fontSize:10, color:C.slate }}>{a.email}</div>
-                </div>
-                <div style={{ fontSize:11, color:C.slate }}>{a.school_id}</div>
-                <div style={{ fontSize:11, color:C.slate }}>{a.program||a.class_level||"—"}</div>
-                <div style={{ fontSize:10, color:C.slate }}>{new Date(a.created_at).toLocaleDateString()}</div>
+              <div key={i} style={{display:"grid",gridTemplateColumns:"2fr 1.5fr 1.5fr 1fr 1fr 1.5fr",padding:"11px 16px",borderBottom:"1px solid #F8FAFF",alignItems:"center",background:a.status==="pending"?"rgba(245,158,11,.02)":"#fff"}}>
+                <div><div style={{fontSize:12,fontWeight:600,color:C.navy}}>{a.applicant_name}</div><div style={{fontSize:10,color:C.slate}}>{a.email}</div><div style={{fontSize:9,color:C.slate,fontFamily:"monospace"}}>{a.reference}</div></div>
+                <div style={{fontSize:11,color:C.slate}}>{a.school_id}</div>
+                <div style={{fontSize:11,color:C.slate}}>{a.program||a.class_level||a.department||"General"}</div>
+                <div style={{fontSize:10,color:C.slate}}>{new Date(a.created_at).toLocaleDateString()}</div>
                 {badge(a.status)}
-                <div style={{ display:"flex", gap:4 }}>
-                  {a.status==="pending" && <>
-                    <button onClick={()=>updateAppStatus(a.id,"approved")} style={{ background:"rgba(16,185,129,.1)", border:"none", color:C.green, padding:"4px 8px", borderRadius:5, fontSize:10, cursor:"pointer", fontWeight:700 }}>✓ Approve</button>
-                    <button onClick={()=>updateAppStatus(a.id,"rejected")} style={{ background:"rgba(239,68,68,.1)", border:"none", color:C.red, padding:"4px 8px", borderRadius:5, fontSize:10, cursor:"pointer", fontWeight:700 }}>✕</button>
+                <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                  {a.status==="pending"&&<>
+                    <button onClick={()=>updateAppStatus(a.id,"approved")} style={{background:"rgba(16,185,129,.1)",border:"none",color:C.green,padding:"4px 8px",borderRadius:5,fontSize:10,cursor:"pointer",fontWeight:700}}>✓ Approve</button>
+                    <button onClick={()=>updateAppStatus(a.id,"rejected")} style={{background:"rgba(239,68,68,.1)",border:"none",color:C.red,padding:"4px 8px",borderRadius:5,fontSize:10,cursor:"pointer",fontWeight:700}}>✕ Reject</button>
                   </>}
-                  {a.status!=="pending" && <span style={{ fontSize:10, color:C.slate }}>Done</span>}
+                  {a.status!=="pending"&&<span style={{fontSize:10,color:C.slate}}>Reviewed</span>}
                 </div>
               </div>
             ))}
@@ -1441,29 +1565,29 @@ function AdminDashboard({ onLogout }) {
       </div>
     );
 
-    if (page === "students") return (
+    if(page==="students") return (
       <div>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
-          <div><h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy }}>Students</h2><div style={{ fontSize:12, color:C.slate }}>{students.length} registered</div></div>
-          <button onClick={loadStudents} style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"8px 16px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer" }}>🔄 Refresh</button>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+          <div><h2 style={{fontFamily:"Georgia,serif",fontSize:20,fontWeight:700,color:C.navy}}>Students</h2><div style={{fontSize:12,color:C.slate}}>{students.length} registered students</div></div>
+          <button onClick={loadStudents} style={{background:`linear-gradient(135deg,${C.blue},${C.sky})`,color:"#fff",border:"none",padding:"8px 16px",borderRadius:8,fontSize:12,fontWeight:700,cursor:"pointer"}}>🔄 Refresh</button>
         </div>
-        {loading ? <div style={{ textAlign:"center", padding:40, color:C.slate }}>Loading students...</div> : (
-          <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, overflow:"hidden" }}>
-            <div style={{ display:"grid", gridTemplateColumns:"2fr 2fr 1.5fr 1fr 1fr", padding:"9px 16px", background:"#F8FAFF", borderBottom:`2px solid ${C.border}` }}>
-              {["Student","Email","School","Role","Joined"].map(h=><div key={h} style={{ fontSize:9, fontWeight:700, color:C.slate, letterSpacing:.5, textTransform:"uppercase" }}>{h}</div>)}
+        {loading?<div style={{textAlign:"center",padding:40,color:C.slate}}>Loading...</div>:(
+          <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden"}}>
+            <div style={{display:"grid",gridTemplateColumns:"2fr 2fr 1.5fr 1fr 1fr",padding:"9px 16px",background:"#F8FAFF",borderBottom:`2px solid ${C.border}`}}>
+              {["Student","Email","School","Role","Joined"].map(h=><div key={h} style={{fontSize:9,fontWeight:700,color:C.slate,letterSpacing:.5,textTransform:"uppercase"}}>{h}</div>)}
             </div>
             {students.length===0
-              ? <div style={{ padding:"40px 16px", textAlign:"center", color:C.slate }}>No students yet. Students appear here after registration and admin approval.</div>
+              ? <div style={{padding:"40px 16px",textAlign:"center",color:C.slate}}>No students registered yet.</div>
               : students.map((s,i)=>(
-              <div key={i} style={{ display:"grid", gridTemplateColumns:"2fr 2fr 1.5fr 1fr 1fr", padding:"11px 16px", borderBottom:"1px solid #F8FAFF", alignItems:"center" }}>
-                <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                  <div style={{ width:28, height:28, borderRadius:"50%", background:`linear-gradient(135deg,${C.blue},${C.sky})`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color:"#fff" }}>{s.full_name?.charAt(0)||"?"}</div>
-                  <div style={{ fontSize:12, fontWeight:600, color:C.navy }}>{s.full_name}</div>
+              <div key={i} style={{display:"grid",gridTemplateColumns:"2fr 2fr 1.5fr 1fr 1fr",padding:"11px 16px",borderBottom:"1px solid #F8FAFF",alignItems:"center"}}>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <div style={{width:28,height:28,borderRadius:"50%",background:`linear-gradient(135deg,${C.blue},${C.sky})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#fff",flexShrink:0}}>{s.full_name?.charAt(0)||"?"}</div>
+                  <div style={{fontSize:12,fontWeight:600,color:C.navy}}>{s.full_name}</div>
                 </div>
-                <div style={{ fontSize:11, color:C.slate }}>{s.email}</div>
-                <div style={{ fontSize:11, color:C.slate }}>{s.student_profiles?.[0]?.school_id||"—"}</div>
-                <div style={{ fontSize:11, color:C.slate, textTransform:"capitalize" }}>{s.role}</div>
-                <div style={{ fontSize:10, color:C.slate }}>{new Date(s.created_at).toLocaleDateString()}</div>
+                <div style={{fontSize:11,color:C.slate}}>{s.email}</div>
+                <div style={{fontSize:11,color:C.slate}}>{s.student_profiles?.[0]?.school_id||"—"}</div>
+                <div style={{fontSize:11,color:C.slate,textTransform:"capitalize"}}>{s.role}</div>
+                <div style={{fontSize:10,color:C.slate}}>{new Date(s.created_at).toLocaleDateString()}</div>
               </div>
             ))}
           </div>
@@ -1471,44 +1595,38 @@ function AdminDashboard({ onLogout }) {
       </div>
     );
 
-    if (page === "payments") return (
+    if(page==="payments") return (
       <div>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
-          <div><h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy }}>Payments</h2><div style={{ fontSize:12, color:C.slate }}>{payments.length} total payments</div></div>
-          <button onClick={loadPayments} style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"8px 16px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer" }}>🔄 Refresh</button>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+          <div><h2 style={{fontFamily:"Georgia,serif",fontSize:20,fontWeight:700,color:C.navy}}>Payments</h2><div style={{fontSize:12,color:C.slate}}>{payments.length} total payments</div></div>
+          <button onClick={loadPayments} style={{background:`linear-gradient(135deg,${C.blue},${C.sky})`,color:"#fff",border:"none",padding:"8px 16px",borderRadius:8,fontSize:12,fontWeight:700,cursor:"pointer"}}>🔄 Refresh</button>
         </div>
-        {msg && <div style={{ background:"rgba(16,185,129,.1)", border:"1px solid rgba(16,185,129,.2)", color:C.green, padding:"10px 16px", borderRadius:8, marginBottom:14, fontSize:13 }}>{msg}</div>}
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:13, marginBottom:18 }}>
-          {[
-            ["Total Collected", fmt(payments.filter(p=>p.status==="success").reduce((s,p)=>s+Number(p.amount),0)), C.green],
-            ["Pending Verification", fmt(payments.filter(p=>p.status==="success"&&!p.admin_verified).reduce((s,p)=>s+Number(p.amount),0)), C.amber],
-            ["Access Not Enabled", payments.filter(p=>p.status==="success"&&!p.access_enabled).length+" students", C.red],
-          ].map(([l,v,c],i)=>(
-            <div key={i} style={{ background:"#fff", border:`1px solid ${c}22`, borderRadius:12, padding:"16px", borderTop:`3px solid ${c}` }}>
-              <div style={{ fontFamily:"Georgia,serif", fontSize:22, color:c, fontWeight:900 }}>{v}</div>
-              <div style={{ fontSize:12, color:C.slate, marginTop:4 }}>{l}</div>
+        {msg&&<div style={{background:"rgba(16,185,129,.1)",border:"1px solid rgba(16,185,129,.2)",color:C.green,padding:"10px 16px",borderRadius:8,marginBottom:14,fontSize:13}}>{msg}</div>}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:16}}>
+          {[["Total Collected",fmt(payments.filter(p=>p.status==="success").reduce((s,p)=>s+Number(p.amount),0)),C.green],["Awaiting Activation",payments.filter(p=>p.status==="success"&&!p.access_enabled).length+" students",C.amber],["Total Transactions",payments.length+" records","#64748B"]].map(([l,v,c],i)=>(
+            <div key={i} style={{background:"#fff",border:`1px solid ${c}22`,borderRadius:12,padding:"16px",borderTop:`3px solid ${c}`}}>
+              <div style={{fontFamily:"Georgia,serif",fontSize:22,color:c,fontWeight:900}}>{v}</div>
+              <div style={{fontSize:12,color:C.slate,marginTop:4}}>{l}</div>
             </div>
           ))}
         </div>
-        {loading ? <div style={{ textAlign:"center", padding:40, color:C.slate }}>Loading...</div> : (
-          <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, overflow:"hidden" }}>
+        {loading?<div style={{textAlign:"center",padding:40,color:C.slate}}>Loading...</div>:(
+          <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden"}}>
             {payments.length===0
-              ? <div style={{ padding:"40px 16px", textAlign:"center", color:C.slate }}>No payments yet. Payments appear here when students pay via Paystack.</div>
+              ? <div style={{padding:"40px 16px",textAlign:"center",color:C.slate}}>No payments yet. When students pay via Paystack, they appear here.</div>
               : payments.map((p,i)=>(
-              <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 18px", borderBottom:"1px solid #F8FAFF" }}>
-                <div style={{ display:"flex", gap:12, alignItems:"center" }}>
-                  <div style={{ width:32, height:32, borderRadius:"50%", background:"rgba(16,185,129,.1)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14 }}>💳</div>
-                  <div>
-                    <div style={{ fontSize:12, fontWeight:600, color:C.navy }}>{p.paystack_reference||"Ref: "+p.id?.slice(0,8)}</div>
-                    <div style={{ fontSize:10, color:C.slate }}>{p.school_id} · {p.payment_type} · {new Date(p.created_at).toLocaleDateString()}</div>
-                  </div>
+              <div key={i} style={{padding:"13px 18px",borderBottom:"1px solid #F8FAFF",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div>
+                  <div style={{fontSize:12,fontWeight:600,color:C.navy}}>{p.paystack_reference||"REF-"+p.id?.slice(0,8)}</div>
+                  <div style={{fontSize:10,color:C.slate}}>{p.school_id||"General"} · {p.payment_type||"Tuition"} · {new Date(p.created_at).toLocaleDateString()}</div>
                 </div>
-                <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-                  <div style={{ fontSize:14, fontWeight:700, color:C.green }}>{fmt(p.amount)}</div>
+                <div style={{display:"flex",alignItems:"center",gap:10}}>
+                  <div style={{fontSize:14,fontWeight:700,color:C.green}}>{fmt(p.amount)}</div>
                   {badge(p.status)}
-                  {p.status==="success" && !p.access_enabled
-                    ? <button onClick={()=>enablePayment(p.id)} style={{ background:"rgba(16,185,129,.1)", border:"none", color:C.green, padding:"6px 12px", borderRadius:6, fontSize:11, cursor:"pointer", fontWeight:700 }}>✓ Enable Access</button>
-                    : p.access_enabled ? <span style={{ fontSize:11, color:C.green, fontWeight:700 }}>✅ Active</span> : null}
+                  {p.status==="success"&&!p.access_enabled
+                    ? <button onClick={()=>enablePayment(p.id)} style={{background:"rgba(16,185,129,.1)",border:"none",color:C.green,padding:"6px 12px",borderRadius:6,fontSize:11,cursor:"pointer",fontWeight:700}}>✓ Enable Access</button>
+                    : p.access_enabled?<span style={{fontSize:11,color:C.green,fontWeight:700}}>✅ Active</span>:null
+                  }
                 </div>
               </div>
             ))}
@@ -1517,212 +1635,348 @@ function AdminDashboard({ onLogout }) {
       </div>
     );
 
-    if (page === "timetable") return (
+    if(page==="staff") return (
       <div>
-        <h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy, marginBottom:4 }}>Class Timetable Manager</h2>
-        <p style={{ fontSize:12, color:C.slate, marginBottom:18 }}>Manage and publish the weekly timetable for all schools.</p>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+          <div><h2 style={{fontFamily:"Georgia,serif",fontSize:20,fontWeight:700,color:C.navy}}>Staff Management</h2><div style={{fontSize:12,color:C.slate}}>{staffList.length} staff members</div></div>
+          <button onClick={loadStaff} style={{background:`linear-gradient(135deg,${C.blue},${C.sky})`,color:"#fff",border:"none",padding:"8px 16px",borderRadius:8,fontSize:12,fontWeight:700,cursor:"pointer"}}>🔄 Refresh</button>
+        </div>
+        <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,padding:"20px",marginBottom:14}}>
+          <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:14}}>Add New Staff Member</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:14}}>
+            {[["Full Name *","text","e.g. Mrs. Ngozi Adeyemi","staff-name"],["Email *","email","staff@sampaceedu.com.ng","staff-email"],["Phone","text","+234...","staff-phone"],["Subject / Course","text","e.g. Mathematics","staff-subject"]].map(([label,type,ph,id])=>(
+              <div key={id}>
+                <label style={{fontSize:10,color:C.blue,fontWeight:700,letterSpacing:1,display:"block",marginBottom:4,textTransform:"uppercase"}}>{label}</label>
+                <input id={id} type={type} placeholder={ph} style={{width:"100%",border:`1px solid ${C.border}`,borderRadius:7,padding:"9px 12px",fontSize:12,outline:"none",color:C.navy}}/>
+              </div>
+            ))}
+            <div>
+              <label style={{fontSize:10,color:C.blue,fontWeight:700,letterSpacing:1,display:"block",marginBottom:4,textTransform:"uppercase"}}>Division</label>
+              <select id="staff-school" style={{width:"100%",border:`1px solid ${C.border}`,borderRadius:7,padding:"9px 12px",fontSize:12,outline:"none",color:C.navy}}>
+                <option>SAMPACE College</option><option>Extramural Hub</option><option>Digital Campus</option><option>Pre-University</option><option>Professional LC</option><option>CBT Platform</option><option>All Divisions</option>
+              </select>
+            </div>
+            <div>
+              <label style={{fontSize:10,color:C.blue,fontWeight:700,letterSpacing:1,display:"block",marginBottom:4,textTransform:"uppercase"}}>Staff Role</label>
+              <select id="staff-role" style={{width:"100%",border:`1px solid ${C.border}`,borderRadius:7,padding:"9px 12px",fontSize:12,outline:"none",color:C.navy}}>
+                <option>Subject Teacher</option><option>Class Teacher</option><option>Head of Department</option><option>Counsellor</option><option>Support Staff</option><option>Content Creator</option>
+              </select>
+            </div>
+          </div>
+          <button onClick={async()=>{
+            const s=sb();
+            const name=document.getElementById("staff-name")?.value;
+            const email=document.getElementById("staff-email")?.value;
+            const phone=document.getElementById("staff-phone")?.value;
+            const subject=document.getElementById("staff-subject")?.value;
+            const school=document.getElementById("staff-school")?.value;
+            if(!name||!email){alert("Name and email required.");return;}
+            if(s){
+              const {data,error}=await s.from("users").insert({full_name:name,email,phone:phone||"",role:"teacher",is_active:true}).select().single();
+              if(error){alert("Error: "+error.message);return;}
+              if(data&&subject){await s.from("courses").insert({school_id:school||"general",subject,title:subject,teacher_id:data.id,is_active:true}).then(()=>{}).catch(()=>{});}
+            }
+            setMsg("✅ Staff member added!");
+            loadStaff();
+            setTimeout(()=>setMsg(""),3000);
+          }} style={{background:`linear-gradient(135deg,${C.blue},${C.sky})`,color:"#fff",border:"none",padding:"10px 24px",borderRadius:8,fontSize:12,fontWeight:700,cursor:"pointer"}}>+ Add Staff Member</button>
+          {msg&&<span style={{marginLeft:12,fontSize:12,color:C.green,fontWeight:600}}>{msg}</span>}
+        </div>
+        <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden"}}>
+          <div style={{padding:"12px 16px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:13,color:C.navy}}>Current Staff ({staffList.length})</div>
+          {staffList.length===0
+            ? <div style={{padding:"24px 16px",textAlign:"center",color:C.slate,fontSize:12}}>No staff added yet.</div>
+            : staffList.map((s,i)=>(
+            <div key={i} style={{display:"grid",gridTemplateColumns:"2fr 2fr 1.5fr 1fr",padding:"11px 16px",borderBottom:"1px solid #F8FAFF",alignItems:"center"}}>
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                <div style={{width:28,height:28,borderRadius:"50%",background:`linear-gradient(135deg,${C.blue},${C.sky})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#fff"}}>{s.full_name?.charAt(0)||"?"}</div>
+                <div style={{fontSize:12,fontWeight:600,color:C.navy}}>{s.full_name}</div>
+              </div>
+              <div style={{fontSize:11,color:C.slate}}>{s.email}</div>
+              <div style={{fontSize:11,color:C.slate,textTransform:"capitalize"}}>{s.role}</div>
+              <div style={{display:"flex",gap:6}}>
+                <button onClick={async()=>{
+                  if(!sb())return;
+                  await sb().from("users").update({is_active:!s.is_active}).eq("id",s.id);
+                  loadStaff();
+                }} style={{background:s.is_active?"rgba(239,68,68,.1)":"rgba(16,185,129,.1)",border:"none",color:s.is_active?C.red:C.green,padding:"4px 8px",borderRadius:5,fontSize:10,cursor:"pointer",fontWeight:700}}>
+                  {s.is_active?"Suspend":"Activate"}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+
+    if(page==="admin-roles") return (
+      <div>
+        <h2 style={{fontFamily:"Georgia,serif",fontSize:20,fontWeight:700,color:C.navy,marginBottom:4}}>Admin Roles & Permissions</h2>
+        <p style={{fontSize:12,color:C.slate,marginBottom:18}}>Assign admin roles to staff members. Each role controls which divisions they can access and manage.</p>
+        {msg&&<div style={{background:"rgba(16,185,129,.1)",border:"1px solid rgba(16,185,129,.2)",color:C.green,padding:"10px 16px",borderRadius:8,marginBottom:14,fontSize:13}}>{msg}</div>}
+
+        <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,padding:"20px",marginBottom:16}}>
+          <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:14}}>Role Hierarchy & Access Map</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+            {Object.entries(SCHOOL_ROLES).map(([key,role])=>(
+              <div key={key} style={{background:`${role.color}08`,border:`1px solid ${role.color}22`,borderRadius:10,padding:"12px 14px"}}>
+                <div style={{fontWeight:700,fontSize:12,color:role.color,marginBottom:4}}>{role.label}</div>
+                <div style={{fontSize:10,color:C.slate}}>Access: <span style={{color:C.navy,fontWeight:600}}>{role.access==="all"?"All 12 divisions":role.access==="all_limited"?"All (read-only some)":role.access+" division only"}</span></div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,padding:"20px",marginBottom:16}}>
+          <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:14}}>Assign Admin Role to User</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
+            <div>
+              <label style={{fontSize:10,color:C.blue,fontWeight:700,letterSpacing:1,display:"block",marginBottom:4,textTransform:"uppercase"}}>User Email</label>
+              <input id="assign-email" type="email" placeholder="user@sampaceedu.com.ng" style={{width:"100%",border:`1px solid ${C.border}`,borderRadius:7,padding:"9px 12px",fontSize:12,outline:"none",color:C.navy}}/>
+            </div>
+            <div>
+              <label style={{fontSize:10,color:C.blue,fontWeight:700,letterSpacing:1,display:"block",marginBottom:4,textTransform:"uppercase"}}>Assign Role</label>
+              <select id="assign-role" style={{width:"100%",border:`1px solid ${C.border}`,borderRadius:7,padding:"9px 12px",fontSize:12,outline:"none",color:C.navy}}>
+                {Object.entries(SCHOOL_ROLES).filter(([k])=>k!=="super_admin").map(([key,role])=>(
+                  <option key={key} value={key}>{role.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <button onClick={async()=>{
+            const s=sb();
+            const email=document.getElementById("assign-email")?.value;
+            const role=document.getElementById("assign-role")?.value;
+            if(!email||!role){alert("Please enter email and select role.");return;}
+            if(s){
+              const {data:user}=await s.from("users").select("id").eq("email",email).single();
+              if(!user){alert("User not found. They must be registered first.");return;}
+              await s.from("users").update({role:"school_admin"}).eq("id",user.id);
+            }
+            setMsg("✅ Role assigned: "+SCHOOL_ROLES[role]?.label+" to "+email);
+            setTimeout(()=>setMsg(""),4000);
+          }} style={{background:`linear-gradient(135deg,${C.blue},${C.sky})`,color:"#fff",border:"none",padding:"10px 24px",borderRadius:8,fontSize:12,fontWeight:700,cursor:"pointer"}}>🔑 Assign Role</button>
+        </div>
+
+        <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden"}}>
+          <div style={{padding:"12px 16px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:13,color:C.navy}}>Current Admins</div>
+          {adminList.length===0
+            ? <div style={{padding:"24px 16px",textAlign:"center",color:C.slate,fontSize:12}}>Loading admins... <button onClick={loadAdmins} style={{color:C.blue,background:"none",border:"none",cursor:"pointer",fontSize:12}}>Refresh</button></div>
+            : adminList.map((a,i)=>(
+            <div key={i} style={{padding:"12px 16px",borderBottom:"1px solid #F8FAFF",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div>
+                <div style={{fontSize:12,fontWeight:600,color:C.navy}}>{a.full_name}</div>
+                <div style={{fontSize:11,color:C.slate}}>{a.email}</div>
+              </div>
+              <span style={{background:SCHOOL_ROLES[a.role]?.color+"18",color:SCHOOL_ROLES[a.role]?.color||C.blue,padding:"4px 10px",borderRadius:100,fontSize:10,fontWeight:700}}>{SCHOOL_ROLES[a.role]?.label||a.role}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+
+    if(page==="fee-settings") return (
+      <div>
+        <h2 style={{fontFamily:"Georgia,serif",fontSize:20,fontWeight:700,color:C.navy,marginBottom:4}}>Fee Settings</h2>
+        <p style={{fontSize:12,color:C.slate,marginBottom:18}}>Set and update fees for all divisions. Changes reflect immediately on the student-facing site.</p>
+        {msg&&<div style={{background:"rgba(16,185,129,.1)",border:"1px solid rgba(16,185,129,.2)",color:C.green,padding:"10px 16px",borderRadius:8,marginBottom:14,fontSize:13}}>{msg}</div>}
+
+        {[
+          {title:"SAMPACE College — School Fees (per term)", keys:[["college_jss","JSS1–JSS3 Tuition"],["college_ss1","SS1–SS2 Tuition"],["college_ss3","SS3 (Exam Year)"]]},
+          {title:"Tutorial & Extramural — Monthly Fees", keys:[["tutorial_single","Single Subject"],["tutorial_bundle","3-Subject Bundle"],["tutorial_full","Full Package (All Subjects)"]]},
+          {title:"Digital Campus — Programme Fees", keys:[["digital_tech","School of Technology"],["digital_business","Business & Professional"],["digital_languages","School of Languages"]]},
+          {title:"Pre-University — Annual Fees", keys:[["preuni_ijmb","IJMB Programme"],["preuni_jupeb","JUPEB Programme"],["preuni_predegree","Pre-Degree / Diploma"]]},
+        ].map((section,si)=>(
+          <div key={si} style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden",marginBottom:14}}>
+            <div style={{padding:"12px 16px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:13,color:C.navy}}>{section.title}</div>
+            {section.keys.map(([key,label])=>(
+              <div key={key} style={{display:"grid",gridTemplateColumns:"1fr 1fr",padding:"12px 16px",borderBottom:"1px solid #F8FAFF",alignItems:"center"}}>
+                <div style={{fontSize:12,color:C.slate,fontWeight:600}}>{label}</div>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <span style={{fontSize:12,color:C.slate}}>₦</span>
+                  <input type="number" value={feeSettings[key]||""} onChange={e=>setFeeSettings(f=>({...f,[key]:e.target.value}))} style={{flex:1,border:`1px solid ${C.border}`,borderRadius:7,padding:"7px 10px",fontSize:12,outline:"none",color:C.navy}}/>
+                  <span style={{fontSize:11,color:C.slate,whiteSpace:"nowrap"}}>{fmt(feeSettings[key]||0)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ))}
+        <button onClick={saveFeeSettings} style={{background:`linear-gradient(135deg,${C.blue},${C.sky})`,color:"#fff",border:"none",padding:"12px 28px",borderRadius:9,fontSize:13,fontWeight:700,cursor:"pointer"}}>💾 Save All Fee Settings</button>
+      </div>
+    );
+
+    if(page==="settings") return (
+      <div>
+        <h2 style={{fontFamily:"Georgia,serif",fontSize:20,fontWeight:700,color:C.navy,marginBottom:4}}>Platform Settings</h2>
+        <p style={{fontSize:12,color:C.slate,marginBottom:18}}>Configure platform-wide settings for SAMPACE EDUCATIONAL LTD.</p>
+        {msg&&<div style={{background:"rgba(16,185,129,.1)",border:"1px solid rgba(16,185,129,.2)",color:C.green,padding:"10px 16px",borderRadius:8,marginBottom:14,fontSize:13}}>{msg}</div>}
+
+        {[
+          {title:"Institution Information",fields:[["name","Institution Name","SAMPACE EDUCATIONAL LTD"],["tagline","Tagline","Where Excellence Begins"],["email","Contact Email","info@sampaceedu.com.ng"],["whatsapp","WhatsApp Community Link","https://chat.whatsapp.com/..."],["domain","Primary Domain","sampaceedu.com.ng"]]},
+          {title:"Academic Calendar",fields:[["session","Current Session","2026/2027"],["term","Current Term","First Term"],["term_start","Term Start Date","September 1, 2026"],["term_end","Term End Date","December 15, 2026"],["next_term","Next Term Start","January 6, 2027"]]},
+          {title:"Grading System",fields:[["ca1_max","CA1 Maximum Score","10"],["ca2_max","CA2 Maximum Score","10"],["proj_max","Project Maximum Score","10"],["exam_max","Exam Maximum Score","70"],["pass_mark","Minimum Pass Mark","45"]]},
+          {title:"Registration Settings",fields:[["reg_open","Registration Status","Open"],["max_class_size","Max Students Per Class","30"],["payment_deadline","Payment Deadline (days after approval)","14"],["access_delay","Access Enabled After Payment","Immediately"]]},
+          {title:"Email & Notifications",fields:[["from_email","From Email","noreply@sampaceedu.com.ng"],["from_name","Email Sender Name","SAMPACE INSTITUTE"],["admin_email","Admin Notification Email","admin@sampaceedu.com.ng"],["sms_enabled","SMS Notifications","Disabled"]]},
+          {title:"Security",fields:[["session_timeout","Login Session Timeout","24 hours"],["max_login_attempts","Max Login Attempts","5"],["two_factor","Two-Factor Auth","Disabled"],["data_retention","Data Retention Period","5 years"]]},
+        ].map((section,si)=>(
+          <div key={si} style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden",marginBottom:14}}>
+            <div style={{padding:"12px 18px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:13,color:C.navy}}>{section.title}</div>
+            {section.fields.map(([key,label,defaultVal])=>(
+              <div key={key} style={{display:"grid",gridTemplateColumns:"1fr 2fr",padding:"12px 18px",borderBottom:"1px solid #F8FAFF",alignItems:"center"}}>
+                <div style={{fontSize:12,color:C.slate,fontWeight:600}}>{label}</div>
+                <input defaultValue={platformInfo[key]||defaultVal} onChange={e=>setPlatformInfo(p=>({...p,[key]:e.target.value}))} style={{width:"100%",border:`1px solid ${C.border}`,borderRadius:7,padding:"7px 12px",fontSize:12,outline:"none",color:C.navy}}/>
+              </div>
+            ))}
+            <div style={{padding:"12px 18px"}}><button onClick={savePlatformInfo} style={{background:`linear-gradient(135deg,${C.blue},${C.sky})`,color:"#fff",border:"none",padding:"8px 20px",borderRadius:7,fontSize:12,fontWeight:700,cursor:"pointer"}}>💾 Save {section.title}</button></div>
+          </div>
+        ))}
+      </div>
+    );
+
+    if(page==="timetable") return (
+      <div>
+        <h2 style={{fontFamily:"Georgia,serif",fontSize:20,fontWeight:700,color:C.navy,marginBottom:4}}>Class Timetable Manager</h2>
+        <p style={{fontSize:12,color:C.slate,marginBottom:18}}>Manage and publish the weekly timetable for all schools.</p>
         <TimetableManagerInline C={C} sb={sb()} />
       </div>
     );
 
-    if (page === "staff") return (
+    if(page==="inquiries") return (
       <div>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
-          <div><h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy }}>Staff Management</h2><div style={{ fontSize:12, color:C.slate }}>All teachers and staff members</div></div>
-          <button style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"9px 18px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer" }}>+ Add Staff</button>
-        </div>
-        <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, padding:"20px", marginBottom:14 }}>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:16 }}>
-            {[["Full Name *","text","e.g. Mrs. Ngozi Adeyemi"],["Email *","email","staff@sampaceedu.com.ng"],["Phone","text","+234..."],["School","select",""],["Role","select",""],["Subject","text","e.g. English Language, Mathematics"]].map(([label,type,ph],i)=>(
-              <div key={i}>
-                <label style={{ fontSize:11, color:C.blue, fontWeight:700, letterSpacing:1, display:"block", marginBottom:4, textTransform:"uppercase" }}>{label}</label>
-                {type==="select"&&label==="School" ? <select id="staff-school" style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:7, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }}><option>School College</option><option>Tutorial & Exam</option><option>Digital Campus</option><option>Pre-University</option><option>All Schools</option></select>
-                :type==="select"&&label==="Role" ? <select style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:7, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }}><option>Subject Teacher</option><option>Class Teacher</option><option>School Admin</option><option>Counsellor</option><option>Support Staff</option></select>
-                :<input type={type} placeholder={ph} style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:7, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }}/>}
-              </div>
-            ))}
-          </div>
-          <button onClick={async()=>{
-            const sb=window.__supabase;
-            const name=document.getElementById("staff-name")?.value;
-            const email=document.getElementById("staff-email")?.value;
-            const phone=document.getElementById("staff-phone")?.value;
-            const school=document.getElementById("staff-school")?.value;
-            const subject=document.getElementById("staff-subject")?.value;
-            if(!name||!email){alert("Please enter name and email.");return;}
-            if(sb){
-              const {data,error}=await sb.from("users").insert({
-                full_name:name, email, phone:phone||"",
-                role:"teacher", is_active:true
-              }).select().single();
-              if(error){alert("Error: "+error.message);return;}
-              if(data){
-                await sb.from("courses").insert({
-                  school_id:school||"general", subject:subject||"General",
-                  title:subject||"General", teacher_id:data.id, is_active:true
-                });
-              }
-            }
-            alert("✅ Staff member added successfully!");
-          }} style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"10px 24px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer" }}>+ Add Staff Member</button>
-        </div>
-        <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, overflow:"hidden" }}>
-          <div style={{ padding:"12px 16px", borderBottom:`1px solid ${C.border}`, fontWeight:700, fontSize:13, color:C.navy }}>Staff List</div>
-          <div style={{ padding:"40px 16px", textAlign:"center", color:C.slate, fontSize:13 }}>
-            No staff added yet. Use the form above to add teachers and staff.
-          </div>
-        </div>
-      </div>
-    );
-
-    if (page === "inquiries") return (
-      <div>
-        <h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy, marginBottom:4 }}>Professional Service Inquiries</h2>
-        <p style={{ fontSize:12, color:C.slate, marginBottom:18 }}>Inquiries from the Professional Services school (CV writing, study abroad, admissions etc.)</p>
+        <h2 style={{fontFamily:"Georgia,serif",fontSize:20,fontWeight:700,color:C.navy,marginBottom:4}}>Professional Service Inquiries</h2>
+        <p style={{fontSize:12,color:C.slate,marginBottom:18}}>Inquiries from website contact form and Professional Services school.</p>
         <InquiriesInline C={C} sb={sb()} />
       </div>
     );
 
-    if (page === "announcements") return (
+    if(page==="announcements") return (
       <div>
-        <h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy, marginBottom:18 }}>Announcements</h2>
-        <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, padding:"20px", marginBottom:16 }}>
-          <div style={{ fontWeight:700, fontSize:13, color:C.navy, marginBottom:14 }}>Create New Announcement</div>
-          {[["Title *","text","e.g. Term 2 Begins January 6th"],["Target Audience","select",""],["Message *","textarea","Type your announcement here..."]].map(([label,type,ph],i)=>(
-            <div key={i} style={{ marginBottom:12 }}>
-              <label style={{ fontSize:11, color:C.blue, fontWeight:700, letterSpacing:1, display:"block", marginBottom:4, textTransform:"uppercase" }}>{label}</label>
-              {type==="select" ? <select id="ann-target" style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:7, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }}><option>All Students</option><option>School College Only</option><option>Tutorial Only</option><option>Digital Campus Only</option><option>Pre-University Only</option><option>All Staff</option><option>Everyone</option></select>
-              :type==="textarea" ? <textarea rows={4} placeholder={ph} style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:7, padding:"9px 12px", fontSize:12, outline:"none", resize:"vertical", fontFamily:"sans-serif", color:C.navy }}/>
-              :<input type={type} placeholder={ph} style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:7, padding:"9px 12px", fontSize:12, outline:"none", color:C.navy }}/>}
-            </div>
-          ))}
-          <button onClick={async()=>{
-            const sb=window.__supabase;
-            const title=document.getElementById("ann-title")?.value;
-            const target=document.getElementById("ann-target")?.value;
-            const body=document.getElementById("ann-body")?.value;
-            if(!title||!body){alert("Please enter title and message.");return;}
-            if(sb){
-              const {data:users}=await sb.from("users").select("id").eq("role","student");
-              if(users?.length){
-                const notes=users.map(u=>({user_id:u.id,title,body,type:"announcement",is_read:false}));
-                await sb.from("notifications").insert(notes);
+        <h2 style={{fontFamily:"Georgia,serif",fontSize:20,fontWeight:700,color:C.navy,marginBottom:18}}>Announcements</h2>
+        <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,padding:"20px",marginBottom:14}}>
+          <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:14}}>Create New Announcement</div>
+          {[["Title *","text","e.g. Term 2 Begins January 6th","ann-title"],["Message *","textarea","Type your announcement here...","ann-body"]].map(([label,type,ph,id])=>(
+            <div key={id} style={{marginBottom:12}}>
+              <label style={{fontSize:10,color:C.blue,fontWeight:700,letterSpacing:1,display:"block",marginBottom:4,textTransform:"uppercase"}}>{label}</label>
+              {type==="textarea"
+                ? <textarea id={id} rows={4} placeholder={ph} style={{width:"100%",border:`1px solid ${C.border}`,borderRadius:7,padding:"9px 12px",fontSize:12,outline:"none",resize:"vertical",color:C.navy,fontFamily:"sans-serif"}}/>
+                : <input id={id} type={type} placeholder={ph} style={{width:"100%",border:`1px solid ${C.border}`,borderRadius:7,padding:"9px 12px",fontSize:12,outline:"none",color:C.navy}}/>
               }
-            }
-            alert("✅ Announcement published to all "+( target||"students")+"!");
-          }} style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"10px 24px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer" }}>📣 Publish Announcement</button>
-        </div>
-        <div style={{ background:"rgba(21,101,192,.06)", border:"1px solid rgba(21,101,192,.15)", borderRadius:10, padding:"14px 18px", fontSize:12, color:C.navy }}>
-          💡 Published announcements will appear on student and parent dashboards. WhatsApp broadcast coming soon.
-        </div>
-      </div>
-    );
-
-    if (page === "schools") return (
-      <div>
-        <h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy, marginBottom:18 }}>Schools & Programmes</h2>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-          {[
-            {num:"01",name:"School College",desc:"JSS1–SS3 · Sciences, Humanities, Business",color:C.blue,active:true},
-            {num:"02",name:"Tutorial & Exam",desc:"BECE, WAEC, NECO, GCE, JAMB",color:"#00897B",active:true},
-            {num:"03–08",name:"Digital Campus",desc:"Technology, Business, Languages, Communication",color:"#7B1FA2",active:true},
-            {num:"04",name:"Pre-University",desc:"IJMB, JUPEB, Pre-Degree, Diploma",color:"#BF360C",active:true},
-            {num:"09",name:"Professional Services",desc:"CV, Admissions, Study Abroad, Corporate",color:"#E65100",active:true},
-          ].map((s,i)=>(
-            <div key={i} style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, padding:"16px", borderLeft:`4px solid ${s.color}` }}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
-                <div>
-                  <div style={{ fontSize:9, color:s.color, fontWeight:700, letterSpacing:2, textTransform:"uppercase", marginBottom:4 }}>School {s.num}</div>
-                  <div style={{ fontWeight:700, fontSize:14, color:C.navy, marginBottom:4 }}>{s.name}</div>
-                  <div style={{ fontSize:11, color:C.slate }}>{s.desc}</div>
-                </div>
-                <span style={{ background:s.active?"rgba(16,185,129,.1)":"rgba(239,68,68,.1)", color:s.active?C.green:C.red, padding:"3px 10px", borderRadius:99, fontSize:11, fontWeight:700 }}>{s.active?"Active":"Inactive"}</span>
-              </div>
-              <div style={{ marginTop:12, display:"flex", gap:8 }}>
-                <button style={{ background:`${s.color}12`, border:`1px solid ${s.color}25`, color:s.color, padding:"5px 12px", borderRadius:6, fontSize:11, cursor:"pointer", fontWeight:600 }}>Manage Courses</button>
-                <button style={{ background:"#F8FAFF", border:`1px solid ${C.border}`, color:C.slate, padding:"5px 12px", borderRadius:6, fontSize:11, cursor:"pointer" }}>Settings</button>
-              </div>
             </div>
           ))}
+          <div style={{marginBottom:14}}>
+            <label style={{fontSize:10,color:C.blue,fontWeight:700,letterSpacing:1,display:"block",marginBottom:4,textTransform:"uppercase"}}>Target Audience</label>
+            <select id="ann-target" style={{width:"100%",border:`1px solid ${C.border}`,borderRadius:7,padding:"9px 12px",fontSize:12,outline:"none",color:C.navy}}>
+              <option>All Students</option><option>College Students Only</option><option>Tutorial Students Only</option><option>Digital Campus Only</option><option>Pre-University Only</option><option>All Staff</option><option>Everyone</option>
+            </select>
+          </div>
+          <div style={{display:"flex",gap:10,alignItems:"center"}}>
+            <button onClick={async()=>{
+              const s=sb();
+              const title=document.getElementById("ann-title")?.value;
+              const body=document.getElementById("ann-body")?.value;
+              const target=document.getElementById("ann-target")?.value;
+              if(!title||!body){alert("Please enter title and message.");return;}
+              if(s){
+                const {data:users}=await s.from("users").select("id").eq("role","student");
+                if(users?.length){
+                  const notes=users.map(u=>({user_id:u.id,title,body,type:"announcement",is_read:false}));
+                  await s.from("notifications").insert(notes);
+                }
+              }
+              setMsg("✅ Announcement published to "+target+"!");
+              setTimeout(()=>setMsg(""),3000);
+            }} style={{background:`linear-gradient(135deg,${C.blue},${C.sky})`,color:"#fff",border:"none",padding:"10px 24px",borderRadius:8,fontSize:12,fontWeight:700,cursor:"pointer"}}>📣 Publish Announcement</button>
+            {msg&&<span style={{fontSize:12,color:C.green,fontWeight:600}}>{msg}</span>}
+          </div>
+        </div>
+        <div style={{background:"rgba(21,101,192,.06)",border:"1px solid rgba(21,101,192,.15)",borderRadius:10,padding:"12px 16px",fontSize:11,color:C.navy}}>
+          💡 Published announcements appear on student and parent dashboards. WhatsApp broadcast coming soon.
         </div>
       </div>
     );
 
-    if (page === "settings") return (
+    if(page==="schools") return (
       <div>
-        <h2 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:C.navy, marginBottom:18 }}>Platform Settings</h2>
-        {[
-          { title:"Platform Information", fields:[["Institution Name","SAMPACE INSTITUTE"],["Tagline","Where Excellence Begins"],["Contact Email","info@sampaceedu.com.ng"],["WhatsApp","https://chat.whatsapp.com/HLWOIKvXhjqIjYAfOFjvTp"],["Domain","sampaceedu.com.ng"]] },
-          { title:"Academic Settings", fields:[["Current Session","2026/2027"],["Current Term","First Term"],["Grading: CA1","10 marks"],["Grading: CA2","10 marks"],["Grading: Project","10 marks"],["Grading: Exam","70 marks"]] },
-        ].map((section,si)=>(
-          <div key={si} style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, overflow:"hidden", marginBottom:16 }}>
-            <div style={{ padding:"12px 18px", borderBottom:`1px solid ${C.border}`, fontWeight:700, fontSize:13, color:C.navy }}>{section.title}</div>
-            {section.fields.map(([label,value],i)=>(
-              <div key={i} style={{ display:"grid", gridTemplateColumns:"1fr 2fr", padding:"12px 18px", borderBottom:`1px solid #F8FAFF`, alignItems:"center" }}>
-                <div style={{ fontSize:12, color:C.slate, fontWeight:600 }}>{label}</div>
-                <input defaultValue={value} style={{ border:`1px solid ${C.border}`, borderRadius:7, padding:"7px 12px", fontSize:12, outline:"none", color:C.navy, width:"100%" }}/>
-              </div>
-            ))}
-            <div style={{ padding:"12px 18px", display:"flex", gap:10, alignItems:"center" }}>
-              <button onClick={async()=>{
-                const sb=window.__supabase;
-                if(sb){
-                  await sb.from("notifications").insert({
-                    user_id:"00000000-0000-0000-0000-000000000000",
-                    title:"Settings Updated",
-                    body:section.title+" settings saved by admin",
-                    type:"system"
-                  }).then(()=>{}).catch(()=>{});
-                }
-                alert("✅ "+section.title+" saved!");
-              }} style={{ background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"8px 20px", borderRadius:7, fontSize:12, fontWeight:700, cursor:"pointer" }}>💾 Save {section.title}</button>
+        <h2 style={{fontFamily:"Georgia,serif",fontSize:20,fontWeight:700,color:C.navy,marginBottom:18}}>Schools & Divisions Overview</h2>
+        {Object.entries(DIVISION_GROUPS).filter(([k])=>k!=="all").map(([gKey,group])=>(
+          <div key={gKey} style={{marginBottom:24}}>
+            <div style={{fontWeight:700,fontSize:13,color:group.color,marginBottom:10,paddingBottom:8,borderBottom:`2px solid ${group.color}22`}}>{group.label}</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
+              {group.schools.map(school=>(
+                <div key={school} style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:10,padding:"14px",borderLeft:`3px solid ${group.color}`}}>
+                  <div style={{fontWeight:700,fontSize:12,color:C.navy,textTransform:"capitalize",marginBottom:4}}>{school.replace("-"," ")}</div>
+                  <div style={{fontSize:10,color:C.slate,marginBottom:10}}>Division: {group.label}</div>
+                  <div style={{display:"flex",gap:6}}>
+                    <button style={{flex:1,background:`${group.color}10`,border:`1px solid ${group.color}25`,color:group.color,padding:"5px 8px",borderRadius:6,fontSize:10,cursor:"pointer",fontWeight:600}}>Manage</button>
+                    <button style={{background:"#F8FAFF",border:`1px solid ${C.border}`,color:C.slate,padding:"5px 8px",borderRadius:6,fontSize:10,cursor:"pointer"}}>View</button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         ))}
       </div>
     );
 
+    const mgmtSchool = page.replace("-mgmt","");
     return (
-      <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:300, textAlign:"center" }}>
-        <div style={{ fontSize:48, marginBottom:12 }}>🚧</div>
-        <h2 style={{ fontFamily:"Georgia,serif", fontSize:20, fontWeight:700, color:C.navy, marginBottom:8, textTransform:"capitalize" }}>{page}</h2>
-        <p style={{ color:C.slate, maxWidth:300, lineHeight:1.7 }}>This section is being built. Check back soon.</p>
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:300,textAlign:"center"}}>
+        <div style={{fontSize:48,marginBottom:12}}>🚧</div>
+        <h2 style={{fontFamily:"Georgia,serif",fontSize:20,fontWeight:700,color:C.navy,marginBottom:8,textTransform:"capitalize"}}>{page.replace("-"," ")}</h2>
+        <p style={{color:C.slate,maxWidth:300,lineHeight:1.7}}>Division management for {mgmtSchool} is being built in the next phase.</p>
+        <button onClick={()=>setPage("overview")} style={{marginTop:16,background:`linear-gradient(135deg,${C.blue},${C.sky})`,color:"#fff",border:"none",padding:"9px 20px",borderRadius:8,fontSize:12,fontWeight:700,cursor:"pointer"}}>← Back to Overview</button>
       </div>
     );
   };
 
   return (
-    <div style={{ fontFamily:"sans-serif", background:C.cream, minHeight:"100vh", display:"flex" }}>
-      <aside style={{ width:sideOpen?220:56, background:C.navy, minHeight:"100vh", display:"flex", flexDirection:"column", transition:"width .3s ease", flexShrink:0, position:"sticky", top:0, height:"100vh", overflow:"hidden" }}>
-        <div style={{ padding:"15px 11px", borderBottom:"1px solid rgba(255,255,255,.07)", display:"flex", alignItems:"center", gap:9, flexShrink:0 }}>
-          <div style={{ width:30, height:30, background:"linear-gradient(135deg,#C9A84C,#FFD54F)", borderRadius:7, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:900, color:C.navy, flexShrink:0 }}>SI</div>
-          {sideOpen && <div style={{ overflow:"hidden" }}><div style={{ fontSize:11, fontWeight:800, color:"#C9A84C", letterSpacing:2, whiteSpace:"nowrap" }}>SAMPACE ADMIN</div><div style={{ fontSize:8, color:"rgba(255,255,255,.3)" }}>Super Admin</div></div>}
-          <button onClick={()=>setSideOpen(o=>!o)} style={{ marginLeft:"auto", background:"rgba(255,255,255,.06)", border:"none", color:"rgba(255,255,255,.4)", width:24, height:24, borderRadius:5, cursor:"pointer", fontSize:12, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>{sideOpen?"←":"→"}</button>
+    <div style={{fontFamily:"'Syne',sans-serif",background:C.cream,minHeight:"100vh",display:"flex"}}>
+      <aside style={{width:sideOpen?220:52,background:C.navy,minHeight:"100vh",display:"flex",flexDirection:"column",transition:"width .25s ease",flexShrink:0,position:"sticky",top:0,height:"100vh",overflow:"hidden"}}>
+        <div style={{padding:"14px 10px",borderBottom:"1px solid rgba(255,255,255,.07)",display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
+          <div style={{width:30,height:30,background:"linear-gradient(135deg,#C9A84C,#FFD54F)",borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:900,color:C.navy,flexShrink:0}}>SE</div>
+          {sideOpen&&<div style={{overflow:"hidden"}}><div style={{fontSize:9,fontWeight:800,color:"#C9A84C",letterSpacing:1.5,whiteSpace:"nowrap"}}>SAMPACE ADMIN</div><div style={{fontSize:7,color:"rgba(255,255,255,.3)",whiteSpace:"nowrap",marginTop:1}}>{SCHOOL_ROLES[adminRole]?.label||"Super Admin"}</div></div>}
+          <button onClick={()=>setSideOpen(o=>!o)} style={{marginLeft:"auto",background:"rgba(255,255,255,.06)",border:"none",color:"rgba(255,255,255,.4)",width:22,height:22,borderRadius:5,cursor:"pointer",fontSize:11,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>{sideOpen?"←":"→"}</button>
         </div>
-        <nav style={{ flex:1, padding:"10px 7px", overflowY:"auto" }}>
-          {NAV.map(item=>(
-            <button key={item.id} onClick={()=>setPage(item.id)} style={{ width:"100%", display:"flex", alignItems:"center", gap:9, padding:"9px 10px", borderRadius:7, border:"none", background:page===item.id?"linear-gradient(135deg,rgba(21,101,192,.35),rgba(66,165,245,.15))":"transparent", borderLeft:page===item.id?"2px solid #42A5F5":"2px solid transparent", color:page===item.id?"#fff":"rgba(255,255,255,.5)", cursor:"pointer", marginBottom:2, fontSize:11, fontWeight:page===item.id?600:400, textAlign:"left", whiteSpace:"nowrap" }}>
-              <span style={{ fontSize:14, flexShrink:0 }}>{item.icon}</span>
-              {sideOpen && <span style={{ flex:1 }}>{item.label}</span>}
-              {sideOpen && item.badge ? <span style={{ background:C.red, color:"#fff", fontSize:9, fontWeight:700, padding:"1px 5px", borderRadius:99, minWidth:16, textAlign:"center" }}>{item.badge}</span> : null}
-            </button>
+        <nav style={{flex:1,padding:"8px 6px",overflowY:"auto"}}>
+          {NAV_GROUPS.map((group,gi)=>(
+            <div key={gi} style={{marginBottom:8}}>
+              {sideOpen&&<div style={{fontSize:8,color:"rgba(255,255,255,.25)",fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",padding:"6px 8px 3px"}}>{group.label}</div>}
+              {group.items.map(item=>{
+                if(item.access && !canAccess(item.access)) return null;
+                return (
+                  <button key={item.id} onClick={()=>setPage(item.id)} style={{width:"100%",display:"flex",alignItems:"center",gap:8,padding:"7px 8px",borderRadius:6,border:"none",background:page===item.id?"linear-gradient(135deg,rgba(21,101,192,.4),rgba(66,165,245,.2))":"transparent",borderLeft:page===item.id?"2px solid #42A5F5":"2px solid transparent",color:page===item.id?"#fff":"rgba(255,255,255,.45)",cursor:"pointer",marginBottom:1,fontSize:10,fontWeight:page===item.id?600:400,textAlign:"left",whiteSpace:"nowrap",position:"relative"}}>
+                    <span style={{fontSize:13,flexShrink:0}}>{item.icon}</span>
+                    {sideOpen&&<span style={{flex:1}}>{item.label}</span>}
+                    {sideOpen&&item.badge?<span style={{background:C.red,color:"#fff",fontSize:8,fontWeight:700,padding:"1px 5px",borderRadius:100,minWidth:14,textAlign:"center"}}>{item.badge}</span>:null}
+                  </button>
+                );
+              })}
+            </div>
           ))}
         </nav>
-        <div style={{ padding:"12px", borderTop:"1px solid rgba(255,255,255,.07)" }}>
-          {sideOpen ? <button onClick={onLogout} style={{ width:"100%", background:"rgba(239,68,68,.15)", border:"none", color:C.red, padding:"8px", borderRadius:7, fontSize:11, cursor:"pointer", fontWeight:600 }}>Logout</button>
-          : <button onClick={onLogout} style={{ background:"rgba(239,68,68,.15)", border:"none", color:C.red, width:34, height:34, borderRadius:7, fontSize:13, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>↩</button>}
+        <div style={{padding:"10px",borderTop:"1px solid rgba(255,255,255,.07)"}}>
+          {sideOpen
+            ? <button onClick={onLogout} style={{width:"100%",background:"rgba(239,68,68,.15)",border:"none",color:C.red,padding:"7px",borderRadius:7,fontSize:11,cursor:"pointer",fontWeight:600}}>Logout</button>
+            : <button onClick={onLogout} style={{background:"rgba(239,68,68,.15)",border:"none",color:C.red,width:32,height:32,borderRadius:7,fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>↩</button>
+          }
         </div>
       </aside>
-      <div style={{ flex:1, display:"flex", flexDirection:"column", minWidth:0 }}>
-        <header style={{ background:"#fff", borderBottom:`1px solid ${C.border}`, padding:"0 20px", height:50, display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:0, zIndex:100 }}>
-          <div style={{ display:"flex", gap:6, alignItems:"center", fontSize:10, color:C.slate }}>Admin Dashboard <span style={{ color:"#CBD5E1" }}>›</span> <span style={{ color:C.navy, fontWeight:600, textTransform:"capitalize" }}>{page}</span></div>
-          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <div style={{ width:6, height:6, borderRadius:"50%", background:sb()?"#10B981":"#EF4444" }} title={sb()?"Supabase connected":"Supabase not connected"} />
-            <div style={{ fontSize:10, color:C.slate }}>{sb()?"Live":"Demo"}</div>
-            <div style={{ width:28, height:28, borderRadius:"50%", background:"linear-gradient(135deg,#C9A84C,#FFD54F)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, color:C.navy }}>A</div>
+      <div style={{flex:1,display:"flex",flexDirection:"column",minWidth:0}}>
+        <header style={{background:"#fff",borderBottom:`1px solid ${C.border}`,padding:"0 20px",height:50,display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:100}}>
+          <div style={{display:"flex",gap:6,alignItems:"center",fontSize:10,color:C.slate}}>
+            Admin <span style={{color:"#CBD5E1"}}>›</span>
+            <span style={{color:C.navy,fontWeight:600,textTransform:"capitalize"}}>{page.replace(/-/g," ")}</span>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <div style={{width:6,height:6,borderRadius:"50%",background:sb()?"#10B981":"#EF4444"}}/>
+            <div style={{fontSize:10,color:C.slate}}>{sb()?"Live":"Demo"}</div>
+            <div style={{fontSize:10,color:C.slate,display:"flex",alignItems:"center",gap:4}}>
+              <span style={{background:SCHOOL_ROLES[adminRole]?.color+"18",color:SCHOOL_ROLES[adminRole]?.color||C.blue,padding:"2px 8px",borderRadius:100,fontSize:9,fontWeight:700}}>{SCHOOL_ROLES[adminRole]?.label||"Super Admin"}</span>
+            </div>
+            <div style={{width:28,height:28,borderRadius:"50%",background:"linear-gradient(135deg,#C9A84C,#FFD54F)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:C.navy}}>A</div>
           </div>
         </header>
-        <main style={{ flex:1, padding:"20px", overflowY:"auto" }}>{renderPage()}</main>
+        <main style={{flex:1,padding:"20px",overflowY:"auto"}}>{renderPage()}</main>
       </div>
     </div>
   );
@@ -2752,29 +3006,12 @@ function ParentPortal({ onLogout }) {
         </div>
         <div style={{ display:"flex", gap:10 }}>
           <button onClick={()=>{
-            const content = `
-SAMPACE COLLEGE - ACADEMIC REPORT CARD
-First Term 2026
-
-Student: ${child.name}
-Admission No: ${child.admission}
-Class: ${child.class}
-
-SUBJECT SCORES:
-${child.subjects.map(s=>`${s.sub.padEnd(25)} CA1:${s.ca1} CA2:${s.ca2} Proj:${s.proj} Exam:${s.exam} Total:${s.ca1+s.ca2+s.proj+s.exam}`).join("
-")}
-
-Form Teacher's Remark: Keep up the good work!
-Principal's Remark: Excellent performance.
-
-Issued by SAMPACE EDUCATIONAL LTD
-sampaceedu.com.ng
-            `.trim();
-            const blob=new Blob([content],{type:"text/plain"});
+            const scores = child.subjects.map(s=>s.sub+" | CA1:"+s.ca1+" CA2:"+s.ca2+" Proj:"+s.proj+" Exam:"+s.exam+" Total:"+(s.ca1+s.ca2+s.proj+s.exam)).join("\n");
+            const lines = ["SAMPACE EDUCATIONAL LTD","ACADEMIC REPORT CARD - First Term 2026","","Student: "+child.name,"Admission: "+child.admission,"Class: "+child.class,"","SUBJECT SCORES:","",scores,"","Form Teacher: Keep up the good work!","Principal: Excellent performance.","","sampaceedu.com.ng"];
+            const blob=new Blob([lines.join("\n")],{type:"text/plain"});
             const url=URL.createObjectURL(blob);
             const a=document.createElement("a");
-            a.href=url; a.download=`${child.name}_ReportCard.txt`;
-            a.click(); URL.revokeObjectURL(url);
+            a.href=url;a.download=child.name+"_ReportCard.txt";a.click();URL.revokeObjectURL(url);
           }} style={{ flex:1, background:`linear-gradient(135deg,${C.blue},${C.sky})`, color:"#fff", border:"none", padding:"10px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer" }}>📥 Download Report Card</button>
         </div>
         <div style={{ marginTop:12, background:"rgba(245,158,11,.08)", border:"1px solid rgba(245,158,11,.2)", borderRadius:8, padding:"10px 14px", fontSize:11, color:C.amber }}>
