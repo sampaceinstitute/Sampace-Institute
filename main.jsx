@@ -613,8 +613,8 @@ function Homepage({ onSelect, onLogin }) {
       color:"#7B1FA2",
       divisions:[
         {id:"digital",num:"04",name:"Digital Campus",short:"Six Specialist Professional Schools",desc:"Technology, Business, Languages, Communication, International Programmes and Advanced Studies — online and onsite.",icon:"💻",color:"#7B1FA2",g2:"#BA68C8",status:"open",tags:["Coding","IELTS","French","PMP","ACCA","UI/UX","AI"]},
-        {id:"professional",num:"05",name:"Professional Learning Centre",short:"Executive · Corporate · CPD",desc:"Executive education, teacher development, school leadership, corporate training and continuing professional development.",icon:"🏢",color:"#E65100",g2:"#FF6D00",status:"coming",tags:["CPD","Corporate Training","Leadership","Teacher Dev"]},
-        {id:"cbt",num:"06",name:"CBT Platform",short:"Past Questions · Mock Exams · Practice",desc:"WAEC, NECO and JAMB past questions 2010–2024. Token-based CBT practice, mock exams, Android and Windows app.",icon:"🖥️",color:"#006064",g2:"#00BCD4",status:"coming",tags:["WAEC CBT","NECO CBT","JAMB Simulator","Mobile App"]},
+        {id:"professional",num:"05",name:"Professional Learning Centre",short:"Executive · Corporate · CPD",desc:"Executive education, teacher development, school leadership, corporate training and continuing professional development.",icon:"🏢",color:"#E65100",g2:"#FF6D00",status:"open",tags:["CPD","Corporate Training","Leadership","Teacher Dev"]},
+        {id:"cbt",num:"06",name:"CBT Platform",short:"Past Questions · Mock Exams · Practice",desc:"WAEC, NECO and JAMB past questions 2010–2024. Token-based CBT practice, mock exams, Android and Windows app.",icon:"🖥️",color:"#006064",g2:"#00BCD4",status:"open",tags:["WAEC CBT","NECO CBT","JAMB Simulator","Mobile App"]},
       ]
     },
     {
@@ -622,10 +622,10 @@ function Homepage({ onSelect, onLogin }) {
       desc:"Publishing, consulting, research and technology solutions powering education institutions.",
       color:"#33691E",
       divisions:[
-        {id:"publish",num:"07",name:"SAMPACE Publishing",short:"Books · Resources · Digital Content",desc:"Educational textbooks, workbooks, e-books, teacher guides, curriculum resources and digital learning content.",icon:"📖",color:"#33691E",g2:"#8BC34A",status:"coming",tags:["Textbooks","E-books","Curriculum","Digital Content"]},
-        {id:"consult",num:"08",name:"SAMPACE Consulting",short:"School Improvement · Advisory",desc:"School establishment support, curriculum development, accreditation guidance and educational policy advisory.",icon:"🤝",color:"#4A148C",g2:"#9C27B0",status:"coming",tags:["School Setup","Accreditation","Curriculum Dev","Digital Transform"]},
-        {id:"research",num:"09",name:"Research & Innovation",short:"Think Tank · Knowledge Hub · Journals",desc:"Educational research, innovation hub, learning analytics, AI in education, academic journals and research partnerships.",icon:"🔬",color:"#1A237E",g2:"#3F51B5",status:"future",tags:["Research","Innovation","AI in Education","Journals"]},
-        {id:"edtech",num:"10",name:"SAMPACE EdTech",short:"LMS · School Management · AI Tools",desc:"School management systems, AI learning assistant, teacher tools, student analytics and digital infrastructure products.",icon:"⚡",color:"#006064",g2:"#00BCD4",status:"future",tags:["LMS","AI Tools","School Management","Analytics"]},
+        {id:"publish",num:"07",name:"SAMPACE Publishing",short:"Books · Resources · Digital Content",desc:"Educational textbooks, workbooks, e-books, teacher guides, curriculum resources and digital learning content.",icon:"📖",color:"#33691E",g2:"#8BC34A",status:"open",tags:["Textbooks","E-books","Curriculum","Digital Content"]},
+        {id:"consult",num:"08",name:"SAMPACE Consulting",short:"School Improvement · Advisory",desc:"School establishment support, curriculum development, accreditation guidance and educational policy advisory.",icon:"🤝",color:"#4A148C",g2:"#9C27B0",status:"open",tags:["School Setup","Accreditation","Curriculum Dev","Digital Transform"]},
+        {id:"research",num:"09",name:"Research & Innovation",short:"Think Tank · Knowledge Hub · Journals",desc:"Educational research, innovation hub, learning analytics, AI in education, academic journals and research partnerships.",icon:"🔬",color:"#1A237E",g2:"#3F51B5",status:"open",tags:["Research","Innovation","AI in Education","Journals"]},
+        {id:"edtech",num:"10",name:"SAMPACE EdTech",short:"LMS · School Management · AI Tools",desc:"School management systems, AI learning assistant, teacher tools, student analytics and digital infrastructure products.",icon:"⚡",color:"#006064",g2:"#00BCD4",status:"open",tags:["LMS","AI Tools","School Management","Analytics"]},
       ]
     },
     {
@@ -633,8 +633,8 @@ function Homepage({ onSelect, onLogin }) {
       desc:"Scholarships, careers, alumni and community programmes creating opportunities beyond the classroom.",
       color:"#F57F17",
       divisions:[
-        {id:"scholarships",num:"11",name:"Scholarship Bank",short:"Grants · Fellowships · Bursaries",desc:"Scholarship database, student sponsorship, fellowship opportunities, education grants and financial aid guidance.",icon:"🌟",color:"#F57F17",g2:"#FFC107",status:"coming",tags:["Scholarships","Grants","Fellowships","Financial Aid"]},
-        {id:"careers",num:"12",name:"SAMPACE Careers",short:"Jobs · Recruitment · Internships · Alumni",desc:"Graduate recruitment, teacher recruitment, school jobs, internship programmes, volunteer opportunities and alumni network.",icon:"💼",color:"#37474F",g2:"#78909C",status:"coming",tags:["Graduate Jobs","Teacher Jobs","Internships","Alumni Network"]},
+        {id:"scholarships",num:"11",name:"Scholarship Bank",short:"Grants · Fellowships · Bursaries",desc:"Scholarship database, student sponsorship, fellowship opportunities, education grants and financial aid guidance.",icon:"🌟",color:"#F57F17",g2:"#FFC107",status:"open",tags:["Scholarships","Grants","Fellowships","Financial Aid"]},
+        {id:"careers",num:"12",name:"SAMPACE Careers",short:"Jobs · Recruitment · Internships · Alumni",desc:"Graduate recruitment, teacher recruitment, school jobs, internship programmes, volunteer opportunities and alumni network.",icon:"💼",color:"#37474F",g2:"#78909C",status:"open",tags:["Graduate Jobs","Teacher Jobs","Internships","Alumni Network"]},
       ]
     },
   ];
@@ -869,7 +869,15 @@ function Homepage({ onSelect, onLogin }) {
                     </div>
                     <div style={{display:"flex",gap:8}}>
                       {d.status==="open"
-                        ? <button onClick={()=>onSelect({id:d.id,name:d.name,color:d.color,g2:d.g2,g1:d.color,icon:d.icon,num:d.num,applyType:"student-only"})} style={{flex:1,background:`linear-gradient(135deg,${d.color},${d.g2})`,border:"none",color:W,padding:"9px",borderRadius:8,fontSize:11,fontWeight:700,cursor:"pointer"}}>Enroll Now →</button>
+                        ? <button onClick={()=>onSelect({
+  id:d.id, name:d.name, color:d.color, g1:d.color, g2:d.g2,
+  icon:d.icon, num:d.num, accent:d.g2,
+  applyType:d.id==="college"?"parent-student":d.id==="extramural"?"student-only":"student-only",
+  programs:[], depts:[], classes:[],
+  services:["General Enquiry","Course Information","Admissions","Partnership"],
+  tracks:["WAEC","NECO","JAMB","BECE","GCE"],
+  subSchools:[]
+})} style={{flex:1,background:`linear-gradient(135deg,${d.color},${d.g2})`,border:"none",color:W,padding:"9px",borderRadius:8,fontSize:11,fontWeight:700,cursor:"pointer"}}>Enroll Now →</button>
                         : <button style={{flex:1,background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.3)",padding:"9px",borderRadius:8,fontSize:11,fontWeight:600,cursor:"default"}}>{d.status==="coming"?"Join Waitlist":"Future Expansion"}</button>
                       }
                       <button onClick={()=>onLogin("admin")} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.35)",padding:"9px 12px",borderRadius:8,fontSize:11,cursor:"pointer"}}>Login</button>
@@ -1239,349 +1247,421 @@ function InquiriesInline({ C, sb }) {
 
 
 // ─── ADMIN DASHBOARD — Full Role-Based System ───
+// ─── SAMPACE ENTERPRISE ADMIN DASHBOARD ───────────────────────
 function AdminDashboard({ onLogout }) {
   const [page, setPage] = useState("overview");
   const [sideOpen, setSideOpen] = useState(true);
   const [adminRole, setAdminRole] = useState("super_admin");
-  const [adminDivision, setAdminDivision] = useState("all");
-  const [stats, setStats] = useState({totalStudents:0,totalApps:0,totalRevenue:0,pendingApps:0,pendingPayments:0,totalStaff:0});
-  const [applications, setApplications] = useState([]);
-  const [students, setStudents] = useState([]);
-  const [payments, setPayments] = useState([]);
-  const [staffList, setStaffList] = useState([]);
-  const [adminList, setAdminList] = useState([]);
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
-  const [feeSettings, setFeeSettings] = useState({
-    college_jss:"45000", college_ss1:"55000", college_ss3:"65000",
-    tutorial_single:"8000", tutorial_bundle:"20000", tutorial_full:"35000",
-    digital_tech:"150000", digital_business:"120000", digital_languages:"30000",
-    preuni_ijmb:"180000", preuni_jupeb:"200000", preuni_predegree:"120000",
+  const [apps, setApps] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [payments, setPayments] = useState([]);
+  const [staff, setStaff] = useState([]);
+  const [stats, setStats] = useState({students:0,staff:0,revenue:0,apps:0,pending:0});
+  const [divStatus, setDivStatus] = useState({
+    college:"open",extramural:"open",preuni:"open",digital:"open",
+    professional:"open",cbt:"open",publish:"open",consult:"open",
+    research:"open",edtech:"open",scholarships:"open",careers:"open",
   });
-  const [platformInfo, setPlatformInfo] = useState({
-    name:"SAMPACE EDUCATIONAL LTD", tagline:"Where Excellence Begins",
-    email:"info@sampaceedu.com.ng", whatsapp:"https://chat.whatsapp.com/HLWOIKvXhjqIjYAfOFjvTp",
-    domain:"sampaceedu.com.ng", session:"2026/2027", term:"First Term",
-    ca1_max:"10", ca2_max:"10", proj_max:"10", exam_max:"70",
+  const [fees, setFees] = useState({
+    college_jss:"45000",college_ss:"55000",college_ss3:"65000",
+    tutorial_single:"8000",tutorial_bundle:"20000",tutorial_full:"35000",
+    digital_tech:"150000",digital_biz:"120000",digital_lang:"30000",
+    preuni_ijmb:"180000",preuni_jupeb:"200000",preuni_pre:"120000",
+    professional_short:"50000",professional_exec:"200000",
+    cbt_monthly:"3000",cbt_annual:"25000",
+  });
+  const [cfg, setCfg] = useState({
+    inst_name:"SAMPACE EDUCATIONAL LTD",inst_tagline:"Where Excellence Begins",
+    inst_email:"info@sampaceedu.com.ng",inst_phone:"+234-800-SAMPACE",
+    inst_address:"Nigeria",inst_domain:"sampaceedu.com.ng",
+    inst_timezone:"Africa/Lagos",inst_currency:"NGN",
+    brand_primary:"#0B1F3A",brand_secondary:"#C9A84C",brand_accent:"#1565C0",
+    academic_session:"2026/2027",academic_term:"First Term",
+    academic_start:"September 1, 2026",academic_end:"December 15, 2026",
+    grade_ca1:"10",grade_ca2:"10",grade_proj:"10",grade_exam:"70",grade_pass:"45",
+    admissions_status:"open",admissions_fee:"0",admissions_workflow:"manual",
+    payment_gateway:"Paystack",email_from:"noreply@sampaceedu.com.ng",
+    sms_enabled:"false",whatsapp_enabled:"true",
+    security_2fa:"false",security_timeout:"24h",security_attempts:"5",
+    maintenance:"false",platform_version:"1.0.0",
   });
 
-  const C = {navy:"#0B1F3A",blue:"#1565C0",sky:"#42A5F5",gold:"#C9A84C",cream:"#F8FAFF",slate:"#64748B",border:"#E2E8F0",green:"#10B981",red:"#EF4444",amber:"#F59E0B",purple:"#7C3AED"};
-  const fmt = n => "₦"+Number(n||0).toLocaleString();
+  const C = {navy:"#0B1F3A",blue:"#1565C0",sky:"#42A5F5",gold:"#C9A84C",
+    cream:"#F8FAFF",slate:"#64748B",border:"#E2E8F0",
+    green:"#10B981",red:"#EF4444",amber:"#F59E0B",purple:"#7C3AED"};
+  const fmt = n => "₦" + Number(n||0).toLocaleString();
   const sb = () => window.__supabase;
+  const showMsg = (m, d=3000) => { setMsg(m); setTimeout(()=>setMsg(""), d); };
 
-  // ── ROLE-BASED ACCESS CONTROL ──
-  const DIVISION_GROUPS = {
-    "academic": { label:"Academic Education", color:"#1565C0", schools:["college","extramural","preuni"] },
-    "professional": { label:"Professional & Digital", color:"#7B1FA2", schools:["digital","professional","cbt"] },
-    "corporate": { label:"Corporate & Knowledge", color:"#33691E", schools:["publish","consult","research","edtech"] },
-    "community": { label:"Community & Opportunity", color:"#F57F17", schools:["scholarships","careers"] },
-    "all": { label:"All Divisions", color:"#0B1F3A", schools:["all"] },
+  const ROLES = {
+    super_admin:{label:"Super Admin",color:"#C9A84C"},
+    assistant_admin:{label:"Assistant Admin",color:"#1565C0"},
+    academic_admin:{label:"Academic Division Admin",color:"#1565C0"},
+    professional_admin:{label:"Professional Division Admin",color:"#7B1FA2"},
+    college_admin:{label:"College Admin",color:"#1565C0"},
+    extramural_admin:{label:"Extramural Admin",color:"#00897B"},
+    preuni_admin:{label:"Pre-University Admin",color:"#BF360C"},
+    digital_admin:{label:"Digital Campus Admin",color:"#7B1FA2"},
+    cbt_admin:{label:"CBT Admin",color:"#006064"},
+    publish_admin:{label:"Publishing Admin",color:"#33691E"},
   };
 
-  const SCHOOL_ROLES = {
-    super_admin: { label:"Super Admin", access:"all", color:"#C9A84C" },
-    assistant_admin: { label:"Assistant Admin", access:"all_limited", color:"#1565C0" },
-    academic_admin: { label:"Academic Division Admin", access:"academic", color:"#1565C0" },
-    professional_admin: { label:"Professional Division Admin", access:"professional", color:"#7B1FA2" },
-    corporate_admin: { label:"Corporate Division Admin", access:"corporate", color:"#33691E" },
-    community_admin: { label:"Community Division Admin", access:"community", color:"#F57F17" },
-    college_admin: { label:"College Admin", access:"college", color:"#1565C0" },
-    extramural_admin: { label:"Extramural Admin", access:"extramural", color:"#00897B" },
-    preuni_admin: { label:"Pre-University Admin", access:"preuni", color:"#BF360C" },
-    digital_admin: { label:"Digital Campus Admin", access:"digital", color:"#7B1FA2" },
-    professional_lc_admin: { label:"Professional LC Admin", access:"professional", color:"#E65100" },
-    cbt_admin: { label:"CBT Platform Admin", access:"cbt", color:"#006064" },
-    publish_admin: { label:"Publishing Admin", access:"publish", color:"#33691E" },
-    consult_admin: { label:"Consulting Admin", access:"consult", color:"#4A148C" },
+  const STAFF_ROLES = {
+    college:["Principal","Vice Principal","Academic Coordinator","HOD","Class Teacher","Subject Teacher","Counsellor","Lab Officer","Librarian"],
+    extramural:["Programme Coordinator","Centre Coordinator","Subject Tutor","Academic Mentor","Instructor"],
+    digital:["Campus Director","Programme Manager","Course Instructor","Teaching Assistant","Community Manager"],
+    preuni:["Director","Programme Coordinator","Lecturer","Admission Officer"],
+    professional:["Director","Lead Facilitator","Lecturer","Instructor","Mentor"],
+    cbt:["CBT Administrator","Question Manager","Examiner","Technical Support"],
+    publish:["Editor","Reviewer","Graphic Designer","Content Developer"],
+    consult:["Consultant","Trainer","Project Officer"],
+    research:["Research Fellow","Research Assistant","Data Analyst"],
+    edtech:["Software Engineer","UI/UX Designer","Product Manager","QA Engineer"],
+    scholarships:["Scholarship Officer","Financial Aid Advisor"],
+    careers:["Recruitment Officer","Career Advisor","Alumni Coordinator"],
   };
 
-  const canAccess = (section) => {
-    if(adminRole === "super_admin" || adminRole === "assistant_admin") return true;
-    const role = SCHOOL_ROLES[adminRole];
-    if(!role) return false;
-    if(role.access === "all") return true;
-    return role.access === section || role.access === adminDivision;
-  };
+  const DIVISIONS = [
+    {id:"college",name:"SAMPACE College",icon:"🏫",color:"#1565C0"},
+    {id:"extramural",name:"Extramural & Exam Hub",icon:"📚",color:"#00897B"},
+    {id:"preuni",name:"Pre-University Centre",icon:"🏛️",color:"#BF360C"},
+    {id:"digital",name:"Digital Campus",icon:"💻",color:"#7B1FA2"},
+    {id:"professional",name:"Professional Learning",icon:"🏢",color:"#E65100"},
+    {id:"cbt",name:"CBT Platform",icon:"🖥️",color:"#006064"},
+    {id:"publish",name:"SAMPACE Publishing",icon:"📖",color:"#33691E"},
+    {id:"consult",name:"SAMPACE Consulting",icon:"🤝",color:"#4A148C"},
+    {id:"research",name:"Research & Innovation",icon:"🔬",color:"#1A237E"},
+    {id:"edtech",name:"SAMPACE EdTech",icon:"⚡",color:"#006064"},
+    {id:"scholarships",name:"Scholarship Bank",icon:"🌟",color:"#F57F17"},
+    {id:"careers",name:"SAMPACE Careers",icon:"💼",color:"#37474F"},
+  ];
 
-  // ── DATA LOADING ──
-  const loadStats = async () => {
-    const s = sb(); if(!s) return;
+  const DIV_GROUPS = [
+    {label:"Academic Education",ids:["college","extramural","preuni"]},
+    {label:"Professional & Digital Learning",ids:["digital","professional","cbt"]},
+    {label:"Corporate & Knowledge Services",ids:["publish","consult","research","edtech"]},
+    {label:"Community & Opportunity",ids:["scholarships","careers"]},
+  ];
+
+  // ── DATA LOADING ──────────────────────────────────────────────
+  const loadData = async () => {
+    const s = sb();
+    if (!s) return;
     try {
-      const [studs,apps,pays,pendApps,staff] = await Promise.all([
+      const [studRes, appRes, payRes, staffRes] = await Promise.all([
         s.from("users").select("id",{count:"exact",head:true}).eq("role","student"),
-        s.from("applications").select("id",{count:"exact",head:true}),
-        s.from("payments").select("amount").eq("status","success"),
-        s.from("applications").select("id",{count:"exact",head:true}).eq("status","pending"),
-        s.from("users").select("id",{count:"exact",head:true}).eq("role","teacher"),
+        s.from("applications").select("*").order("created_at",{ascending:false}).limit(100),
+        s.from("payments").select("*").order("created_at",{ascending:false}).limit(100),
+        s.from("users").select("*").in("role",["teacher","school_admin"]).order("created_at",{ascending:false}),
       ]);
-      const rev = (pays.data||[]).reduce((sum,p)=>sum+Number(p.amount),0);
-      setStats({totalStudents:studs.count||0,totalApps:apps.count||0,totalRevenue:rev,pendingApps:pendApps.count||0,totalStaff:staff.count||0,pendingPayments:0});
-    } catch(e){console.error(e);}
-  };
-
-  const loadApplications = async () => {
-    const s = sb(); if(!s) return;
-    setLoading(true);
-    const {data,error} = await s.from("applications").select("*").order("created_at",{ascending:false}).limit(100);
-    if(!error) setApplications(data||[]);
-    setLoading(false);
+      const rev = (payRes.data||[]).filter(p=>p.status==="success").reduce((t,p)=>t+Number(p.amount),0);
+      const pending = (appRes.data||[]).filter(a=>a.status==="pending").length;
+      setStats({students:studRes.count||0,staff:(staffRes.data||[]).length,revenue:rev,apps:(appRes.data||[]).length,pending});
+      setApps(appRes.data||[]);
+      setPayments(payRes.data||[]);
+      setStaff(staffRes.data||[]);
+    } catch(e) { console.error("Admin load error:", e); }
   };
 
   const loadStudents = async () => {
-    const s = sb(); if(!s) return;
+    const s = sb();
+    if (!s) return;
     setLoading(true);
-    const {data,error} = await s.from("users").select("*,student_profiles(*)").eq("role","student").order("created_at",{ascending:false}).limit(100);
-    if(!error) setStudents(data||[]);
+    const {data} = await s.from("users").select("*,student_profiles(*)").eq("role","student").order("created_at",{ascending:false}).limit(200);
+    setStudents(data||[]);
     setLoading(false);
   };
 
-  const loadPayments = async () => {
-    const s = sb(); if(!s) return;
-    setLoading(true);
-    const {data,error} = await s.from("payments").select("*").order("created_at",{ascending:false}).limit(100);
-    if(!error) setPayments(data||[]);
-    setLoading(false);
-  };
-
-  const loadStaff = async () => {
-    const s = sb(); if(!s) return;
-    setLoading(true);
-    const {data,error} = await s.from("users").select("*").in("role",["teacher","school_admin"]).order("created_at",{ascending:false});
-    if(!error) setStaffList(data||[]);
-    setLoading(false);
-  };
-
-  const loadAdmins = async () => {
-    const s = sb(); if(!s) return;
-    const {data} = await s.from("users").select("*").in("role",["super_admin","school_admin"]).order("created_at",{ascending:false});
-    setAdminList(data||[]);
-  };
-
-  const updateAppStatus = async (id, status) => {
-    const s = sb(); if(!s) return;
+  const approveApp = async (id, status) => {
+    const s = sb();
+    if (!s) return;
     await s.from("applications").update({status,reviewed_at:new Date().toISOString()}).eq("id",id);
-    setMsg("✅ Application "+status);
-    loadApplications(); loadStats();
-    setTimeout(()=>setMsg(""),3000);
+    showMsg("✅ Application " + status);
+    loadData();
   };
 
-  const enablePayment = async (id) => {
-    const s = sb(); if(!s) return;
+  const enableAccess = async (id) => {
+    const s = sb();
+    if (!s) return;
     await s.from("payments").update({access_enabled:true,admin_verified:true,admin_enabled_at:new Date().toISOString()}).eq("id",id);
-    setMsg("✅ Student access enabled");
-    loadPayments(); loadStats();
-    setTimeout(()=>setMsg(""),3000);
+    showMsg("✅ Student access enabled");
+    loadData();
   };
 
-  const assignAdmin = async (userId, role) => {
-    const s = sb(); if(!s) return;
-    await s.from("users").update({role:"school_admin"}).eq("id",userId);
-    setMsg("✅ Admin role assigned: "+role);
-    loadAdmins();
-    setTimeout(()=>setMsg(""),3000);
-  };
+  useEffect(() => {
+    loadData();
+    const s = sb();
+    if (s) {
+      s.auth.getUser().then(({data}) => {
+        if (data?.user) {
+          s.from("users").select("role").eq("auth_id",data.user.id).single()
+            .then(({data:p}) => { if (p?.role) setAdminRole(p.role); });
+        }
+      });
+    }
+  }, []);
 
-  const saveFeeSettings = async () => {
-    const s = sb(); if(!s){alert("Not connected");return;}
-    await s.from("notifications").insert({user_id:"00000000-0000-0000-0000-000000000000",title:"Fee Settings Updated",body:JSON.stringify(feeSettings),type:"system"}).then(()=>{}).catch(()=>{});
-    setMsg("✅ Fee settings saved successfully!");
-    setTimeout(()=>setMsg(""),3000);
-  };
+  useEffect(() => {
+    if (page === "learners") loadStudents();
+    else if (page === "overview" || page === "finance" || page === "admissions-page") loadData();
+  }, [page]);
 
-  const savePlatformInfo = async () => {
-    setMsg("✅ Platform info saved!");
-    setTimeout(()=>setMsg(""),3000);
-  };
-
-  useEffect(()=>{
-    loadStats();
-    if(sb()) sb().auth.getUser().then(({data})=>{
-      if(data?.user){
-        sb().from("users").select("role").eq("auth_id",data.user.id).single().then(({data:p})=>{
-          if(p) setAdminRole(p.role||"super_admin");
-        });
-      }
-    });
-  },[]);
-
-  useEffect(()=>{
-    if(page==="applications") loadApplications();
-    else if(page==="students") loadStudents();
-    else if(page==="payments") loadPayments();
-    else if(page==="staff") loadStaff();
-    else if(page==="admin-roles") loadAdmins();
-    else if(page==="overview") loadStats();
-  },[page]);
-
-  // ── NAVIGATION ──
-  const NAV_GROUPS = [
-    { label:"Main", items:[
-      {id:"overview",icon:"⊞",label:"Overview"},
-      {id:"applications",icon:"📋",label:"Applications",badge:stats.pendingApps||null},
-      {id:"students",icon:"👥",label:"Students"},
-      {id:"payments",icon:"💰",label:"Payments"},
+  // ── NAV STRUCTURE ─────────────────────────────────────────────
+  const NAV = [
+    { section:"Core", items:[
+      {id:"overview",icon:"⊞",label:"Dashboard"},
+      {id:"admissions-page",icon:"📋",label:"Admissions",badge:stats.pending||null},
+      {id:"learners",icon:"👥",label:"Learners"},
+      {id:"staff-page",icon:"👔",label:"Staff"},
     ]},
-    { label:"Academic Education", items:[
-      {id:"college-mgmt",icon:"🏫",label:"SAMPACE College",access:"college"},
-      {id:"extramural-mgmt",icon:"📚",label:"Extramural Hub",access:"extramural"},
-      {id:"preuni-mgmt",icon:"🏛️",label:"Pre-University",access:"preuni"},
-    ]},
-    { label:"Professional & Digital", items:[
-      {id:"digital-mgmt",icon:"💻",label:"Digital Campus",access:"digital"},
-      {id:"cbt-mgmt",icon:"🖥️",label:"CBT Platform",access:"cbt"},
-      {id:"professional-mgmt",icon:"🏢",label:"Professional LC",access:"professional"},
-    ]},
-    { label:"Operations", items:[
-      {id:"staff",icon:"👔",label:"Staff Management"},
+    { section:"Academic & Learning", items:[
+      {id:"academics",icon:"📚",label:"Academics"},
+      {id:"lms",icon:"🎬",label:"Learning Mgmt"},
       {id:"timetable",icon:"📅",label:"Timetable"},
-      {id:"inquiries",icon:"💬",label:"Inquiries",badge:8},
+      {id:"results-page",icon:"📊",label:"Results"},
+    ]},
+    { section:"Finance & Operations", items:[
+      {id:"finance",icon:"💰",label:"Finance"},
+      {id:"fee-settings",icon:"💳",label:"Fee Settings"},
+      {id:"operations",icon:"⚙️",label:"Operations"},
       {id:"announcements",icon:"📣",label:"Announcements"},
     ]},
-    { label:"Corporate", items:[
-      {id:"schools",icon:"🏫",label:"All Schools"},
+    { section:"Corporate HQ", items:[
+      {id:"corporate",icon:"🏢",label:"Corporate HQ"},
+      {id:"divisions-mgmt",icon:"🏫",label:"Divisions"},
       {id:"admin-roles",icon:"🔑",label:"Admin & Roles"},
-      {id:"fee-settings",icon:"💳",label:"Fee Settings"},
-      {id:"settings",icon:"⚙️",label:"Platform Settings"},
+      {id:"inquiries",icon:"💬",label:"Inquiries"},
+    ]},
+    { section:"Platform", items:[
+      {id:"website-mgmt",icon:"🌐",label:"Website"},
+      {id:"reports",icon:"📈",label:"Reports"},
+      {id:"settings",icon:"🔧",label:"Settings"},
     ]},
   ];
 
-  const badge = (s) => {
-    const m = {pending:{bg:"rgba(245,158,11,.1)",c:"#F59E0B"},approved:{bg:"rgba(16,185,129,.1)",c:"#10B981"},rejected:{bg:"rgba(239,68,68,.1)",c:"#EF4444"},active:{bg:"rgba(16,185,129,.1)",c:"#10B981"},success:{bg:"rgba(16,185,129,.1)",c:"#10B981"},failed:{bg:"rgba(239,68,68,.1)",c:"#EF4444"}};
-    const b = m[s]||{bg:"rgba(100,116,139,.1)",c:"#64748B"};
+  const StatusBadge = ({s}) => {
+    const m = {
+      pending:{bg:"rgba(245,158,11,.1)",c:"#F59E0B"},
+      approved:{bg:"rgba(16,185,129,.1)",c:"#10B981"},
+      rejected:{bg:"rgba(239,68,68,.1)",c:"#EF4444"},
+      success:{bg:"rgba(16,185,129,.1)",c:"#10B981"},
+      failed:{bg:"rgba(239,68,68,.1)",c:"#EF4444"},
+      open:{bg:"rgba(16,185,129,.1)",c:"#10B981"},
+      closed:{bg:"rgba(239,68,68,.1)",c:"#EF4444"},
+    };
+    const b = m[s] || {bg:"rgba(100,116,139,.1)",c:"#64748B"};
     return <span style={{background:b.bg,color:b.c,padding:"3px 9px",borderRadius:100,fontSize:10,fontWeight:700,textTransform:"capitalize"}}>{s}</span>;
   };
 
-  // ── PAGE RENDER ──
+  const MsgBar = () => msg ? (
+    <div style={{background:"rgba(16,185,129,.1)",border:"1px solid rgba(16,185,129,.2)",color:C.green,padding:"10px 16px",borderRadius:8,marginBottom:14,fontSize:13,fontWeight:600}}>{msg}</div>
+  ) : null;
+
+  const PageTitle = ({title,sub}) => (
+    <div style={{marginBottom:20}}>
+      <h2 style={{fontFamily:"Georgia,serif",fontSize:22,fontWeight:700,color:C.navy}}>{title}</h2>
+      {sub && <div style={{fontSize:12,color:C.slate,marginTop:2}}>{sub}</div>}
+    </div>
+  );
+
+  const CardGrid = ({items, cols=3}) => (
+    <div style={{display:"grid",gridTemplateColumns:`repeat(${cols},1fr)`,gap:12}}>
+      {items.map(([icon,label,desc,pg])=>(
+        <div key={pg} onClick={()=>pg.startsWith("msg:")?showMsg(pg.slice(4)):setPage(pg)}
+          style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,padding:"18px",cursor:"pointer",transition:"all .2s"}}
+          onMouseEnter={e=>{e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.transform="translateY(-2px)";}}
+          onMouseLeave={e=>{e.currentTarget.style.borderColor=C.border;e.currentTarget.style.transform="translateY(0)";}}>
+          <div style={{fontSize:26,marginBottom:8}}>{icon}</div>
+          <div style={{fontSize:12,fontWeight:700,color:C.navy,marginBottom:4}}>{label}</div>
+          <div style={{fontSize:10,color:C.slate,lineHeight:1.6}}>{desc}</div>
+        </div>
+      ))}
+    </div>
+  );
+
+  // ── PAGE RENDERS ──────────────────────────────────────────────
   const renderPage = () => {
 
-    if(page==="overview") return (
+    // OVERVIEW
+    if (page === "overview") return (
       <div>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
-          <div><h2 style={{fontFamily:"Georgia,serif",fontSize:22,fontWeight:700,color:C.navy}}>Command Centre</h2>
-          <div style={{fontSize:11,color:C.slate}}>SAMPACE EDUCATIONAL LTD · {SCHOOL_ROLES[adminRole]?.label||"Super Admin"}</div></div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20}}>
+          <div>
+            <h2 style={{fontFamily:"Georgia,serif",fontSize:24,fontWeight:700,color:C.navy}}>SAMPACE Enterprise Dashboard</h2>
+            <div style={{fontSize:12,color:C.slate,marginTop:2}}>{ROLES[adminRole]?.label||"Super Admin"} · Education Ecosystem Command Centre</div>
+          </div>
           <div style={{display:"flex",gap:8}}>
-            <div style={{background:sb()?"rgba(16,185,129,.1)":"rgba(239,68,68,.1)",border:"1px solid",borderColor:sb()?"rgba(16,185,129,.3)":"rgba(239,68,68,.3)",color:sb()?"#10B981":"#EF4444",padding:"5px 12px",borderRadius:100,fontSize:10,fontWeight:700}}>
+            <div style={{background:sb()?"rgba(16,185,129,.1)":"rgba(239,68,68,.1)",color:sb()?"#10B981":"#EF4444",padding:"5px 12px",borderRadius:100,fontSize:10,fontWeight:700,border:"1px solid",borderColor:sb()?"rgba(16,185,129,.3)":"rgba(239,68,68,.3)"}}>
               {sb()?"● Live Database":"● Demo Mode"}
             </div>
+            <button onClick={loadData} style={{background:"#fff",border:`1px solid ${C.border}`,color:C.slate,padding:"5px 12px",borderRadius:8,fontSize:11,cursor:"pointer",fontWeight:600}}>🔄 Refresh</button>
           </div>
         </div>
-        {msg && <div style={{background:"rgba(16,185,129,.1)",border:"1px solid rgba(16,185,129,.2)",color:C.green,padding:"10px 16px",borderRadius:8,marginBottom:14,fontSize:13,fontWeight:600}}>{msg}</div>}
-        <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:12,marginBottom:20,marginTop:16}}>
-          {[[stats.totalStudents,"👥","Students",C.blue],[stats.pendingApps,"⏳","Pending Apps",C.amber],[fmt(stats.totalRevenue),"💰","Revenue",C.green],[stats.totalStaff,"👔","Staff",C.purple],[stats.totalApps,"📋","Total Apps","#64748B"]].map(([v,icon,l,c],i)=>(
-            <div key={i} style={{background:"#fff",border:`1px solid ${c}22`,borderRadius:12,padding:"16px",borderTop:`3px solid ${c}`,cursor:"pointer"}} onClick={()=>setPage(i===0?"students":i===1||i===4?"applications":i===2?"payments":i===3?"staff":"applications")}>
-              <div style={{fontSize:18,marginBottom:6}}>{icon}</div>
-              <div style={{fontFamily:"Georgia,serif",fontSize:22,color:c,fontWeight:900,lineHeight:1}}>{v}</div>
-              <div style={{fontSize:11,color:C.navy,fontWeight:600,marginTop:3}}>{l}</div>
+        <MsgBar/>
+
+        {/* KPIs */}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:10,marginBottom:20}}>
+          {[
+            {icon:"👥",label:"Learners",val:stats.students,color:C.blue,pg:"learners"},
+            {icon:"👔",label:"Staff",val:stats.staff,color:C.purple,pg:"staff-page"},
+            {icon:"🏫",label:"Divisions",val:12,color:"#00897B",pg:"divisions-mgmt"},
+            {icon:"💰",label:"Revenue",val:fmt(stats.revenue),color:C.green,pg:"finance"},
+            {icon:"📋",label:"Applications",val:stats.apps,color:C.amber,pg:"admissions-page"},
+            {icon:"⏳",label:"Pending",val:stats.pending,color:C.red,pg:"admissions-page"},
+          ].map((k,i) => (
+            <div key={i} onClick={()=>setPage(k.pg)}
+              style={{background:"#fff",border:`1px solid ${k.color}22`,borderRadius:12,padding:"14px",borderTop:`3px solid ${k.color}`,cursor:"pointer",transition:"all .2s"}}
+              onMouseEnter={e=>e.currentTarget.style.transform="translateY(-2px)"}
+              onMouseLeave={e=>e.currentTarget.style.transform="translateY(0)"}>
+              <div style={{fontSize:18,marginBottom:6}}>{k.icon}</div>
+              <div style={{fontFamily:"Georgia,serif",fontSize:20,color:k.color,fontWeight:900,lineHeight:1}}>{k.val}</div>
+              <div style={{fontSize:10,color:C.navy,fontWeight:600,marginTop:3}}>{k.label}</div>
             </div>
           ))}
         </div>
 
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:14}}>
+        {/* Recent data */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:16}}>
           <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden"}}>
-            <div style={{padding:"12px 16px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:13,color:C.navy,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div style={{padding:"12px 16px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:13,color:C.navy,display:"flex",justifyContent:"space-between"}}>
               Recent Applications
-              <button onClick={()=>setPage("applications")} style={{fontSize:11,color:C.blue,border:"none",background:"none",cursor:"pointer"}}>View All →</button>
+              <button onClick={()=>setPage("admissions-page")} style={{fontSize:11,color:C.blue,border:"none",background:"none",cursor:"pointer"}}>View All →</button>
             </div>
-            {applications.slice(0,6).length===0
-              ? <div style={{padding:"24px 16px",textAlign:"center",color:C.slate,fontSize:12}}>No applications yet. They appear here when students apply on the website.</div>
-              : applications.slice(0,6).map((a,i)=>(
-              <div key={i} style={{padding:"10px 16px",borderBottom:"1px solid #F8FAFF",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div><div style={{fontSize:12,fontWeight:600,color:C.navy}}>{a.applicant_name}</div><div style={{fontSize:10,color:C.slate}}>{a.school_id} · {new Date(a.created_at).toLocaleDateString()}</div></div>
-                <div style={{display:"flex",gap:4,alignItems:"center"}}>
-                  {badge(a.status)}
-                  {a.status==="pending"&&<>
-                    <button onClick={()=>updateAppStatus(a.id,"approved")} style={{background:"rgba(16,185,129,.1)",border:"none",color:C.green,padding:"3px 8px",borderRadius:4,fontSize:10,cursor:"pointer",fontWeight:700}}>✓</button>
-                    <button onClick={()=>updateAppStatus(a.id,"rejected")} style={{background:"rgba(239,68,68,.1)",border:"none",color:C.red,padding:"3px 8px",borderRadius:4,fontSize:10,cursor:"pointer",fontWeight:700}}>✕</button>
-                  </>}
+            {apps.length === 0
+              ? <div style={{padding:"24px",textAlign:"center",color:C.slate,fontSize:12}}>No applications yet.</div>
+              : apps.slice(0,5).map((a,i) => (
+                <div key={i} style={{padding:"10px 16px",borderBottom:"1px solid #F8FAFF",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <div>
+                    <div style={{fontSize:12,fontWeight:600,color:C.navy}}>{a.applicant_name}</div>
+                    <div style={{fontSize:10,color:C.slate}}>{a.school_id} · {new Date(a.created_at).toLocaleDateString()}</div>
+                  </div>
+                  <div style={{display:"flex",gap:4,alignItems:"center"}}>
+                    <StatusBadge s={a.status}/>
+                    {a.status==="pending" && <>
+                      <button onClick={()=>approveApp(a.id,"approved")} style={{background:"rgba(16,185,129,.1)",border:"none",color:C.green,padding:"3px 7px",borderRadius:4,fontSize:10,cursor:"pointer",fontWeight:700}}>✓</button>
+                      <button onClick={()=>approveApp(a.id,"rejected")} style={{background:"rgba(239,68,68,.1)",border:"none",color:C.red,padding:"3px 7px",borderRadius:4,fontSize:10,cursor:"pointer",fontWeight:700}}>✕</button>
+                    </>}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            }
           </div>
           <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden"}}>
-            <div style={{padding:"12px 16px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:13,color:C.navy,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div style={{padding:"12px 16px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:13,color:C.navy,display:"flex",justifyContent:"space-between"}}>
               Recent Payments
-              <button onClick={()=>setPage("payments")} style={{fontSize:11,color:C.blue,border:"none",background:"none",cursor:"pointer"}}>View All →</button>
+              <button onClick={()=>setPage("finance")} style={{fontSize:11,color:C.blue,border:"none",background:"none",cursor:"pointer"}}>View All →</button>
             </div>
-            {payments.slice(0,6).length===0
-              ? <div style={{padding:"24px 16px",textAlign:"center",color:C.slate,fontSize:12}}>No payments yet.</div>
-              : payments.slice(0,6).map((p,i)=>(
-              <div key={i} style={{padding:"10px 16px",borderBottom:"1px solid #F8FAFF",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div><div style={{fontSize:11,fontWeight:600,color:C.navy}}>{p.paystack_reference||"REF-"+p.id?.slice(0,8)}</div><div style={{fontSize:10,color:C.slate}}>{p.school_id} · {p.payment_type}</div></div>
-                <div style={{textAlign:"right"}}>
-                  <div style={{fontSize:12,fontWeight:700,color:C.green}}>{fmt(p.amount)}</div>
-                  {p.status==="success"&&!p.access_enabled
-                    ? <button onClick={()=>enablePayment(p.id)} style={{background:"rgba(16,185,129,.1)",border:"none",color:C.green,padding:"2px 8px",borderRadius:5,fontSize:9,cursor:"pointer",fontWeight:700,marginTop:2}}>Enable Access</button>
-                    : p.access_enabled?<span style={{fontSize:9,color:C.green,fontWeight:700}}>✓ Active</span>:badge(p.status)
-                  }
+            {payments.length === 0
+              ? <div style={{padding:"24px",textAlign:"center",color:C.slate,fontSize:12}}>No payments yet.</div>
+              : payments.slice(0,5).map((p,i) => (
+                <div key={i} style={{padding:"10px 16px",borderBottom:"1px solid #F8FAFF",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <div>
+                    <div style={{fontSize:11,fontWeight:600,color:C.navy}}>{p.school_id||"General"} · {p.payment_type||"Tuition"}</div>
+                    <div style={{fontSize:10,color:C.slate}}>{new Date(p.created_at).toLocaleDateString()}</div>
+                  </div>
+                  <div style={{textAlign:"right"}}>
+                    <div style={{fontSize:12,fontWeight:700,color:C.green}}>{fmt(p.amount)}</div>
+                    {p.status==="success" && !p.access_enabled &&
+                      <button onClick={()=>enableAccess(p.id)} style={{background:"rgba(16,185,129,.1)",border:"none",color:C.green,padding:"2px 7px",borderRadius:4,fontSize:9,cursor:"pointer",fontWeight:700,marginTop:2}}>Enable Access</button>
+                    }
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            }
           </div>
         </div>
 
-        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
-          {[["📋","Applications","applications"],["👥","Students","students"],["💰","Payments","payments"],["👔","Staff","staff"],["🔑","Admin Roles","admin-roles"],["💳","Fee Settings","fee-settings"],["📅","Timetable","timetable"],["⚙️","Settings","settings"]].map(([icon,label,p])=>(
-            <button key={p} onClick={()=>setPage(p)} style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:10,padding:"14px",cursor:"pointer",textAlign:"left",transition:"all .2s"}} onMouseEnter={e=>e.currentTarget.style.borderColor=C.blue} onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
-              <div style={{fontSize:20,marginBottom:6}}>{icon}</div>
-              <div style={{fontSize:12,fontWeight:600,color:C.navy}}>{label}</div>
-            </button>
+        {/* Quick Actions */}
+        <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,padding:"16px"}}>
+          <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:12}}>Quick Actions</div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:8}}>
+            {[["📋","Applications","admissions-page"],["👥","Learners","learners"],["👔","Staff","staff-page"],["💰","Finance","finance"],["📣","Announce","announcements"],["🔑","Roles","admin-roles"],["💳","Fees","fee-settings"],["🏫","Divisions","divisions-mgmt"],["🌐","Website","website-mgmt"],["📊","Reports","reports"],["⚙️","Operations","operations"],["🔧","Settings","settings"]].map(([icon,label,pg])=>(
+              <button key={pg} onClick={()=>setPage(pg)}
+                style={{background:"#F8FAFF",border:`1px solid ${C.border}`,borderRadius:9,padding:"12px 6px",cursor:"pointer",textAlign:"center",transition:"all .15s"}}
+                onMouseEnter={e=>e.currentTarget.style.borderColor=C.blue}
+                onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
+                <div style={{fontSize:18,marginBottom:4}}>{icon}</div>
+                <div style={{fontSize:10,fontWeight:600,color:C.navy}}>{label}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+
+    // ADMISSIONS
+    if (page === "admissions-page") return (
+      <div>
+        <PageTitle title="Admissions Management" sub={`${apps.length} total · ${stats.pending} pending review`}/>
+        <MsgBar/>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:16}}>
+          {[["Total",apps.length,"#64748B"],["Pending",apps.filter(a=>a.status==="pending").length,C.amber],["Approved",apps.filter(a=>a.status==="approved").length,C.green],["Rejected",apps.filter(a=>a.status==="rejected").length,C.red]].map(([l,v,c])=>(
+            <div key={l} style={{background:"#fff",border:`1px solid ${c}22`,borderRadius:10,padding:"14px",borderTop:`3px solid ${c}`,textAlign:"center"}}>
+              <div style={{fontFamily:"Georgia,serif",fontSize:22,color:c,fontWeight:900}}>{v}</div>
+              <div style={{fontSize:11,color:C.slate}}>{l}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden"}}>
+          <div style={{display:"grid",gridTemplateColumns:"2fr 1.5fr 1.5fr 1fr 1fr 1.5fr",padding:"9px 16px",background:"#F8FAFF",borderBottom:`2px solid ${C.border}`}}>
+            {["Applicant","Division","Programme","Date","Status","Actions"].map(h=>(
+              <div key={h} style={{fontSize:9,fontWeight:700,color:C.slate,letterSpacing:.5,textTransform:"uppercase"}}>{h}</div>
+            ))}
+          </div>
+          {apps.length === 0
+            ? <div style={{padding:"40px",textAlign:"center",color:C.slate}}>No applications yet. Share sampaceedu.com.ng with students.</div>
+            : apps.map((a,i) => (
+            <div key={i} style={{display:"grid",gridTemplateColumns:"2fr 1.5fr 1.5fr 1fr 1fr 1.5fr",padding:"11px 16px",borderBottom:"1px solid #F8FAFF",alignItems:"center",background:a.status==="pending"?"rgba(245,158,11,.02)":"#fff"}}>
+              <div>
+                <div style={{fontSize:12,fontWeight:600,color:C.navy}}>{a.applicant_name}</div>
+                <div style={{fontSize:10,color:C.slate}}>{a.email}</div>
+                <div style={{fontSize:9,color:"#94A3B8",fontFamily:"monospace"}}>{a.reference}</div>
+              </div>
+              <div style={{fontSize:11,color:C.slate}}>{a.school_id}</div>
+              <div style={{fontSize:11,color:C.slate}}>{a.program||a.class_level||"General"}</div>
+              <div style={{fontSize:10,color:C.slate}}>{new Date(a.created_at).toLocaleDateString()}</div>
+              <StatusBadge s={a.status}/>
+              <div style={{display:"flex",gap:4}}>
+                {a.status === "pending" ? <>
+                  <button onClick={()=>approveApp(a.id,"approved")} style={{background:"rgba(16,185,129,.1)",border:"none",color:C.green,padding:"4px 8px",borderRadius:5,fontSize:10,cursor:"pointer",fontWeight:700}}>✓ Approve</button>
+                  <button onClick={()=>approveApp(a.id,"rejected")} style={{background:"rgba(239,68,68,.1)",border:"none",color:C.red,padding:"4px 8px",borderRadius:5,fontSize:10,cursor:"pointer",fontWeight:700}}>✕</button>
+                </> : <span style={{fontSize:10,color:C.slate}}>Done</span>}
+              </div>
+            </div>
           ))}
         </div>
       </div>
     );
 
-    if(page==="applications") return (
+    // LEARNERS
+    if (page === "learners") return (
       <div>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-          <div><h2 style={{fontFamily:"Georgia,serif",fontSize:20,fontWeight:700,color:C.navy}}>Applications</h2><div style={{fontSize:12,color:C.slate}}>{applications.length} total · {stats.pendingApps} pending review</div></div>
-          <button onClick={loadApplications} style={{background:`linear-gradient(135deg,${C.blue},${C.sky})`,color:"#fff",border:"none",padding:"8px 16px",borderRadius:8,fontSize:12,fontWeight:700,cursor:"pointer"}}>🔄 Refresh</button>
-        </div>
-        {msg&&<div style={{background:"rgba(16,185,129,.1)",border:"1px solid rgba(16,185,129,.2)",color:C.green,padding:"10px 16px",borderRadius:8,marginBottom:14,fontSize:13}}>{msg}</div>}
-        {loading?<div style={{textAlign:"center",padding:40,color:C.slate}}>Loading...</div>:(
-          <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden"}}>
-            <div style={{display:"grid",gridTemplateColumns:"2fr 1.5fr 1.5fr 1fr 1fr 1.5fr",padding:"9px 16px",background:"#F8FAFF",borderBottom:`2px solid ${C.border}`}}>
-              {["Applicant","School","Programme","Date","Status","Actions"].map(h=><div key={h} style={{fontSize:9,fontWeight:700,color:C.slate,letterSpacing:.5,textTransform:"uppercase"}}>{h}</div>)}
+        <PageTitle title="Learners Management" sub={`${students.length} registered across all divisions`}/>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:16}}>
+          {[["All Learners",students.length,"#64748B"],["College",students.filter(s=>s.student_profiles?.[0]?.school_id==="college").length,C.blue],["Extramural",students.filter(s=>s.student_profiles?.[0]?.school_id==="extramural").length,"#00897B"],["Digital",students.filter(s=>s.student_profiles?.[0]?.school_id==="digital").length,"#7B1FA2"]].map(([l,v,c])=>(
+            <div key={l} style={{background:"#fff",border:`1px solid ${c}22`,borderRadius:10,padding:"14px",borderTop:`3px solid ${c}`,textAlign:"center"}}>
+              <div style={{fontFamily:"Georgia,serif",fontSize:20,color:c,fontWeight:900}}>{v}</div>
+              <div style={{fontSize:11,color:C.slate}}>{l}</div>
             </div>
-            {applications.length===0
-              ? <div style={{padding:"40px 16px",textAlign:"center",color:C.slate}}>No applications yet. Share the website link so students can apply.</div>
-              : applications.map((a,i)=>(
-              <div key={i} style={{display:"grid",gridTemplateColumns:"2fr 1.5fr 1.5fr 1fr 1fr 1.5fr",padding:"11px 16px",borderBottom:"1px solid #F8FAFF",alignItems:"center",background:a.status==="pending"?"rgba(245,158,11,.02)":"#fff"}}>
-                <div><div style={{fontSize:12,fontWeight:600,color:C.navy}}>{a.applicant_name}</div><div style={{fontSize:10,color:C.slate}}>{a.email}</div><div style={{fontSize:9,color:C.slate,fontFamily:"monospace"}}>{a.reference}</div></div>
-                <div style={{fontSize:11,color:C.slate}}>{a.school_id}</div>
-                <div style={{fontSize:11,color:C.slate}}>{a.program||a.class_level||a.department||"General"}</div>
-                <div style={{fontSize:10,color:C.slate}}>{new Date(a.created_at).toLocaleDateString()}</div>
-                {badge(a.status)}
-                <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-                  {a.status==="pending"&&<>
-                    <button onClick={()=>updateAppStatus(a.id,"approved")} style={{background:"rgba(16,185,129,.1)",border:"none",color:C.green,padding:"4px 8px",borderRadius:5,fontSize:10,cursor:"pointer",fontWeight:700}}>✓ Approve</button>
-                    <button onClick={()=>updateAppStatus(a.id,"rejected")} style={{background:"rgba(239,68,68,.1)",border:"none",color:C.red,padding:"4px 8px",borderRadius:5,fontSize:10,cursor:"pointer",fontWeight:700}}>✕ Reject</button>
-                  </>}
-                  {a.status!=="pending"&&<span style={{fontSize:10,color:C.slate}}>Reviewed</span>}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-
-    if(page==="students") return (
-      <div>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-          <div><h2 style={{fontFamily:"Georgia,serif",fontSize:20,fontWeight:700,color:C.navy}}>Students</h2><div style={{fontSize:12,color:C.slate}}>{students.length} registered students</div></div>
-          <button onClick={loadStudents} style={{background:`linear-gradient(135deg,${C.blue},${C.sky})`,color:"#fff",border:"none",padding:"8px 16px",borderRadius:8,fontSize:12,fontWeight:700,cursor:"pointer"}}>🔄 Refresh</button>
+          ))}
         </div>
-        {loading?<div style={{textAlign:"center",padding:40,color:C.slate}}>Loading...</div>:(
+        {loading ? <div style={{textAlign:"center",padding:40,color:C.slate,fontSize:13}}>Loading learners...</div> : (
           <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden"}}>
             <div style={{display:"grid",gridTemplateColumns:"2fr 2fr 1.5fr 1fr 1fr",padding:"9px 16px",background:"#F8FAFF",borderBottom:`2px solid ${C.border}`}}>
-              {["Student","Email","School","Role","Joined"].map(h=><div key={h} style={{fontSize:9,fontWeight:700,color:C.slate,letterSpacing:.5,textTransform:"uppercase"}}>{h}</div>)}
+              {["Learner","Email","Division","Role","Joined"].map(h=>(
+                <div key={h} style={{fontSize:9,fontWeight:700,color:C.slate,letterSpacing:.5,textTransform:"uppercase"}}>{h}</div>
+              ))}
             </div>
-            {students.length===0
-              ? <div style={{padding:"40px 16px",textAlign:"center",color:C.slate}}>No students registered yet.</div>
-              : students.map((s,i)=>(
+            {students.length === 0
+              ? <div style={{padding:"40px",textAlign:"center",color:C.slate}}>No learners registered yet.</div>
+              : students.map((s,i) => (
               <div key={i} style={{display:"grid",gridTemplateColumns:"2fr 2fr 1.5fr 1fr 1fr",padding:"11px 16px",borderBottom:"1px solid #F8FAFF",alignItems:"center"}}>
                 <div style={{display:"flex",alignItems:"center",gap:8}}>
-                  <div style={{width:28,height:28,borderRadius:"50%",background:`linear-gradient(135deg,${C.blue},${C.sky})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#fff",flexShrink:0}}>{s.full_name?.charAt(0)||"?"}</div>
+                  <div style={{width:28,height:28,borderRadius:"50%",background:`linear-gradient(135deg,${C.blue},${C.sky})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#fff",flexShrink:0}}>
+                    {s.full_name?.charAt(0)||"?"}
+                  </div>
                   <div style={{fontSize:12,fontWeight:600,color:C.navy}}>{s.full_name}</div>
                 </div>
                 <div style={{fontSize:11,color:C.slate}}>{s.email}</div>
@@ -1595,384 +1675,537 @@ function AdminDashboard({ onLogout }) {
       </div>
     );
 
-    if(page==="payments") return (
+    // STAFF
+    if (page === "staff-page") return (
       <div>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-          <div><h2 style={{fontFamily:"Georgia,serif",fontSize:20,fontWeight:700,color:C.navy}}>Payments</h2><div style={{fontSize:12,color:C.slate}}>{payments.length} total payments</div></div>
-          <button onClick={loadPayments} style={{background:`linear-gradient(135deg,${C.blue},${C.sky})`,color:"#fff",border:"none",padding:"8px 16px",borderRadius:8,fontSize:12,fontWeight:700,cursor:"pointer"}}>🔄 Refresh</button>
+        <PageTitle title="Staff Management" sub="All staff across 12 divisions. Division-specific roles available."/>
+        <MsgBar/>
+        <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,padding:"20px",marginBottom:14}}>
+          <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:14}}>Add New Staff Member</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:14}}>
+            {[["Full Name *","text","e.g. Mrs. Ngozi Adeyemi","snm"],["Email *","email","staff@sampaceedu.com.ng","sem"],["Phone","text","+234...","sph"],["Subject / Course","text","e.g. Mathematics, Web Dev","ssub"]].map(([l,t,ph,id])=>(
+              <div key={id}>
+                <label style={{fontSize:10,color:C.blue,fontWeight:700,letterSpacing:1,display:"block",marginBottom:4,textTransform:"uppercase"}}>{l}</label>
+                <input id={id} type={t} placeholder={ph} style={{width:"100%",border:`1px solid ${C.border}`,borderRadius:7,padding:"9px 12px",fontSize:12,outline:"none",color:C.navy}}/>
+              </div>
+            ))}
+            <div>
+              <label style={{fontSize:10,color:C.blue,fontWeight:700,letterSpacing:1,display:"block",marginBottom:4,textTransform:"uppercase"}}>Division</label>
+              <select id="sdiv" onChange={e=>{
+                const roles = STAFF_ROLES[e.target.value] || [];
+                const sel = document.getElementById("srole");
+                if (sel) sel.innerHTML = roles.map(r=>`<option>${r}</option>`).join("");
+              }} style={{width:"100%",border:`1px solid ${C.border}`,borderRadius:7,padding:"9px 12px",fontSize:12,outline:"none",color:C.navy}}>
+                {DIVISIONS.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={{fontSize:10,color:C.blue,fontWeight:700,letterSpacing:1,display:"block",marginBottom:4,textTransform:"uppercase"}}>Staff Role</label>
+              <select id="srole" style={{width:"100%",border:`1px solid ${C.border}`,borderRadius:7,padding:"9px 12px",fontSize:12,outline:"none",color:C.navy}}>
+                {(STAFF_ROLES["college"]||[]).map(r=><option key={r}>{r}</option>)}
+              </select>
+            </div>
+          </div>
+          <button onClick={async()=>{
+            const s=sb();
+            const name=document.getElementById("snm")?.value;
+            const email=document.getElementById("sem")?.value;
+            const phone=document.getElementById("sph")?.value||"";
+            const div=document.getElementById("sdiv")?.value||"college";
+            const subj=document.getElementById("ssub")?.value||"";
+            if(!name||!email){alert("Name and email are required.");return;}
+            if(s){
+              const {data:nd,error}=await s.from("users").insert({full_name:name,email,phone,role:"teacher",is_active:true}).select().single();
+              if(error){alert("Error: "+error.message);return;}
+              if(nd&&subj){
+                await s.from("courses").insert({school_id:div,subject:subj,title:subj,teacher_id:nd.id,is_active:true}).then(()=>{}).catch(()=>{});
+              }
+            }
+            showMsg("✅ Staff member added successfully!");
+            loadData();
+          }} style={{background:`linear-gradient(135deg,${C.blue},${C.sky})`,color:"#fff",border:"none",padding:"10px 24px",borderRadius:8,fontSize:12,fontWeight:700,cursor:"pointer"}}>
+            + Add Staff Member
+          </button>
         </div>
-        {msg&&<div style={{background:"rgba(16,185,129,.1)",border:"1px solid rgba(16,185,129,.2)",color:C.green,padding:"10px 16px",borderRadius:8,marginBottom:14,fontSize:13}}>{msg}</div>}
+        <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden"}}>
+          <div style={{padding:"12px 16px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:13,color:C.navy}}>All Staff ({staff.length})</div>
+          {staff.length === 0
+            ? <div style={{padding:"24px",textAlign:"center",color:C.slate,fontSize:12}}>No staff added yet. Use the form above.</div>
+            : staff.map((s,i)=>(
+            <div key={i} style={{display:"grid",gridTemplateColumns:"2fr 2fr 1.5fr 1fr",padding:"11px 16px",borderBottom:"1px solid #F8FAFF",alignItems:"center"}}>
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                <div style={{width:28,height:28,borderRadius:"50%",background:`linear-gradient(135deg,${C.purple},${C.sky})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#fff"}}>
+                  {s.full_name?.charAt(0)||"?"}
+                </div>
+                <div style={{fontSize:12,fontWeight:600,color:C.navy}}>{s.full_name}</div>
+              </div>
+              <div style={{fontSize:11,color:C.slate}}>{s.email}</div>
+              <div style={{fontSize:11,color:C.slate,textTransform:"capitalize"}}>{s.role}</div>
+              <button onClick={async()=>{if(!sb())return;await sb().from("users").update({is_active:!s.is_active}).eq("id",s.id);loadData();}}
+                style={{background:s.is_active?"rgba(239,68,68,.1)":"rgba(16,185,129,.1)",border:"none",color:s.is_active?C.red:C.green,padding:"4px 10px",borderRadius:5,fontSize:10,cursor:"pointer",fontWeight:700}}>
+                {s.is_active?"Suspend":"Activate"}
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+
+    // ACADEMICS
+    if (page === "academics") return (
+      <div>
+        <PageTitle title="Academics" sub="Manage all academic activities across SAMPACE divisions"/>
+        <CardGrid cols={4} items={[
+          ["📅","Timetable","Class schedules for all divisions","timetable"],
+          ["📊","Results & Reports","Grades and term results","results-page"],
+          ["📝","Assessments","CA tests, exams, assignments","msg:Assessment management coming in Phase 2"],
+          ["🎓","Certificates","Issue and verify certificates","msg:Certificate management coming in Phase 2"],
+          ["📋","Curriculum","Subjects, courses and syllabi","msg:Curriculum manager coming in Phase 2"],
+          ["📆","Academic Calendar","Term dates and events","msg:Calendar management coming in Phase 2"],
+          ["🧪","Virtual Labs","PhET simulations and online labs","msg:Labs management coming in Phase 2"],
+          ["✅","Attendance","Daily attendance records","msg:Attendance reports coming in Phase 2"],
+        ]}/>
+      </div>
+    );
+
+    // FINANCE
+    if (page === "finance") return (
+      <div>
+        <PageTitle title="Finance Management" sub="Payments, revenue and financial overview"/>
+        <MsgBar/>
         <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:16}}>
-          {[["Total Collected",fmt(payments.filter(p=>p.status==="success").reduce((s,p)=>s+Number(p.amount),0)),C.green],["Awaiting Activation",payments.filter(p=>p.status==="success"&&!p.access_enabled).length+" students",C.amber],["Total Transactions",payments.length+" records","#64748B"]].map(([l,v,c],i)=>(
-            <div key={i} style={{background:"#fff",border:`1px solid ${c}22`,borderRadius:12,padding:"16px",borderTop:`3px solid ${c}`}}>
+          {[
+            ["Total Collected",fmt(payments.filter(p=>p.status==="success").reduce((t,p)=>t+Number(p.amount),0)),C.green],
+            ["Awaiting Activation",payments.filter(p=>p.status==="success"&&!p.access_enabled).length+" students",C.amber],
+            ["Total Transactions",payments.length+" records","#64748B"],
+          ].map(([l,v,c])=>(
+            <div key={l} style={{background:"#fff",border:`1px solid ${c}22`,borderRadius:12,padding:"16px",borderTop:`3px solid ${c}`}}>
               <div style={{fontFamily:"Georgia,serif",fontSize:22,color:c,fontWeight:900}}>{v}</div>
               <div style={{fontSize:12,color:C.slate,marginTop:4}}>{l}</div>
             </div>
           ))}
         </div>
-        {loading?<div style={{textAlign:"center",padding:40,color:C.slate}}>Loading...</div>:(
-          <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden"}}>
-            {payments.length===0
-              ? <div style={{padding:"40px 16px",textAlign:"center",color:C.slate}}>No payments yet. When students pay via Paystack, they appear here.</div>
-              : payments.map((p,i)=>(
-              <div key={i} style={{padding:"13px 18px",borderBottom:"1px solid #F8FAFF",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div>
-                  <div style={{fontSize:12,fontWeight:600,color:C.navy}}>{p.paystack_reference||"REF-"+p.id?.slice(0,8)}</div>
-                  <div style={{fontSize:10,color:C.slate}}>{p.school_id||"General"} · {p.payment_type||"Tuition"} · {new Date(p.created_at).toLocaleDateString()}</div>
-                </div>
-                <div style={{display:"flex",alignItems:"center",gap:10}}>
-                  <div style={{fontSize:14,fontWeight:700,color:C.green}}>{fmt(p.amount)}</div>
-                  {badge(p.status)}
-                  {p.status==="success"&&!p.access_enabled
-                    ? <button onClick={()=>enablePayment(p.id)} style={{background:"rgba(16,185,129,.1)",border:"none",color:C.green,padding:"6px 12px",borderRadius:6,fontSize:11,cursor:"pointer",fontWeight:700}}>✓ Enable Access</button>
-                    : p.access_enabled?<span style={{fontSize:11,color:C.green,fontWeight:700}}>✅ Active</span>:null
-                  }
-                </div>
+        <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden",marginBottom:12}}>
+          <div style={{padding:"12px 16px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:13,color:C.navy}}>Payment History</div>
+          {payments.length === 0
+            ? <div style={{padding:"40px",textAlign:"center",color:C.slate}}>No payments yet.</div>
+            : payments.map((p,i)=>(
+            <div key={i} style={{padding:"12px 18px",borderBottom:"1px solid #F8FAFF",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div>
+                <div style={{fontSize:12,fontWeight:600,color:C.navy}}>{p.paystack_reference||"REF-"+p.id?.slice(0,8)}</div>
+                <div style={{fontSize:10,color:C.slate}}>{p.school_id||"General"} · {p.payment_type||"Tuition"} · {new Date(p.created_at).toLocaleDateString()}</div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-
-    if(page==="staff") return (
-      <div>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-          <div><h2 style={{fontFamily:"Georgia,serif",fontSize:20,fontWeight:700,color:C.navy}}>Staff Management</h2><div style={{fontSize:12,color:C.slate}}>{staffList.length} staff members</div></div>
-          <button onClick={loadStaff} style={{background:`linear-gradient(135deg,${C.blue},${C.sky})`,color:"#fff",border:"none",padding:"8px 16px",borderRadius:8,fontSize:12,fontWeight:700,cursor:"pointer"}}>🔄 Refresh</button>
-        </div>
-        <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,padding:"20px",marginBottom:14}}>
-          <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:14}}>Add New Staff Member</div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:14}}>
-            {[["Full Name *","text","e.g. Mrs. Ngozi Adeyemi","staff-name"],["Email *","email","staff@sampaceedu.com.ng","staff-email"],["Phone","text","+234...","staff-phone"],["Subject / Course","text","e.g. Mathematics","staff-subject"]].map(([label,type,ph,id])=>(
-              <div key={id}>
-                <label style={{fontSize:10,color:C.blue,fontWeight:700,letterSpacing:1,display:"block",marginBottom:4,textTransform:"uppercase"}}>{label}</label>
-                <input id={id} type={type} placeholder={ph} style={{width:"100%",border:`1px solid ${C.border}`,borderRadius:7,padding:"9px 12px",fontSize:12,outline:"none",color:C.navy}}/>
-              </div>
-            ))}
-            <div>
-              <label style={{fontSize:10,color:C.blue,fontWeight:700,letterSpacing:1,display:"block",marginBottom:4,textTransform:"uppercase"}}>Division</label>
-              <select id="staff-school" style={{width:"100%",border:`1px solid ${C.border}`,borderRadius:7,padding:"9px 12px",fontSize:12,outline:"none",color:C.navy}}>
-                <option>SAMPACE College</option><option>Extramural Hub</option><option>Digital Campus</option><option>Pre-University</option><option>Professional LC</option><option>CBT Platform</option><option>All Divisions</option>
-              </select>
-            </div>
-            <div>
-              <label style={{fontSize:10,color:C.blue,fontWeight:700,letterSpacing:1,display:"block",marginBottom:4,textTransform:"uppercase"}}>Staff Role</label>
-              <select id="staff-role" style={{width:"100%",border:`1px solid ${C.border}`,borderRadius:7,padding:"9px 12px",fontSize:12,outline:"none",color:C.navy}}>
-                <option>Subject Teacher</option><option>Class Teacher</option><option>Head of Department</option><option>Counsellor</option><option>Support Staff</option><option>Content Creator</option>
-              </select>
-            </div>
-          </div>
-          <button onClick={async()=>{
-            const s=sb();
-            const name=document.getElementById("staff-name")?.value;
-            const email=document.getElementById("staff-email")?.value;
-            const phone=document.getElementById("staff-phone")?.value;
-            const subject=document.getElementById("staff-subject")?.value;
-            const school=document.getElementById("staff-school")?.value;
-            if(!name||!email){alert("Name and email required.");return;}
-            if(s){
-              const {data,error}=await s.from("users").insert({full_name:name,email,phone:phone||"",role:"teacher",is_active:true}).select().single();
-              if(error){alert("Error: "+error.message);return;}
-              if(data&&subject){await s.from("courses").insert({school_id:school||"general",subject,title:subject,teacher_id:data.id,is_active:true}).then(()=>{}).catch(()=>{});}
-            }
-            setMsg("✅ Staff member added!");
-            loadStaff();
-            setTimeout(()=>setMsg(""),3000);
-          }} style={{background:`linear-gradient(135deg,${C.blue},${C.sky})`,color:"#fff",border:"none",padding:"10px 24px",borderRadius:8,fontSize:12,fontWeight:700,cursor:"pointer"}}>+ Add Staff Member</button>
-          {msg&&<span style={{marginLeft:12,fontSize:12,color:C.green,fontWeight:600}}>{msg}</span>}
-        </div>
-        <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden"}}>
-          <div style={{padding:"12px 16px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:13,color:C.navy}}>Current Staff ({staffList.length})</div>
-          {staffList.length===0
-            ? <div style={{padding:"24px 16px",textAlign:"center",color:C.slate,fontSize:12}}>No staff added yet.</div>
-            : staffList.map((s,i)=>(
-            <div key={i} style={{display:"grid",gridTemplateColumns:"2fr 2fr 1.5fr 1fr",padding:"11px 16px",borderBottom:"1px solid #F8FAFF",alignItems:"center"}}>
-              <div style={{display:"flex",alignItems:"center",gap:8}}>
-                <div style={{width:28,height:28,borderRadius:"50%",background:`linear-gradient(135deg,${C.blue},${C.sky})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#fff"}}>{s.full_name?.charAt(0)||"?"}</div>
-                <div style={{fontSize:12,fontWeight:600,color:C.navy}}>{s.full_name}</div>
-              </div>
-              <div style={{fontSize:11,color:C.slate}}>{s.email}</div>
-              <div style={{fontSize:11,color:C.slate,textTransform:"capitalize"}}>{s.role}</div>
-              <div style={{display:"flex",gap:6}}>
-                <button onClick={async()=>{
-                  if(!sb())return;
-                  await sb().from("users").update({is_active:!s.is_active}).eq("id",s.id);
-                  loadStaff();
-                }} style={{background:s.is_active?"rgba(239,68,68,.1)":"rgba(16,185,129,.1)",border:"none",color:s.is_active?C.red:C.green,padding:"4px 8px",borderRadius:5,fontSize:10,cursor:"pointer",fontWeight:700}}>
-                  {s.is_active?"Suspend":"Activate"}
-                </button>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <div style={{fontSize:13,fontWeight:700,color:C.green}}>{fmt(p.amount)}</div>
+                <StatusBadge s={p.status}/>
+                {p.status==="success"&&!p.access_enabled&&
+                  <button onClick={()=>enableAccess(p.id)} style={{background:"rgba(16,185,129,.1)",border:"none",color:C.green,padding:"5px 10px",borderRadius:6,fontSize:10,cursor:"pointer",fontWeight:700}}>✓ Enable Access</button>
+                }
+                {p.access_enabled&&<span style={{fontSize:10,color:C.green,fontWeight:700}}>✅ Active</span>}
               </div>
             </div>
           ))}
         </div>
+        <button onClick={()=>setPage("fee-settings")} style={{background:`linear-gradient(135deg,${C.blue},${C.sky})`,color:"#fff",border:"none",padding:"10px 20px",borderRadius:8,fontSize:12,fontWeight:700,cursor:"pointer"}}>💳 Manage Fee Settings →</button>
       </div>
     );
 
-    if(page==="admin-roles") return (
+    // FEE SETTINGS
+    if (page === "fee-settings") return (
       <div>
-        <h2 style={{fontFamily:"Georgia,serif",fontSize:20,fontWeight:700,color:C.navy,marginBottom:4}}>Admin Roles & Permissions</h2>
-        <p style={{fontSize:12,color:C.slate,marginBottom:18}}>Assign admin roles to staff members. Each role controls which divisions they can access and manage.</p>
-        {msg&&<div style={{background:"rgba(16,185,129,.1)",border:"1px solid rgba(16,185,129,.2)",color:C.green,padding:"10px 16px",borderRadius:8,marginBottom:14,fontSize:13}}>{msg}</div>}
+        <PageTitle title="Fee Settings" sub="Admin-configurable fees for all programmes. All prices in Naira."/>
+        <MsgBar/>
+        {[
+          {title:"🏫 SAMPACE College — Per Term",pairs:[["college_jss","JSS1–JSS3"],["college_ss","SS1–SS2"],["college_ss3","SS3 (Exam Year)"]]},
+          {title:"📚 Tutorial & Extramural — Monthly",pairs:[["tutorial_single","Single Subject"],["tutorial_bundle","3-Subject Bundle"],["tutorial_full","Full Package (All Subjects)"]]},
+          {title:"💻 Digital Campus — Per Programme",pairs:[["digital_tech","School of Technology"],["digital_biz","Business & Professional"],["digital_lang","Languages & Communication"]]},
+          {title:"🏛️ Pre-University — Annual",pairs:[["preuni_ijmb","IJMB Programme"],["preuni_jupeb","JUPEB Programme"],["preuni_pre","Pre-Degree / Diploma"]]},
+          {title:"🏢 Professional Learning Centre",pairs:[["professional_short","Short Course (per course)"],["professional_exec","Executive Programme"]]},
+          {title:"🖥️ CBT Platform — Subscription",pairs:[["cbt_monthly","Monthly Access"],["cbt_annual","Annual Access"]]},
+        ].map((sec,si)=>(
+          <div key={si} style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden",marginBottom:12}}>
+            <div style={{padding:"12px 16px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:12,color:C.navy}}>{sec.title}</div>
+            {sec.pairs.map(([key,label])=>(
+              <div key={key} style={{display:"grid",gridTemplateColumns:"1fr 1fr",padding:"11px 16px",borderBottom:"1px solid #F8FAFF",alignItems:"center"}}>
+                <div style={{fontSize:12,color:C.slate,fontWeight:600}}>{label}</div>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <span style={{fontSize:12,color:C.slate,fontWeight:600}}>₦</span>
+                  <input type="number" value={fees[key]||""} onChange={e=>setFees(f=>({...f,[key]:e.target.value}))}
+                    style={{flex:1,border:`1px solid ${C.border}`,borderRadius:7,padding:"7px 10px",fontSize:12,outline:"none",color:C.navy}}/>
+                  <span style={{fontSize:11,color:C.green,fontWeight:700,minWidth:90}}>{fmt(fees[key]||0)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ))}
+        <button onClick={async()=>{
+          const s=sb();
+          if(s){await s.from("notifications").insert({user_id:"00000000-0000-0000-0000-000000000000",title:"Fee Settings Updated",body:JSON.stringify(fees),type:"system"}).then(()=>{}).catch(()=>{});}
+          showMsg("✅ All fee settings saved successfully!");
+        }} style={{background:`linear-gradient(135deg,${C.blue},${C.sky})`,color:"#fff",border:"none",padding:"12px 28px",borderRadius:9,fontSize:13,fontWeight:700,cursor:"pointer"}}>
+          💾 Save All Fee Settings
+        </button>
+      </div>
+    );
 
-        <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,padding:"20px",marginBottom:16}}>
-          <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:14}}>Role Hierarchy & Access Map</div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-            {Object.entries(SCHOOL_ROLES).map(([key,role])=>(
-              <div key={key} style={{background:`${role.color}08`,border:`1px solid ${role.color}22`,borderRadius:10,padding:"12px 14px"}}>
-                <div style={{fontWeight:700,fontSize:12,color:role.color,marginBottom:4}}>{role.label}</div>
-                <div style={{fontSize:10,color:C.slate}}>Access: <span style={{color:C.navy,fontWeight:600}}>{role.access==="all"?"All 12 divisions":role.access==="all_limited"?"All (read-only some)":role.access+" division only"}</span></div>
+    // OPERATIONS
+    if (page === "operations") return (
+      <div>
+        <PageTitle title="Operations" sub="Day-to-day operational management"/>
+        <CardGrid cols={3} items={[
+          ["📣","Announcements","Publish to students and staff","announcements"],
+          ["🎫","Support Tickets","Help desk and student issues","msg:Support tickets coming in Phase 2"],
+          ["📅","Events","Schedule SAMPACE events","msg:Events calendar coming in Phase 2"],
+          ["💬","Internal Messaging","Staff communication","msg:Internal messaging coming in Phase 2"],
+          ["📦","Resources","Manage learning resources","msg:Resource management coming in Phase 2"],
+          ["📋","Visitor Log","Track visitors and guests","msg:Visitor log coming in Phase 2"],
+        ]}/>
+      </div>
+    );
+
+    // CORPORATE HQ
+    if (page === "corporate") return (
+      <div>
+        <PageTitle title="Corporate Headquarters" sub="SAMPACE EDUCATIONAL LTD · CAC Registered · CAMA 2020"/>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:14}}>
+          <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,padding:"20px"}}>
+            <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:14}}>Company Profile</div>
+            {[["Company Name","SAMPACE EDUCATIONAL LTD"],["Founder","Ayeni Samuel Anuoluwapo"],["Incorporation","CAC · CAMA 2020 · Nigeria"],["Status","Active · Trading"],["Primary Domain","sampaceedu.com.ng"],["Contact","info@sampaceedu.com.ng"],["Divisions","12 Active Divisions"],["Founded","2026"]].map(([l,v])=>(
+              <div key={l} style={{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid #F8FAFF"}}>
+                <div style={{fontSize:11,color:C.slate,fontWeight:600}}>{l}</div>
+                <div style={{fontSize:11,color:C.navy,fontWeight:700}}>{v}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            {[["📜","Company Documents","CAC certificates, MEMART, TIN"],["🤝","Partners & Affiliations","WAEC, NECO, JAMB, ACCA, ICAN"],["👑","Leadership Team","Director and management"],["🎨","Brand Assets","Logos, colours, guidelines"],["📰","Press & Media","Media kit and press releases"],["🌍","Global Presence","International partnerships"]].map(([icon,label,desc])=>(
+              <div key={label} onClick={()=>showMsg(label+" — coming in Phase 2")}
+                style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:10,padding:"13px 16px",cursor:"pointer",display:"flex",gap:12,alignItems:"center",transition:"all .2s"}}
+                onMouseEnter={e=>e.currentTarget.style.borderColor=C.gold}
+                onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
+                <div style={{fontSize:20,flexShrink:0}}>{icon}</div>
+                <div>
+                  <div style={{fontSize:12,fontWeight:700,color:C.navy}}>{label}</div>
+                  <div style={{fontSize:10,color:C.slate}}>{desc}</div>
+                </div>
               </div>
             ))}
           </div>
         </div>
+      </div>
+    );
 
-        <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,padding:"20px",marginBottom:16}}>
+    // DIVISIONS MANAGEMENT
+    if (page === "divisions-mgmt") return (
+      <div>
+        <PageTitle title="Divisions Management" sub="Control admissions status and configure all 12 SAMPACE divisions"/>
+        <MsgBar/>
+        {DIV_GROUPS.map((group,gi)=>(
+          <div key={gi} style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden",marginBottom:12}}>
+            <div style={{padding:"12px 16px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:12,color:C.navy,background:"#F8FAFF"}}>{group.label}</div>
+            {DIVISIONS.filter(d=>group.ids.includes(d.id)).map(div=>(
+              <div key={div.id} style={{padding:"14px 16px",borderBottom:"1px solid #F8FAFF",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div style={{display:"flex",alignItems:"center",gap:12}}>
+                  <div style={{width:36,height:36,background:`${div.color}15`,border:`1px solid ${div.color}25`,borderRadius:9,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>{div.icon}</div>
+                  <div>
+                    <div style={{fontSize:12,fontWeight:700,color:C.navy}}>{div.name}</div>
+                    <div style={{fontSize:10,color:C.slate}}>Division {DIVISIONS.findIndex(d=>d.id===div.id)+1}</div>
+                  </div>
+                </div>
+                <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                  <span style={{background:divStatus[div.id]==="open"?"rgba(16,185,129,.1)":"rgba(239,68,68,.1)",color:divStatus[div.id]==="open"?C.green:C.red,padding:"3px 10px",borderRadius:100,fontSize:10,fontWeight:700}}>
+                    {divStatus[div.id]==="open"?"🟢 Open":"🔴 Closed"}
+                  </span>
+                  <button onClick={()=>setDivStatus(prev=>({...prev,[div.id]:prev[div.id]==="open"?"closed":"open"}))}
+                    style={{background:divStatus[div.id]==="open"?"rgba(239,68,68,.08)":"rgba(16,185,129,.08)",border:"none",color:divStatus[div.id]==="open"?C.red:C.green,padding:"5px 12px",borderRadius:6,fontSize:10,cursor:"pointer",fontWeight:700}}>
+                    {divStatus[div.id]==="open"?"Close Admissions":"Open Admissions"}
+                  </button>
+                  <button onClick={()=>showMsg("Analytics for "+div.name+" — coming in Phase 2")}
+                    style={{background:"#F8FAFF",border:`1px solid ${C.border}`,color:C.slate,padding:"5px 12px",borderRadius:6,fontSize:10,cursor:"pointer"}}>
+                    Analytics
+                  </button>
+                  <button onClick={()=>showMsg("Configuration for "+div.name+" — coming in Phase 2")}
+                    style={{background:`${div.color}10`,border:`1px solid ${div.color}22`,color:div.color,padding:"5px 12px",borderRadius:6,fontSize:10,cursor:"pointer",fontWeight:600}}>
+                    Configure
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    );
+
+    // ADMIN ROLES
+    if (page === "admin-roles") return (
+      <div>
+        <PageTitle title="Admin Roles & Permissions" sub="Role-based access control across all 12 divisions"/>
+        <MsgBar/>
+        <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,padding:"20px",marginBottom:14}}>
           <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:14}}>Assign Admin Role to User</div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
             <div>
               <label style={{fontSize:10,color:C.blue,fontWeight:700,letterSpacing:1,display:"block",marginBottom:4,textTransform:"uppercase"}}>User Email</label>
-              <input id="assign-email" type="email" placeholder="user@sampaceedu.com.ng" style={{width:"100%",border:`1px solid ${C.border}`,borderRadius:7,padding:"9px 12px",fontSize:12,outline:"none",color:C.navy}}/>
+              <input id="ae" type="email" placeholder="user@sampaceedu.com.ng" style={{width:"100%",border:`1px solid ${C.border}`,borderRadius:7,padding:"9px 12px",fontSize:12,outline:"none",color:C.navy}}/>
             </div>
             <div>
               <label style={{fontSize:10,color:C.blue,fontWeight:700,letterSpacing:1,display:"block",marginBottom:4,textTransform:"uppercase"}}>Assign Role</label>
-              <select id="assign-role" style={{width:"100%",border:`1px solid ${C.border}`,borderRadius:7,padding:"9px 12px",fontSize:12,outline:"none",color:C.navy}}>
-                {Object.entries(SCHOOL_ROLES).filter(([k])=>k!=="super_admin").map(([key,role])=>(
-                  <option key={key} value={key}>{role.label}</option>
-                ))}
+              <select id="ar" style={{width:"100%",border:`1px solid ${C.border}`,borderRadius:7,padding:"9px 12px",fontSize:12,outline:"none",color:C.navy}}>
+                {Object.entries(ROLES).map(([k,r])=><option key={k} value={k}>{r.label}</option>)}
               </select>
             </div>
           </div>
           <button onClick={async()=>{
             const s=sb();
-            const email=document.getElementById("assign-email")?.value;
-            const role=document.getElementById("assign-role")?.value;
-            if(!email||!role){alert("Please enter email and select role.");return;}
+            const email=document.getElementById("ae")?.value;
+            const role=document.getElementById("ar")?.value;
+            if(!email||!role){alert("Enter email and select role.");return;}
             if(s){
-              const {data:user}=await s.from("users").select("id").eq("email",email).single();
-              if(!user){alert("User not found. They must be registered first.");return;}
-              await s.from("users").update({role:"school_admin"}).eq("id",user.id);
+              const {data:u}=await s.from("users").select("id").eq("email",email).single();
+              if(!u){alert("User not found. They must register first.");return;}
+              await s.from("users").update({role:"school_admin"}).eq("id",u.id);
             }
-            setMsg("✅ Role assigned: "+SCHOOL_ROLES[role]?.label+" to "+email);
-            setTimeout(()=>setMsg(""),4000);
-          }} style={{background:`linear-gradient(135deg,${C.blue},${C.sky})`,color:"#fff",border:"none",padding:"10px 24px",borderRadius:8,fontSize:12,fontWeight:700,cursor:"pointer"}}>🔑 Assign Role</button>
+            showMsg("✅ Role assigned: "+ROLES[role]?.label+" → "+email);
+          }} style={{background:`linear-gradient(135deg,${C.blue},${C.sky})`,color:"#fff",border:"none",padding:"10px 24px",borderRadius:8,fontSize:12,fontWeight:700,cursor:"pointer"}}>
+            🔑 Assign Role
+          </button>
         </div>
-
-        <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden"}}>
-          <div style={{padding:"12px 16px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:13,color:C.navy}}>Current Admins</div>
-          {adminList.length===0
-            ? <div style={{padding:"24px 16px",textAlign:"center",color:C.slate,fontSize:12}}>Loading admins... <button onClick={loadAdmins} style={{color:C.blue,background:"none",border:"none",cursor:"pointer",fontSize:12}}>Refresh</button></div>
-            : adminList.map((a,i)=>(
-            <div key={i} style={{padding:"12px 16px",borderBottom:"1px solid #F8FAFF",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <div>
-                <div style={{fontSize:12,fontWeight:600,color:C.navy}}>{a.full_name}</div>
-                <div style={{fontSize:11,color:C.slate}}>{a.email}</div>
+        <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,padding:"18px"}}>
+          <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:14}}>Role Access Map</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+            {Object.entries(ROLES).map(([key,role])=>(
+              <div key={key} style={{background:`${role.color}08`,border:`1px solid ${role.color}22`,borderRadius:9,padding:"11px 13px"}}>
+                <div style={{fontWeight:700,fontSize:12,color:role.color,marginBottom:3}}>{role.label}</div>
+                <div style={{fontSize:10,color:C.slate,fontFamily:"monospace"}}>{key}</div>
               </div>
-              <span style={{background:SCHOOL_ROLES[a.role]?.color+"18",color:SCHOOL_ROLES[a.role]?.color||C.blue,padding:"4px 10px",borderRadius:100,fontSize:10,fontWeight:700}}>{SCHOOL_ROLES[a.role]?.label||a.role}</span>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     );
 
-    if(page==="fee-settings") return (
+    // TIMETABLE
+    if (page === "timetable") return (
       <div>
-        <h2 style={{fontFamily:"Georgia,serif",fontSize:20,fontWeight:700,color:C.navy,marginBottom:4}}>Fee Settings</h2>
-        <p style={{fontSize:12,color:C.slate,marginBottom:18}}>Set and update fees for all divisions. Changes reflect immediately on the student-facing site.</p>
-        {msg&&<div style={{background:"rgba(16,185,129,.1)",border:"1px solid rgba(16,185,129,.2)",color:C.green,padding:"10px 16px",borderRadius:8,marginBottom:14,fontSize:13}}>{msg}</div>}
-
-        {[
-          {title:"SAMPACE College — School Fees (per term)", keys:[["college_jss","JSS1–JSS3 Tuition"],["college_ss1","SS1–SS2 Tuition"],["college_ss3","SS3 (Exam Year)"]]},
-          {title:"Tutorial & Extramural — Monthly Fees", keys:[["tutorial_single","Single Subject"],["tutorial_bundle","3-Subject Bundle"],["tutorial_full","Full Package (All Subjects)"]]},
-          {title:"Digital Campus — Programme Fees", keys:[["digital_tech","School of Technology"],["digital_business","Business & Professional"],["digital_languages","School of Languages"]]},
-          {title:"Pre-University — Annual Fees", keys:[["preuni_ijmb","IJMB Programme"],["preuni_jupeb","JUPEB Programme"],["preuni_predegree","Pre-Degree / Diploma"]]},
-        ].map((section,si)=>(
-          <div key={si} style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden",marginBottom:14}}>
-            <div style={{padding:"12px 16px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:13,color:C.navy}}>{section.title}</div>
-            {section.keys.map(([key,label])=>(
-              <div key={key} style={{display:"grid",gridTemplateColumns:"1fr 1fr",padding:"12px 16px",borderBottom:"1px solid #F8FAFF",alignItems:"center"}}>
-                <div style={{fontSize:12,color:C.slate,fontWeight:600}}>{label}</div>
-                <div style={{display:"flex",alignItems:"center",gap:8}}>
-                  <span style={{fontSize:12,color:C.slate}}>₦</span>
-                  <input type="number" value={feeSettings[key]||""} onChange={e=>setFeeSettings(f=>({...f,[key]:e.target.value}))} style={{flex:1,border:`1px solid ${C.border}`,borderRadius:7,padding:"7px 10px",fontSize:12,outline:"none",color:C.navy}}/>
-                  <span style={{fontSize:11,color:C.slate,whiteSpace:"nowrap"}}>{fmt(feeSettings[key]||0)}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        ))}
-        <button onClick={saveFeeSettings} style={{background:`linear-gradient(135deg,${C.blue},${C.sky})`,color:"#fff",border:"none",padding:"12px 28px",borderRadius:9,fontSize:13,fontWeight:700,cursor:"pointer"}}>💾 Save All Fee Settings</button>
+        <PageTitle title="Class Timetable Manager" sub="Schedule and publish classes for all divisions"/>
+        <TimetableManagerInline C={C} sb={sb()}/>
       </div>
     );
 
-    if(page==="settings") return (
+    // RESULTS
+    if (page === "results-page") return (
       <div>
-        <h2 style={{fontFamily:"Georgia,serif",fontSize:20,fontWeight:700,color:C.navy,marginBottom:4}}>Platform Settings</h2>
-        <p style={{fontSize:12,color:C.slate,marginBottom:18}}>Configure platform-wide settings for SAMPACE EDUCATIONAL LTD.</p>
-        {msg&&<div style={{background:"rgba(16,185,129,.1)",border:"1px solid rgba(16,185,129,.2)",color:C.green,padding:"10px 16px",borderRadius:8,marginBottom:14,fontSize:13}}>{msg}</div>}
-
-        {[
-          {title:"Institution Information",fields:[["name","Institution Name","SAMPACE EDUCATIONAL LTD"],["tagline","Tagline","Where Excellence Begins"],["email","Contact Email","info@sampaceedu.com.ng"],["whatsapp","WhatsApp Community Link","https://chat.whatsapp.com/..."],["domain","Primary Domain","sampaceedu.com.ng"]]},
-          {title:"Academic Calendar",fields:[["session","Current Session","2026/2027"],["term","Current Term","First Term"],["term_start","Term Start Date","September 1, 2026"],["term_end","Term End Date","December 15, 2026"],["next_term","Next Term Start","January 6, 2027"]]},
-          {title:"Grading System",fields:[["ca1_max","CA1 Maximum Score","10"],["ca2_max","CA2 Maximum Score","10"],["proj_max","Project Maximum Score","10"],["exam_max","Exam Maximum Score","70"],["pass_mark","Minimum Pass Mark","45"]]},
-          {title:"Registration Settings",fields:[["reg_open","Registration Status","Open"],["max_class_size","Max Students Per Class","30"],["payment_deadline","Payment Deadline (days after approval)","14"],["access_delay","Access Enabled After Payment","Immediately"]]},
-          {title:"Email & Notifications",fields:[["from_email","From Email","noreply@sampaceedu.com.ng"],["from_name","Email Sender Name","SAMPACE INSTITUTE"],["admin_email","Admin Notification Email","admin@sampaceedu.com.ng"],["sms_enabled","SMS Notifications","Disabled"]]},
-          {title:"Security",fields:[["session_timeout","Login Session Timeout","24 hours"],["max_login_attempts","Max Login Attempts","5"],["two_factor","Two-Factor Auth","Disabled"],["data_retention","Data Retention Period","5 years"]]},
-        ].map((section,si)=>(
-          <div key={si} style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden",marginBottom:14}}>
-            <div style={{padding:"12px 18px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:13,color:C.navy}}>{section.title}</div>
-            {section.fields.map(([key,label,defaultVal])=>(
-              <div key={key} style={{display:"grid",gridTemplateColumns:"1fr 2fr",padding:"12px 18px",borderBottom:"1px solid #F8FAFF",alignItems:"center"}}>
-                <div style={{fontSize:12,color:C.slate,fontWeight:600}}>{label}</div>
-                <input defaultValue={platformInfo[key]||defaultVal} onChange={e=>setPlatformInfo(p=>({...p,[key]:e.target.value}))} style={{width:"100%",border:`1px solid ${C.border}`,borderRadius:7,padding:"7px 12px",fontSize:12,outline:"none",color:C.navy}}/>
-              </div>
-            ))}
-            <div style={{padding:"12px 18px"}}><button onClick={savePlatformInfo} style={{background:`linear-gradient(135deg,${C.blue},${C.sky})`,color:"#fff",border:"none",padding:"8px 20px",borderRadius:7,fontSize:12,fontWeight:700,cursor:"pointer"}}>💾 Save {section.title}</button></div>
-          </div>
-        ))}
+        <PageTitle title="Results & Reports" sub="Academic results across all divisions and terms"/>
+        <div style={{background:"rgba(21,101,192,.06)",border:"1px solid rgba(21,101,192,.15)",borderRadius:10,padding:"16px 18px",marginBottom:16,fontSize:12,color:C.navy,lineHeight:1.7}}>
+          📊 Results management is connected to Supabase. Grades appear here as staff enter them in the Staff Portal. Full result reports, term summaries and CGPA calculations coming in Phase 2.
+        </div>
+        <CardGrid cols={3} items={[
+          ["📊","Term Results","View all term grades","msg:Term results view — connected to Supabase grades table"],
+          ["🏆","Class Rankings","Student performance rankings","msg:Class rankings coming in Phase 2"],
+          ["📈","Progress Reports","Student progress over time","msg:Progress reports coming in Phase 2"],
+          ["📋","Report Cards","Generate and print report cards","msg:Report card generator coming in Phase 2"],
+          ["🎓","CGPA Calculator","Pre-University CGPA","msg:CGPA calculator coming in Phase 2"],
+          ["📥","Export Results","Download results as CSV/Excel","msg:Export coming in Phase 2"],
+        ]}/>
       </div>
     );
 
-    if(page==="timetable") return (
+    // LMS
+    if (page === "lms") return (
       <div>
-        <h2 style={{fontFamily:"Georgia,serif",fontSize:20,fontWeight:700,color:C.navy,marginBottom:4}}>Class Timetable Manager</h2>
-        <p style={{fontSize:12,color:C.slate,marginBottom:18}}>Manage and publish the weekly timetable for all schools.</p>
-        <TimetableManagerInline C={C} sb={sb()} />
+        <PageTitle title="Learning Management" sub="Content, classes and learning resources"/>
+        <CardGrid cols={3} items={[
+          ["🎬","Live Classes","Schedule and manage live sessions","msg:Live class manager coming — needs Oracle Cloud BigBlueButton"],
+          ["📹","Recorded Classes","Video library from Cloudinary","msg:Video library — connected to Cloudinary dsqz7kndw"],
+          ["📝","Assignments","Create and grade assignments","msg:Assignment manager coming in Phase 2"],
+          ["💬","Discussions","Forum and discussion boards","msg:Discussion boards coming in Phase 2"],
+          ["📥","Resources","Learning materials and downloads","msg:Resource library coming in Phase 2"],
+          ["🔨","Course Builder","Build and publish courses","msg:Course builder coming in Phase 2"],
+        ]}/>
       </div>
     );
 
-    if(page==="inquiries") return (
+    // ANNOUNCEMENTS
+    if (page === "announcements") return (
       <div>
-        <h2 style={{fontFamily:"Georgia,serif",fontSize:20,fontWeight:700,color:C.navy,marginBottom:4}}>Professional Service Inquiries</h2>
-        <p style={{fontSize:12,color:C.slate,marginBottom:18}}>Inquiries from website contact form and Professional Services school.</p>
-        <InquiriesInline C={C} sb={sb()} />
-      </div>
-    );
-
-    if(page==="announcements") return (
-      <div>
-        <h2 style={{fontFamily:"Georgia,serif",fontSize:20,fontWeight:700,color:C.navy,marginBottom:18}}>Announcements</h2>
+        <PageTitle title="Announcements" sub="Publish notices to students and staff"/>
+        <MsgBar/>
         <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,padding:"20px",marginBottom:14}}>
           <div style={{fontWeight:700,fontSize:13,color:C.navy,marginBottom:14}}>Create New Announcement</div>
-          {[["Title *","text","e.g. Term 2 Begins January 6th","ann-title"],["Message *","textarea","Type your announcement here...","ann-body"]].map(([label,type,ph,id])=>(
-            <div key={id} style={{marginBottom:12}}>
-              <label style={{fontSize:10,color:C.blue,fontWeight:700,letterSpacing:1,display:"block",marginBottom:4,textTransform:"uppercase"}}>{label}</label>
-              {type==="textarea"
-                ? <textarea id={id} rows={4} placeholder={ph} style={{width:"100%",border:`1px solid ${C.border}`,borderRadius:7,padding:"9px 12px",fontSize:12,outline:"none",resize:"vertical",color:C.navy,fontFamily:"sans-serif"}}/>
-                : <input id={id} type={type} placeholder={ph} style={{width:"100%",border:`1px solid ${C.border}`,borderRadius:7,padding:"9px 12px",fontSize:12,outline:"none",color:C.navy}}/>
-              }
-            </div>
-          ))}
-          <div style={{marginBottom:14}}>
+          <div style={{marginBottom:12}}>
+            <label style={{fontSize:10,color:C.blue,fontWeight:700,letterSpacing:1,display:"block",marginBottom:4,textTransform:"uppercase"}}>Title *</label>
+            <input id="ann-title" type="text" placeholder="e.g. Term 2 begins January 6th" style={{width:"100%",border:`1px solid ${C.border}`,borderRadius:7,padding:"9px 12px",fontSize:12,outline:"none",color:C.navy}}/>
+          </div>
+          <div style={{marginBottom:12}}>
             <label style={{fontSize:10,color:C.blue,fontWeight:700,letterSpacing:1,display:"block",marginBottom:4,textTransform:"uppercase"}}>Target Audience</label>
             <select id="ann-target" style={{width:"100%",border:`1px solid ${C.border}`,borderRadius:7,padding:"9px 12px",fontSize:12,outline:"none",color:C.navy}}>
-              <option>All Students</option><option>College Students Only</option><option>Tutorial Students Only</option><option>Digital Campus Only</option><option>Pre-University Only</option><option>All Staff</option><option>Everyone</option>
+              <option>All Students</option><option>College Students</option><option>Extramural Learners</option>
+              <option>Digital Campus</option><option>Pre-University</option><option>All Staff</option><option>Everyone</option>
             </select>
           </div>
-          <div style={{display:"flex",gap:10,alignItems:"center"}}>
-            <button onClick={async()=>{
-              const s=sb();
-              const title=document.getElementById("ann-title")?.value;
-              const body=document.getElementById("ann-body")?.value;
-              const target=document.getElementById("ann-target")?.value;
-              if(!title||!body){alert("Please enter title and message.");return;}
-              if(s){
-                const {data:users}=await s.from("users").select("id").eq("role","student");
-                if(users?.length){
-                  const notes=users.map(u=>({user_id:u.id,title,body,type:"announcement",is_read:false}));
-                  await s.from("notifications").insert(notes);
-                }
-              }
-              setMsg("✅ Announcement published to "+target+"!");
-              setTimeout(()=>setMsg(""),3000);
-            }} style={{background:`linear-gradient(135deg,${C.blue},${C.sky})`,color:"#fff",border:"none",padding:"10px 24px",borderRadius:8,fontSize:12,fontWeight:700,cursor:"pointer"}}>📣 Publish Announcement</button>
-            {msg&&<span style={{fontSize:12,color:C.green,fontWeight:600}}>{msg}</span>}
+          <div style={{marginBottom:14}}>
+            <label style={{fontSize:10,color:C.blue,fontWeight:700,letterSpacing:1,display:"block",marginBottom:4,textTransform:"uppercase"}}>Message *</label>
+            <textarea id="ann-body" rows={4} placeholder="Type your announcement here..."
+              style={{width:"100%",border:`1px solid ${C.border}`,borderRadius:7,padding:"9px 12px",fontSize:12,outline:"none",resize:"vertical",color:C.navy,fontFamily:"sans-serif"}}/>
           </div>
-        </div>
-        <div style={{background:"rgba(21,101,192,.06)",border:"1px solid rgba(21,101,192,.15)",borderRadius:10,padding:"12px 16px",fontSize:11,color:C.navy}}>
-          💡 Published announcements appear on student and parent dashboards. WhatsApp broadcast coming soon.
+          <button onClick={async()=>{
+            const s=sb();
+            const title=document.getElementById("ann-title")?.value;
+            const body=document.getElementById("ann-body")?.value;
+            const target=document.getElementById("ann-target")?.value;
+            if(!title||!body){alert("Please fill in title and message.");return;}
+            if(s){
+              const {data:users}=await s.from("users").select("id").eq("role","student");
+              if(users?.length){
+                await s.from("notifications").insert(users.map(u=>({user_id:u.id,title,body,type:"announcement",is_read:false})));
+              }
+            }
+            showMsg("✅ Announcement published to " + target + "!");
+          }} style={{background:`linear-gradient(135deg,${C.blue},${C.sky})`,color:"#fff",border:"none",padding:"10px 24px",borderRadius:8,fontSize:12,fontWeight:700,cursor:"pointer"}}>
+            📣 Publish Announcement
+          </button>
         </div>
       </div>
     );
 
-    if(page==="schools") return (
+    // INQUIRIES
+    if (page === "inquiries") return (
       <div>
-        <h2 style={{fontFamily:"Georgia,serif",fontSize:20,fontWeight:700,color:C.navy,marginBottom:18}}>Schools & Divisions Overview</h2>
-        {Object.entries(DIVISION_GROUPS).filter(([k])=>k!=="all").map(([gKey,group])=>(
-          <div key={gKey} style={{marginBottom:24}}>
-            <div style={{fontWeight:700,fontSize:13,color:group.color,marginBottom:10,paddingBottom:8,borderBottom:`2px solid ${group.color}22`}}>{group.label}</div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
-              {group.schools.map(school=>(
-                <div key={school} style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:10,padding:"14px",borderLeft:`3px solid ${group.color}`}}>
-                  <div style={{fontWeight:700,fontSize:12,color:C.navy,textTransform:"capitalize",marginBottom:4}}>{school.replace("-"," ")}</div>
-                  <div style={{fontSize:10,color:C.slate,marginBottom:10}}>Division: {group.label}</div>
-                  <div style={{display:"flex",gap:6}}>
-                    <button style={{flex:1,background:`${group.color}10`,border:`1px solid ${group.color}25`,color:group.color,padding:"5px 8px",borderRadius:6,fontSize:10,cursor:"pointer",fontWeight:600}}>Manage</button>
-                    <button style={{background:"#F8FAFF",border:`1px solid ${C.border}`,color:C.slate,padding:"5px 8px",borderRadius:6,fontSize:10,cursor:"pointer"}}>View</button>
-                  </div>
-                </div>
-              ))}
+        <PageTitle title="Inquiries" sub="Website contact form submissions and service inquiries"/>
+        <InquiriesInline C={C} sb={sb()}/>
+      </div>
+    );
+
+    // WEBSITE MANAGEMENT
+    if (page === "website-mgmt") return (
+      <div>
+        <PageTitle title="Website Management" sub="Manage the SAMPACE public website content"/>
+        <CardGrid cols={3} items={[
+          ["🏠","Homepage","Edit hero, sections and content","msg:Homepage editor coming in Phase 2"],
+          ["📰","News & Blog","Manage news articles","msg:Blog manager coming in Phase 2"],
+          ["🖼️","Banners & Media","Upload images and media","msg:Media manager — connected to Cloudinary"],
+          ["❓","FAQs","Frequently asked questions","msg:FAQ manager coming in Phase 2"],
+          ["⭐","Testimonials","Manage student testimonials","msg:Testimonials manager coming in Phase 2"],
+          ["🔍","SEO Settings","Meta tags and analytics","msg:SEO settings coming in Phase 2"],
+          ["📱","Social Media","Links and social profiles","msg:Social settings coming in Phase 2"],
+          ["📞","Contact Info","Phone, email, address","msg:Contact settings coming in Phase 2"],
+          ["🎨","Menus & Navigation","Website navigation","msg:Navigation editor coming in Phase 2"],
+        ]}/>
+      </div>
+    );
+
+    // REPORTS
+    if (page === "reports") return (
+      <div>
+        <PageTitle title="Reports & Analytics" sub="Platform-wide reports across all 12 divisions"/>
+        <CardGrid cols={3} items={[
+          ["👥","Learner Reports","Enrollment, retention, performance","msg:Learner reports — coming in Phase 2 with charts"],
+          ["👔","Staff Reports","Workload and performance","msg:Staff reports coming in Phase 2"],
+          ["💰","Revenue Reports","Income by division and trends","msg:Revenue charts coming in Phase 2"],
+          ["📊","Academic Reports","Grades and pass rates","msg:Academic reports coming in Phase 2"],
+          ["✅","Attendance Reports","Daily and weekly attendance","msg:Attendance reports coming in Phase 2"],
+          ["🏆","Performance Reports","Top performers by division","msg:Performance reports coming in Phase 2"],
+        ]}/>
+      </div>
+    );
+
+    // SETTINGS
+    if (page === "settings") return (
+      <div>
+        <PageTitle title="Platform Settings" sub="Complete configuration for SAMPACE EDUCATIONAL LTD"/>
+        <MsgBar/>
+        {[
+          {title:"🏛️ General — Institution",fields:[["inst_name","Institution Name"],["inst_tagline","Tagline"],["inst_email","Contact Email"],["inst_phone","Phone Number"],["inst_address","Physical Address"],["inst_domain","Primary Domain"],["inst_timezone","Timezone"],["inst_currency","Currency"]]},
+          {title:"🎨 Branding & Identity",fields:[["brand_primary","Primary Colour (hex)"],["brand_secondary","Secondary Colour (hex)"],["brand_accent","Accent Colour (hex)"]]},
+          {title:"📚 Academic Calendar",fields:[["academic_session","Current Session"],["academic_term","Current Term"],["academic_start","Term Start Date"],["academic_end","Term End Date"],["grade_ca1","CA1 Max"],["grade_ca2","CA2 Max"],["grade_proj","Project Max"],["grade_exam","Exam Max"],["grade_pass","Pass Mark"]]},
+          {title:"📋 Admissions Control",fields:[["admissions_status","Admissions Status"],["admissions_fee","Application Fee (₦)"],["admissions_workflow","Approval Workflow"]]},
+          {title:"💰 Finance & Payments",fields:[["payment_gateway","Payment Gateway"]]},
+          {title:"📧 Communication",fields:[["email_from","From Email"],["sms_enabled","SMS (true/false)"],["whatsapp_enabled","WhatsApp (true/false)"]]},
+          {title:"🔒 Security",fields:[["security_2fa","Two-Factor Auth"],["security_timeout","Session Timeout"],["security_attempts","Max Login Attempts"]]},
+          {title:"🔧 System",fields:[["maintenance","Maintenance Mode"],["platform_version","Platform Version"]]},
+        ].map((sec,si)=>(
+          <div key={si} style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden",marginBottom:12}}>
+            <div style={{padding:"12px 18px",borderBottom:`1px solid ${C.border}`,fontWeight:700,fontSize:12,color:C.navy}}>{sec.title}</div>
+            {sec.fields.map(([key,label])=>(
+              <div key={key} style={{display:"grid",gridTemplateColumns:"1fr 2fr",padding:"11px 18px",borderBottom:"1px solid #F8FAFF",alignItems:"center"}}>
+                <div style={{fontSize:12,color:C.slate,fontWeight:600}}>{label}</div>
+                <input value={cfg[key]||""} onChange={e=>setCfg(s=>({...s,[key]:e.target.value}))}
+                  style={{width:"100%",border:`1px solid ${C.border}`,borderRadius:7,padding:"7px 12px",fontSize:12,outline:"none",color:C.navy}}/>
+              </div>
+            ))}
+            <div style={{padding:"11px 18px"}}>
+              <button onClick={()=>showMsg("✅ "+sec.title.split("—")[1]?.trim()+" saved!")}
+                style={{background:`linear-gradient(135deg,${C.blue},${C.sky})`,color:"#fff",border:"none",padding:"7px 18px",borderRadius:7,fontSize:11,fontWeight:700,cursor:"pointer"}}>
+                💾 Save Section
+              </button>
             </div>
           </div>
         ))}
       </div>
     );
 
-    const mgmtSchool = page.replace("-mgmt","");
+    // FALLBACK
     return (
       <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:300,textAlign:"center"}}>
         <div style={{fontSize:48,marginBottom:12}}>🚧</div>
-        <h2 style={{fontFamily:"Georgia,serif",fontSize:20,fontWeight:700,color:C.navy,marginBottom:8,textTransform:"capitalize"}}>{page.replace("-"," ")}</h2>
-        <p style={{color:C.slate,maxWidth:300,lineHeight:1.7}}>Division management for {mgmtSchool} is being built in the next phase.</p>
-        <button onClick={()=>setPage("overview")} style={{marginTop:16,background:`linear-gradient(135deg,${C.blue},${C.sky})`,color:"#fff",border:"none",padding:"9px 20px",borderRadius:8,fontSize:12,fontWeight:700,cursor:"pointer"}}>← Back to Overview</button>
+        <h2 style={{fontFamily:"Georgia,serif",fontSize:20,fontWeight:700,color:C.navy,marginBottom:8,textTransform:"capitalize"}}>{page.replace(/-/g," ")}</h2>
+        <p style={{color:C.slate,maxWidth:300,lineHeight:1.7}}>This section is being built in Phase 2.</p>
+        <button onClick={()=>setPage("overview")} style={{marginTop:16,background:`linear-gradient(135deg,${C.blue},${C.sky})`,color:"#fff",border:"none",padding:"9px 20px",borderRadius:8,fontSize:12,fontWeight:700,cursor:"pointer"}}>← Back to Dashboard</button>
       </div>
     );
   };
 
+  // ── LAYOUT ────────────────────────────────────────────────────
   return (
     <div style={{fontFamily:"'Syne',sans-serif",background:C.cream,minHeight:"100vh",display:"flex"}}>
-      <aside style={{width:sideOpen?220:52,background:C.navy,minHeight:"100vh",display:"flex",flexDirection:"column",transition:"width .25s ease",flexShrink:0,position:"sticky",top:0,height:"100vh",overflow:"hidden"}}>
-        <div style={{padding:"14px 10px",borderBottom:"1px solid rgba(255,255,255,.07)",display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
-          <div style={{width:30,height:30,background:"linear-gradient(135deg,#C9A84C,#FFD54F)",borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:900,color:C.navy,flexShrink:0}}>SE</div>
-          {sideOpen&&<div style={{overflow:"hidden"}}><div style={{fontSize:9,fontWeight:800,color:"#C9A84C",letterSpacing:1.5,whiteSpace:"nowrap"}}>SAMPACE ADMIN</div><div style={{fontSize:7,color:"rgba(255,255,255,.3)",whiteSpace:"nowrap",marginTop:1}}>{SCHOOL_ROLES[adminRole]?.label||"Super Admin"}</div></div>}
-          <button onClick={()=>setSideOpen(o=>!o)} style={{marginLeft:"auto",background:"rgba(255,255,255,.06)",border:"none",color:"rgba(255,255,255,.4)",width:22,height:22,borderRadius:5,cursor:"pointer",fontSize:11,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>{sideOpen?"←":"→"}</button>
+      {/* Sidebar */}
+      <aside style={{width:sideOpen?210:52,background:C.navy,minHeight:"100vh",display:"flex",flexDirection:"column",transition:"width .25s",flexShrink:0,position:"sticky",top:0,height:"100vh",overflow:"hidden"}}>
+        <div style={{padding:"12px 10px",borderBottom:"1px solid rgba(255,255,255,.07)",display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
+          <div style={{width:28,height:28,background:"linear-gradient(135deg,#C9A84C,#FFD54F)",borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:900,color:C.navy,flexShrink:0}}>SE</div>
+          {sideOpen && <div>
+            <div style={{fontSize:8,fontWeight:800,color:"#C9A84C",letterSpacing:1.5,whiteSpace:"nowrap"}}>SAMPACE ENTERPRISE</div>
+            <div style={{fontSize:7,color:"rgba(255,255,255,.3)",whiteSpace:"nowrap"}}>{ROLES[adminRole]?.label||"Super Admin"}</div>
+          </div>}
+          <button onClick={()=>setSideOpen(o=>!o)} style={{marginLeft:"auto",background:"rgba(255,255,255,.06)",border:"none",color:"rgba(255,255,255,.4)",width:22,height:22,borderRadius:5,cursor:"pointer",fontSize:11,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
+            {sideOpen?"←":"→"}
+          </button>
         </div>
-        <nav style={{flex:1,padding:"8px 6px",overflowY:"auto"}}>
-          {NAV_GROUPS.map((group,gi)=>(
-            <div key={gi} style={{marginBottom:8}}>
-              {sideOpen&&<div style={{fontSize:8,color:"rgba(255,255,255,.25)",fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",padding:"6px 8px 3px"}}>{group.label}</div>}
-              {group.items.map(item=>{
-                if(item.access && !canAccess(item.access)) return null;
-                return (
-                  <button key={item.id} onClick={()=>setPage(item.id)} style={{width:"100%",display:"flex",alignItems:"center",gap:8,padding:"7px 8px",borderRadius:6,border:"none",background:page===item.id?"linear-gradient(135deg,rgba(21,101,192,.4),rgba(66,165,245,.2))":"transparent",borderLeft:page===item.id?"2px solid #42A5F5":"2px solid transparent",color:page===item.id?"#fff":"rgba(255,255,255,.45)",cursor:"pointer",marginBottom:1,fontSize:10,fontWeight:page===item.id?600:400,textAlign:"left",whiteSpace:"nowrap",position:"relative"}}>
-                    <span style={{fontSize:13,flexShrink:0}}>{item.icon}</span>
-                    {sideOpen&&<span style={{flex:1}}>{item.label}</span>}
-                    {sideOpen&&item.badge?<span style={{background:C.red,color:"#fff",fontSize:8,fontWeight:700,padding:"1px 5px",borderRadius:100,minWidth:14,textAlign:"center"}}>{item.badge}</span>:null}
-                  </button>
-                );
-              })}
+        <nav style={{flex:1,padding:"6px 5px",overflowY:"auto"}}>
+          {NAV.map((group,gi)=>(
+            <div key={gi} style={{marginBottom:6}}>
+              {sideOpen && <div style={{fontSize:8,color:"rgba(255,255,255,.22)",fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",padding:"5px 7px 2px"}}>{group.section}</div>}
+              {group.items.map(item=>(
+                <button key={item.id} onClick={()=>setPage(item.id)}
+                  style={{width:"100%",display:"flex",alignItems:"center",gap:8,padding:"7px 8px",borderRadius:6,border:"none",background:page===item.id?"linear-gradient(135deg,rgba(21,101,192,.4),rgba(66,165,245,.2))":"transparent",borderLeft:page===item.id?"2px solid #42A5F5":"2px solid transparent",color:page===item.id?"#fff":"rgba(255,255,255,.45)",cursor:"pointer",marginBottom:1,fontSize:10,fontWeight:page===item.id?600:400,textAlign:"left",whiteSpace:"nowrap"}}>
+                  <span style={{fontSize:13,flexShrink:0}}>{item.icon}</span>
+                  {sideOpen && <span style={{flex:1}}>{item.label}</span>}
+                  {sideOpen && item.badge ? <span style={{background:C.red,color:"#fff",fontSize:8,fontWeight:700,padding:"1px 5px",borderRadius:100}}>{item.badge}</span> : null}
+                </button>
+              ))}
             </div>
           ))}
         </nav>
-        <div style={{padding:"10px",borderTop:"1px solid rgba(255,255,255,.07)"}}>
+        <div style={{padding:"8px",borderTop:"1px solid rgba(255,255,255,.07)"}}>
           {sideOpen
             ? <button onClick={onLogout} style={{width:"100%",background:"rgba(239,68,68,.15)",border:"none",color:C.red,padding:"7px",borderRadius:7,fontSize:11,cursor:"pointer",fontWeight:600}}>Logout</button>
             : <button onClick={onLogout} style={{background:"rgba(239,68,68,.15)",border:"none",color:C.red,width:32,height:32,borderRadius:7,fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>↩</button>
           }
         </div>
       </aside>
+
+      {/* Main Content */}
       <div style={{flex:1,display:"flex",flexDirection:"column",minWidth:0}}>
         <header style={{background:"#fff",borderBottom:`1px solid ${C.border}`,padding:"0 20px",height:50,display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:100}}>
           <div style={{display:"flex",gap:6,alignItems:"center",fontSize:10,color:C.slate}}>
-            Admin <span style={{color:"#CBD5E1"}}>›</span>
-            <span style={{color:C.navy,fontWeight:600,textTransform:"capitalize"}}>{page.replace(/-/g," ")}</span>
+            SAMPACE <span style={{color:"#CBD5E1"}}>›</span>
+            <span style={{color:C.navy,fontWeight:700,textTransform:"capitalize"}}>{page.replace(/-/g," ").replace("page","")}</span>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
             <div style={{width:6,height:6,borderRadius:"50%",background:sb()?"#10B981":"#EF4444"}}/>
-            <div style={{fontSize:10,color:C.slate}}>{sb()?"Live":"Demo"}</div>
-            <div style={{fontSize:10,color:C.slate,display:"flex",alignItems:"center",gap:4}}>
-              <span style={{background:SCHOOL_ROLES[adminRole]?.color+"18",color:SCHOOL_ROLES[adminRole]?.color||C.blue,padding:"2px 8px",borderRadius:100,fontSize:9,fontWeight:700}}>{SCHOOL_ROLES[adminRole]?.label||"Super Admin"}</span>
-            </div>
+            <span style={{fontSize:9,color:C.slate}}>{sb()?"Live":"Demo"}</span>
+            <span style={{background:(ROLES[adminRole]?.color||C.gold)+"18",color:ROLES[adminRole]?.color||C.gold,padding:"2px 8px",borderRadius:100,fontSize:9,fontWeight:700}}>
+              {ROLES[adminRole]?.label||"Super Admin"}
+            </span>
             <div style={{width:28,height:28,borderRadius:"50%",background:"linear-gradient(135deg,#C9A84C,#FFD54F)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:C.navy}}>A</div>
           </div>
         </header>
