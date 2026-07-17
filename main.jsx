@@ -198,8 +198,9 @@ function ApplyModal({ school, onClose }) {
     return Object.keys(e).length === 0;
   };
 
-  const isSec = school.id === "school-college" || school.id === "pre-university";
-  const isTut = school.id === "tutorial";
+  const isSec = ["school-college","pre-university","college","preuni"].includes(school.id);
+  const isTut = ["tutorial","extramural"].includes(school.id);
+  const isInquiry = ["publish","consult","research","edtech","scholarships","careers"].includes(school.id);
 
   if (done) return (
     <div style={{ textAlign:"center", padding:"36px 16px" }}>
@@ -247,6 +248,58 @@ function ApplyModal({ school, onClose }) {
       </div>
     </div>
   );
+  // ── INQUIRY FORM — for non-school divisions ──
+  if (isInquiry) return (
+    <div>
+      <div style={{background:"rgba(201,168,76,.06)",border:"1px solid rgba(201,168,76,.18)",borderRadius:8,padding:"10px 14px",marginBottom:14,fontSize:12,color:"rgba(255,255,255,.6)",lineHeight:1.7}}>
+        {school.icon} <strong style={{color:"#fff"}}>{school.name}</strong> — Our team will contact you within 24 hours.
+      </div>
+      <label style={ac}>Full Name *</label>
+      <input style={{...inp,borderColor:errors.name?"#EF4444":"rgba(255,255,255,.14)"}} placeholder="Your full name" onChange={e=>set("name",e.target.value)}/>
+      {errors.name&&<div style={{color:"#EF4444",fontSize:10,marginBottom:6}}>{errors.name}</div>}
+      <label style={ac}>Email *</label>
+      <input style={{...inp,borderColor:errors.email?"#EF4444":"rgba(255,255,255,.14)"}} placeholder="email@example.com" onChange={e=>set("email",e.target.value)}/>
+      {errors.email&&<div style={{color:"#EF4444",fontSize:10,marginBottom:6}}>{errors.email}</div>}
+      <label style={ac}>Phone / WhatsApp *</label>
+      <input style={{...inp,borderColor:errors.phone?"#EF4444":"rgba(255,255,255,.14)"}} placeholder="+234..." onChange={e=>set("phone",e.target.value)}/>
+      {errors.phone&&<div style={{color:"#EF4444",fontSize:10,marginBottom:6}}>{errors.phone}</div>}
+      <label style={ac}>What are you interested in?</label>
+      <input style={inp} placeholder={
+        school.id==="careers"?"e.g. Teacher position, Graduate role, Internship":
+        school.id==="scholarships"?"e.g. Undergraduate scholarship, Fellowship, Grant":
+        school.id==="consult"?"e.g. School setup, Curriculum review, Accreditation":
+        school.id==="publish"?"e.g. Purchase books, Curriculum resources":
+        school.id==="research"?"e.g. Research partnership, Journal submission":
+        "e.g. General enquiry, Partnership, Information"
+      } onChange={e=>set("interest",e.target.value)}/>
+      <label style={ac}>Message</label>
+      <textarea style={{...inp,minHeight:70,resize:"vertical"}} placeholder="Tell us more about what you need..." onChange={e=>set("desc",e.target.value)}/>
+      <div style={{display:"flex",gap:10,marginTop:8}}>
+        <a href={typeof WA!=="undefined"?WA:"https://chat.whatsapp.com/HLWOIKvXhjqIjYAfOFjvTp"}
+          style={{flex:1,background:"linear-gradient(135deg,#25D366,#128C7E)",color:"#fff",padding:"11px",borderRadius:8,fontSize:11,fontWeight:700,textDecoration:"none",textAlign:"center",display:"flex",alignItems:"center",justifyContent:"center"}}>
+          💬 WhatsApp
+        </a>
+        <button onClick={async()=>{
+          if(!req(["name","email","phone"]))return;
+          const sb=window.__supabase;
+          if(sb){
+            await sb.from("applications").insert({
+              reference:"ENQ-"+school.id.toUpperCase()+"-"+Date.now(),
+              school_id:school.id, applicant_name:form.name,
+              email:form.email, phone:form.phone,
+              program:form.interest||"General Enquiry",
+              admin_notes:form.desc||"", status:"pending", app_type:"inquiry"
+            }).then(()=>{}).catch(()=>{});
+          }
+          setDone(true);
+        }} style={{flex:2,background:`linear-gradient(135deg,${school.g2||"#1565C0"},${school.color||"#42A5F5"})`,border:"none",color:"#fff",padding:"11px",borderRadius:8,fontSize:13,fontWeight:700,cursor:"pointer"}}>
+          Send Enquiry ✓
+        </button>
+      </div>
+    </div>
+  );
+
+  // ── TUTORIAL — STUDENT ONLY (no parent) ──
   if (isTut) return (
     <div>
       {step === 1 && <div>
@@ -462,8 +515,8 @@ function ApplyModal({ school, onClose }) {
             }
             setDone(true);
           }} style={{flex:2,background:`linear-gradient(135deg,${school.g2},${school.color})`,border:"none",color:"#fff",padding:"11px",borderRadius:8,fontSize:13,fontWeight:700,cursor:"pointer"}}>🎓 Submit Application</button>
-        </div>
-      </div>}
+        </div>}
+      </div>
     </div>
   );
 }
@@ -472,6 +525,24 @@ function ApplyModal({ school, onClose }) {
 function SchoolPage({ school, onBack, onLogin }) {
   const [showForm, setShowForm] = useState(false);
   const [openSub, setOpenSub] = useState(null);
+
+  // Safety: if school object is missing required fields, show fallback
+  if (!school || !school.color) {
+    return (
+      <div style={{fontFamily:"sans-serif",background:"#050A14",minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",padding:40}}>
+        <div style={{fontSize:48,marginBottom:16}}>{school?.icon||"🏫"}</div>
+        <h2 style={{fontFamily:"Georgia,serif",fontSize:28,fontWeight:700,color:"#fff",marginBottom:12}}>{school?.name||"SAMPACE Division"}</h2>
+        <p style={{color:"rgba(255,255,255,.5)",fontSize:14,marginBottom:8}}>{school?.short||""}</p>
+        <p style={{color:"rgba(255,255,255,.4)",fontSize:13,maxWidth:500,lineHeight:1.7,marginBottom:28}}>{school?.desc||"This division is currently being set up. Please contact us for more information."}</p>
+        <div style={{display:"flex",gap:12,flexWrap:"wrap",justifyContent:"center"}}>
+          <a href="https://chat.whatsapp.com/HLWOIKvXhjqIjYAfOFjvTp" style={{background:"linear-gradient(135deg,#25D366,#128C7E)",color:"#fff",padding:"12px 24px",borderRadius:10,fontSize:13,fontWeight:700,textDecoration:"none"}}>💬 WhatsApp Us</a>
+          <a href="mailto:info@sampaceedu.com.ng" style={{background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.14)",color:"#fff",padding:"12px 24px",borderRadius:10,fontSize:13,fontWeight:700,textDecoration:"none"}}>📧 Email Us</a>
+          <button onClick={onBack} style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.12)",color:"rgba(255,255,255,.7)",padding:"12px 24px",borderRadius:10,fontSize:13,fontWeight:600,cursor:"pointer"}}>← Back</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="page-in" style={{ fontFamily:"sans-serif", background:"#050A14", minHeight:"100vh" }}>
       <div style={{ padding:"12px 18px", background:"rgba(5,10,20,.96)", backdropFilter:"blur(16px)", borderBottom:"1px solid rgba(255,255,255,.06)", display:"flex", alignItems:"center", gap:12, position:"sticky", top:0, zIndex:200 }}>
@@ -868,19 +939,49 @@ function Homepage({ onSelect, onLogin }) {
                       {d.tags.map(t=><span key={t} className="tag">{t}</span>)}
                     </div>
                     <div style={{display:"flex",gap:8}}>
-                      {d.status==="open"
-                        ? <button onClick={()=>onSelect({
-  id:d.id, name:d.name, color:d.color, g1:d.color, g2:d.g2,
-  icon:d.icon, num:d.num, accent:d.g2,
-  applyType:d.id==="college"?"parent-student":d.id==="extramural"?"student-only":"student-only",
-  programs:[], depts:[], classes:[],
-  services:["General Enquiry","Course Information","Admissions","Partnership"],
-  tracks:["WAEC","NECO","JAMB","BECE","GCE"],
-  subSchools:[]
-})} style={{flex:1,background:`linear-gradient(135deg,${d.color},${d.g2})`,border:"none",color:W,padding:"9px",borderRadius:8,fontSize:11,fontWeight:700,cursor:"pointer"}}>Enroll Now →</button>
-                        : <button style={{flex:1,background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.3)",padding:"9px",borderRadius:8,fontSize:11,fontWeight:600,cursor:"default"}}>{d.status==="coming"?"Join Waitlist":"Future Expansion"}</button>
-                      }
-                      <button onClick={()=>onLogin("admin")} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.35)",padding:"9px 12px",borderRadius:8,fontSize:11,cursor:"pointer"}}>Login</button>
+                      {(()=>{
+                        // Define correct label, action and school data per division
+                        const SCHOOL_DATA = {
+                          college:{label:"Enroll Now →",applyType:"parent-student",short:"JSS1–SS3 Online Secondary School",desc:"Full JSS1–SS3 online school. Live classes, virtual labs, CBT exams and digital report cards.",tags:["JSS1","JSS2","JSS3","SS1","SS2","SS3"],emoji:"🏫"},
+                          extramural:{label:"Enroll Now →",applyType:"student-only",short:"After-School · Exam Prep · Adult Learning",desc:"After-school coaching, WAEC/NECO/JAMB/BECE prep, adult literacy and holiday lessons.",tags:["WAEC","NECO","JAMB","After-School"],emoji:"📚"},
+                          preuni:{label:"Apply Now →",applyType:"student-only",short:"IJMB · JUPEB · Pre-Degree · Diploma",desc:"Direct 200-level entry programmes. IJMB, JUPEB, Pre-Degree and Diploma.",tags:["IJMB","JUPEB","Pre-Degree","Diploma"],emoji:"🏛️"},
+                          digital:{label:"Enroll Now →",applyType:"student-only",short:"Technology · Business · Languages · More",desc:"Six specialist professional schools — Technology, Business, Languages, Communication and more.",tags:["Coding","IELTS","French","PMP","ACCA"],emoji:"💻"},
+                          professional:{label:"Apply Now →",applyType:"student-only",short:"Executive · Corporate · CPD Training",desc:"Executive education, teacher development, leadership and corporate training programmes.",tags:["CPD","Leadership","Corporate"],emoji:"🏢"},
+                          cbt:{label:"Get Access →",applyType:"student-only",short:"Past Questions · Mock Exams · Practice",desc:"WAEC, NECO and JAMB past questions 2010–2024. Token-based CBT practice.",tags:["WAEC CBT","NECO","JAMB"],emoji:"🖥️"},
+                          publish:{label:"Explore →",applyType:"inquiry",short:"Books · Resources · Digital Content",desc:"Educational textbooks, workbooks, e-books, teacher guides and curriculum resources.",tags:["Textbooks","E-books","Curriculum"],emoji:"📖"},
+                          consult:{label:"Get a Quote →",applyType:"inquiry",short:"School Improvement · Advisory Services",desc:"School establishment support, curriculum development and educational policy advisory.",tags:["School Setup","Accreditation","Curriculum"],emoji:"🤝"},
+                          research:{label:"Learn More →",applyType:"inquiry",short:"Think Tank · Knowledge Hub · Journals",desc:"Educational research, innovation hub, AI in education and academic journals.",tags:["Research","Innovation","AI"],emoji:"🔬"},
+                          edtech:{label:"Learn More →",applyType:"inquiry",short:"LMS · School Management · AI Tools",desc:"School management systems, AI learning assistant and digital infrastructure products.",tags:["LMS","AI Tools","Analytics"],emoji:"⚡"},
+                          scholarships:{label:"Find Scholarships →",applyType:"inquiry",short:"Grants · Fellowships · Bursaries",desc:"Scholarship database, student sponsorship, fellowship opportunities and financial aid guidance.",tags:["Scholarships","Grants","Fellowships"],emoji:"🌟"},
+                          careers:{label:"Make Enquiry →",applyType:"inquiry",short:"Jobs · Recruitment · Internships · Alumni",desc:"Graduate recruitment, teacher recruitment, internship programmes and alumni network.",tags:["Graduate Jobs","Teacher Jobs","Internships"],emoji:"💼"},
+                        };
+                        const sd = SCHOOL_DATA[d.id] || {};
+                        const schoolObj = {
+                          id:d.id, name:d.name, color:d.color, g1:d.color, g2:d.g2,
+                          accent:d.g2, num:d.num, icon:d.icon,
+                          emoji:sd.emoji||d.icon,
+                          short:sd.short||d.short,
+                          desc:sd.desc||"",
+                          tags:sd.tags||d.tags||[],
+                          applyType:sd.applyType||"student-only",
+                          programs:[], depts:[], classes:[],
+                          services:["General Enquiry","Course Information","Admissions","Partnership"],
+                          tracks:["WAEC","NECO","JAMB","BECE","GCE"],
+                          subSchools:[],
+                        };
+                        return (
+                          <>
+                            <button onClick={()=>onSelect(schoolObj)}
+                              style={{flex:1,background:`linear-gradient(135deg,${d.color},${d.g2})`,border:"none",color:W,padding:"9px",borderRadius:8,fontSize:11,fontWeight:700,cursor:"pointer"}}>
+                              {sd.label||"Enroll Now →"}
+                            </button>
+                            <button onClick={()=>onLogin("student")}
+                              style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.35)",padding:"9px 12px",borderRadius:8,fontSize:11,cursor:"pointer"}}>
+                              Login
+                            </button>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 );
@@ -3364,7 +3465,7 @@ function App() {
   // Push state so browser back button works correctly
   const go = s => {
     setSchool(s); setView("school"); window.scrollTo(0,0);
-    window.history.pushState({view:"school", schoolId:s.id}, "", "#"+s.id);
+    try { window.history.pushState({view:"school", schoolId:s.id, schoolData:JSON.stringify(s)}, "", "#"+s.id); } catch(e){}
   };
   const login = type => {
     setView("login-"+type); window.scrollTo(0,0);
@@ -3384,9 +3485,15 @@ function App() {
     const onPop = (e) => {
       const state = e.state;
       if (!state || state.view === "home") { setSchool(null); setView("home"); window.scrollTo(0,0); }
-      else if (state.view === "school" && state.schoolId) {
+      else if (state.view === "school") {
+        // Try stored schoolData first (works for all 12 divisions)
+        if (state.schoolData) {
+          try { const s = JSON.parse(state.schoolData); setSchool(s); setView("school"); window.scrollTo(0,0); return; } catch(e){}
+        }
+        // Fallback: look in SCHOOLS array
         const f = SCHOOLS.find(s=>s.id===state.schoolId);
         if (f) { setSchool(f); setView("school"); window.scrollTo(0,0); }
+        else { setSchool(null); setView("home"); window.scrollTo(0,0); }
       } else if (state.view && state.view.startsWith("login-")) { setView(state.view); window.scrollTo(0,0); }
       else { setSchool(null); setView("home"); window.scrollTo(0,0); }
     };
@@ -3396,7 +3503,10 @@ function App() {
 
   useEffect(() => {
     const h = window.location.hash.replace("#","");
-    if (h) { const f = SCHOOLS.find(s=>s.id===h); if (f) { setSchool(f); setView("school"); } }
+    if (h) {
+      const f = SCHOOLS.find(s=>s.id===h);
+      if (f) { setSchool(f); setView("school"); }
+    }
   }, []);
   return (
     <>
