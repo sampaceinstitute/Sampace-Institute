@@ -515,8 +515,8 @@ function ApplyModal({ school, onClose }) {
             }
             setDone(true);
           }} style={{flex:2,background:`linear-gradient(135deg,${school.g2},${school.color})`,border:"none",color:"#fff",padding:"11px",borderRadius:8,fontSize:13,fontWeight:700,cursor:"pointer"}}>🎓 Submit Application</button>
-        </div>}
-      </div>
+        </div>
+      </div>}
     </div>
   );
 }
