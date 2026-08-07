@@ -1,27 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="SAMPACE INSTITUTE — Where Excellence Begins. Nigeria's premier multi-school education platform." />
-    <meta name="theme-color" content="#0B1F3A" />
-    <title>SAMPACE INSTITUTE — Where Excellence Begins</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <!-- Supabase JS -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <!-- Paystack -->
-    <script src="https://js.paystack.co/v1/inline.js"></script>
-    <!-- Init Supabase from window vars set by Vite at build time -->
-    <script>
-      window.__initSupabase = function(url, anon) {
-        if (url && anon && window.supabase) {
-          window.__supabase = window.supabase.createClient(url, anon);
-        }
-      };
-    </script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/main.jsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SAMPACE EDUCATIONAL LTD — Nigeria's Education Ecosystem</title>
+  <meta name="description" content="SAMPACE EDUCATIONAL LTD — 12 divisions. Online and onsite education. Secondary school, exam prep, university entry, professional training and more. CAC Registered Nigeria."/>
+  <meta name="keywords" content="SAMPACE, Nigerian education, online school, WAEC, NECO, JAMB, IJMB, JUPEB, Nigeria"/>
+  <meta property="og:title" content="SAMPACE EDUCATIONAL LTD"/>
+  <meta property="og:description" content="Nigeria's Education Ecosystem. 12 divisions. Online and onsite."/>
+  <meta property="og:url" content="https://sampaceedu.com.ng"/>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230B1F3A'/><text y='.9em' font-size='70' x='50%' text-anchor='middle' fill='%23C9A84C' font-weight='900'>SE</text></svg>"/>
+  <script src="https://js.paystack.co/v1/inline.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script>
+    (function(){
+      const url  = '__VITE_SUPABASE_URL__';
+      const anon = '__VITE_SUPABASE_ANON__';
+      if(url && anon && url !== '__VITE_SUPABASE_URL__' && window.supabase){
+        window.__supabase = window.supabase.createClient(url, anon);
+      }
+    })();
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/index.jsx"></script>
+</body>
 </html>
