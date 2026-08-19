@@ -48,18 +48,12 @@ const TableHeader = ({ cols }) => (
 
 // ── STAFF ROLES per division ────────────────────────────────────
 const STAFF_ROLES = {
-  college:      ["Principal","Vice Principal","Academic Coordinator","HOD","Class Teacher","Subject Teacher","Counsellor","Lab Officer","Librarian"],
-  extramural:   ["Programme Coordinator","Centre Coordinator","Subject Tutor","Instructor","Mentor"],
   digital:      ["Campus Director","Programme Manager","Course Instructor","Teaching Assistant","Community Manager"],
-  preuni:       ["Director","Programme Coordinator","Lecturer","Admission Officer"],
-  professional: ["Director","Lead Facilitator","Lecturer","Instructor"],
-  cbt:          ["CBT Administrator","Question Manager","Examiner","Technical Support"],
-  publish:      ["Editor","Reviewer","Graphic Designer","Content Developer"],
-  consult:      ["Consultant","Trainer","Project Officer"],
-  research:     ["Research Fellow","Research Assistant","Data Analyst"],
-  edtech:       ["Software Engineer","UI/UX Designer","Product Manager","QA Engineer"],
-  scholarships: ["Scholarship Officer","Financial Aid Advisor"],
-  careers:      ["Recruitment Officer","Career Advisor","Alumni Coordinator"],
+  extramural:   ["Programme Coordinator","Centre Coordinator","Subject Tutor","CBT Administrator","Instructor","Mentor"],
+  professional: ["Director","Lead Facilitator","Trainer","Instructor","Workplace Skills Coach"],
+  consult:      ["Lead Consultant","Educational Consultant","Research Consultant","Project Officer","Trainer"],
+  research:     ["Research Coordinator","Research Assistant","Data Analyst","Document Officer","Computer Operator"],
+  edtech:       ["Technical Lead","Software Developer","UI/UX Designer","Project Manager","Support Officer"],
 };
 
 // ── MAIN COMPONENT ─────────────────────────────────────────────
