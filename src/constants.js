@@ -138,7 +138,7 @@ export const DIVISIONS = [
     group: "services",
     groupLabel: "Service Divisions",
     status: "open",
-    btnLabel: "Get a Quote",
+    btnLabel: "Request Consultation",
     applyType: "inquiry",
     tags: ["School Development", "Curriculum", "EdTech Consultancy", "Research", "Training"],
     programmes: [
@@ -171,7 +171,7 @@ export const DIVISIONS = [
     group: "services",
     groupLabel: "Service Divisions",
     status: "open",
-    btnLabel: "Get Started",
+    btnLabel: "Enquire Now",
     applyType: "inquiry",
     tags: ["Research Support", "Data Analysis", "SPSS", "Computer Centre", "Printing", "CVs"],
     programmes: [
@@ -206,7 +206,7 @@ export const DIVISIONS = [
     group: "services",
     groupLabel: "Service Divisions",
     status: "open",
-    btnLabel: "Learn More",
+    btnLabel: "Request a Demo",
     applyType: "inquiry",
     tags: ["School Websites", "LMS", "CBT Systems", "School Management", "Digital Classrooms"],
     programmes: [

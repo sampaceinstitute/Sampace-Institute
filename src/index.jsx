@@ -13,7 +13,6 @@ import { DIVISIONS } from "./constants";
 // ── Supabase init ──────────────────────────────────────────────
 const SB_URL  = import.meta.env.VITE_SUPABASE_URL  || "";
 const SB_ANON = import.meta.env.VITE_SUPABASE_ANON || "";
-
 if (SB_URL && SB_ANON) {
   window.__supabase = createClient(SB_URL, SB_ANON);
 }
@@ -48,17 +47,33 @@ function App() {
   const loadProfile = async (authUser) => {
     const s = sb();
     if (!s) { setReady(true); return; }
-    const { data: profile } = await s
-      .from("users").select("*").eq("auth_id", authUser.id).single();
-    if (profile) {
-      setUser({ ...authUser, ...profile });
-      const role = profile.role || "student";
+    try {
+      const { data: profile } = await s
+        .from("users").select("*").eq("auth_id", authUser.id).single();
+      const merged = { ...authUser, ...(profile || {}) };
+      setUser(merged);
+      // ── Role-based routing ──
+      const role = profile?.role || "student";
       if (role === "super_admin" || role.includes("admin")) setView("admin");
       else if (role === "teacher") setView("staff");
       else if (role === "parent")  setView("parent");
       else setView("student");
+    } catch {
+      // Profile not found — treat as student
+      setUser(authUser);
+      setView("student");
     }
     setReady(true);
+  };
+
+  // ── On login success from LoginPage ──
+  const handleLoginSuccess = (userData) => {
+    setUser(userData);
+    const role = userData?.role || "student";
+    if (role === "super_admin" || role.includes("admin")) setView("admin");
+    else if (role === "teacher") setView("staff");
+    else if (role === "parent")  setView("parent");
+    else setView("student");
   };
 
   // ── Navigation helpers ──
@@ -108,7 +123,11 @@ function App() {
     return <DivisionPage division={division} onBack={goHome} onLogin={goLogin}/>;
   }
   if (view.startsWith("login-")) {
-    return <LoginPage type={view.replace("login-","")} onBack={goHome} onSuccess={(u)=>setUser(u)}/>;
+    return <LoginPage
+      type={view.replace("login-","")}
+      onBack={goHome}
+      onSuccess={handleLoginSuccess}
+    />;
   }
   return <Homepage onSelectDiv={goDiv} onLogin={goLogin}/>;
 }
