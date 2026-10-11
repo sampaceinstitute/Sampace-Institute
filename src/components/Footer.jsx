@@ -22,4 +22,24 @@ export default function Footer({ mounted }) {
         <div>
           <h4>Address</h4>
           <p>{SITE.address.street}</p>
-         
+          <p>{SITE.address.city}, {SITE.address.state}</p>
+          <p>{SITE.address.country}</p>
+        </div>
+
+        <div>
+          <h4>Explore</h4>
+          <p>🏫 6 Schools</p>
+          <p>📝 47 Departments</p>
+          <p>🎯 312+ Courses</p>
+          <p>📍 19 States</p>
+        </div>
+      </div>
+
+      <div className="footer-bottom">
+        <p>
+          © {new Date().getFullYear()} {SITE.name} · RC: {SITE.rc} · Built for the next 100 years
+        </p>
+      </div>
+    </footer>
+  )
+}
