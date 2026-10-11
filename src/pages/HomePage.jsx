@@ -6,6 +6,9 @@ import DiagnosticWidget from '../components/DiagnosticWidget.jsx'
 import Testimonials from '../components/Testimonials.jsx'
 import TrustBar from '../components/TrustBar.jsx'
 import WhatsAppBar from '../components/WhatsAppBar.jsx'
+import FeaturedCourses from '../components/FeaturedCourses.jsx'
+import BlogPreview from '../components/BlogPreview.jsx'
+import NewsletterSignup from '../components/NewsletterSignup.jsx'
 
 export default function HomePage({ onNavigate }) {
   const [count, setCount] = useState({ learners: 0, schools: 0, courses: 0, states: 0 })
@@ -57,7 +60,7 @@ export default function HomePage({ onNavigate }) {
 
           <p className="hero-subtitle">
             From JAMB prep to Space Law — SAMPACE is the home of learning
-            for the next 100 years.
+            for everyone.
           </p>
 
           <div className="hero-buttons">
@@ -66,7 +69,7 @@ export default function HomePage({ onNavigate }) {
               <span className="btn-arrow">→</span>
             </button>
             <button className="btn btn-outline" onClick={() => onNavigate('schools')}>
-              Explore 300+ Courses
+              Explore 400+ Courses
             </button>
           </div>
 
@@ -102,11 +105,20 @@ export default function HomePage({ onNavigate }) {
         <DiagnosticWidget />
       </div>
 
+      {/* ============ FEATURED COURSES ============ */}
+      <FeaturedCourses onNavigate={onNavigate} />
+
       {/* ============ SCHOOLS PREVIEW ============ */}
       <SchoolsPreview onNavigate={onNavigate} />
 
       {/* ============ TESTIMONIALS ============ */}
       <Testimonials />
+
+      {/* ============ BLOG PREVIEW ============ */}
+      <BlogPreview onNavigate={onNavigate} />
+
+      {/* ============ NEWSLETTER ============ */}
+      <NewsletterSignup />
 
       {/* ============ WHATSAPP BAR ============ */}
       <WhatsAppBar />
