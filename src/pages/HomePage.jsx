@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { STATS } from '../constants.js'
+import PersonaRouter from '../components/PersonaRouter.jsx'
+import SchoolsPreview from '../components/SchoolsPreview.jsx'
+import DiagnosticWidget from '../components/DiagnosticWidget.jsx'
+import Testimonials from '../components/Testimonials.jsx'
+import TrustBar from '../components/TrustBar.jsx'
+import WhatsAppBar from '../components/WhatsAppBar.jsx'
 
 export default function HomePage({ onNavigate }) {
   const [count, setCount] = useState({ learners: 0, schools: 0, courses: 0, states: 0 })
@@ -27,56 +33,83 @@ export default function HomePage({ onNavigate }) {
     return () => clearInterval(timer)
   }, [])
 
+  const scrollToDiagnostic = () => {
+    document.getElementById('diagnostic-section')?.scrollIntoView({ behavior: 'smooth' })
+  }
+
   return (
-    <main className="hero">
-      <div className="hero-content fade-in-up">
-        <div className="badge">
-          <span className="badge-dot" />
-          RC: 9677766 · Nigeria
+    <>
+      {/* ============ HERO ============ */}
+      <main className="hero">
+        <div className="hero-content fade-in-up">
+          <div className="badge">
+            <span className="badge-dot" />
+            RC: 9677766 · Nigeria
+          </div>
+
+          <h1 className="hero-title">
+            Empowering Learners.
+            <br />
+            <span className="gradient-text">Transforming Education.</span>
+            <br />
+            Building the Future.
+          </h1>
+
+          <p className="hero-subtitle">
+            From JAMB prep to Space Law — SAMPACE is the home of learning
+            for the next 100 years.
+          </p>
+
+          <div className="hero-buttons">
+            <button className="btn btn-primary" onClick={scrollToDiagnostic}>
+              Start Free JAMB Test
+              <span className="btn-arrow">→</span>
+            </button>
+            <button className="btn btn-outline" onClick={() => onNavigate('schools')}>
+              Explore 300+ Courses
+            </button>
+          </div>
+
+          <div className="stats">
+            <div className="stat">
+              <div className="stat-number">{count.learners.toLocaleString()}+</div>
+              <div className="stat-label">Learners</div>
+            </div>
+            <div className="stat">
+              <div className="stat-number">{count.schools}+</div>
+              <div className="stat-label">Partner Schools</div>
+            </div>
+            <div className="stat">
+              <div className="stat-number">{count.courses}+</div>
+              <div className="stat-label">Courses</div>
+            </div>
+            <div className="stat">
+              <div className="stat-number">{count.states}</div>
+              <div className="stat-label">States</div>
+            </div>
+          </div>
         </div>
+      </main>
 
-        <h1 className="hero-title">
-          Empowering Learners.
-          <br />
-          <span className="gradient-text">Transforming Education.</span>
-          <br />
-          Building the Future.
-        </h1>
+      {/* ============ TRUST BAR ============ */}
+      <TrustBar />
 
-        <p className="hero-subtitle">
-          From JAMB prep to Space Law — SAMPACE is the home of learning
-          for the next 100 years.
-        </p>
+      {/* ============ PERSONA ROUTER ============ */}
+      <PersonaRouter onNavigate={onNavigate} />
 
-        <div className="hero-buttons">
-          <button className="btn btn-primary" onClick={() => onNavigate('schools')}>
-            Start Free JAMB Test
-            <span className="btn-arrow">→</span>
-          </button>
-          <button className="btn btn-outline" onClick={() => onNavigate('courses')}>
-            Explore 300+ Courses
-          </button>
-        </div>
-
-        <div className="stats">
-          <div className="stat">
-            <div className="stat-number">{count.learners.toLocaleString()}+</div>
-            <div className="stat-label">Learners</div>
-          </div>
-          <div className="stat">
-            <div className="stat-number">{count.schools}+</div>
-            <div className="stat-label">Partner Schools</div>
-          </div>
-          <div className="stat">
-            <div className="stat-number">{count.courses}+</div>
-            <div className="stat-label">Courses</div>
-          </div>
-          <div className="stat">
-            <div className="stat-number">{count.states}</div>
-            <div className="stat-label">States</div>
-          </div>
-        </div>
+      {/* ============ DIAGNOSTIC WIDGET ============ */}
+      <div id="diagnostic-section">
+        <DiagnosticWidget />
       </div>
-    </main>
+
+      {/* ============ SCHOOLS PREVIEW ============ */}
+      <SchoolsPreview onNavigate={onNavigate} />
+
+      {/* ============ TESTIMONIALS ============ */}
+      <Testimonials />
+
+      {/* ============ WHATSAPP BAR ============ */}
+      <WhatsAppBar />
+    </>
   )
 }
