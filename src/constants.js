@@ -708,6 +708,8 @@ export const NAV_LINKS = [
   { label: 'Home', route: 'home' },
   { label: 'Schools', route: 'schools' },
   { label: 'Courses', route: 'courses' },
+  { label: 'Blog', route: 'blog' },
+  { label: 'FAQ', route: 'faq' },
   { label: 'About', route: 'about' },
   { label: 'Contact', route: 'contact' }
 ]
