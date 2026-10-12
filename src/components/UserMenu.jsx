@@ -62,21 +62,27 @@ export default function UserMenu({ onNavigate }) {
 
           <button
             className="user-dropdown-item"
-            onClick={() => { setOpen(false); onNavigate('home') }}
+            onClick={() => { setOpen(false); onNavigate('dashboard') }}
           >
-            🏠 Dashboard
+            🏠 My Dashboard
           </button>
           <button
             className="user-dropdown-item"
             onClick={() => { setOpen(false); onNavigate('courses') }}
           >
-            📚 My Courses
+            📚 Browse Courses
           </button>
           <button
             className="user-dropdown-item"
             onClick={() => { setOpen(false); onNavigate('apply') }}
           >
-            📝 My Applications
+            📝 Apply
+          </button>
+          <button
+            className="user-dropdown-item"
+            onClick={() => { setOpen(false); onNavigate('profile') }}
+          >
+            ⚙️ Profile Settings
           </button>
 
           <div className="user-dropdown-divider" />
