@@ -1,9 +1,12 @@
 import React, { useState } from 'react'
 import Logo from './Logo.jsx'
+import UserMenu from './UserMenu.jsx'
 import { NAV_LINKS } from '../constants.js'
+import { useAuth } from '../contexts/AuthContext.jsx'
 
 export default function Header({ currentRoute, onNavigate, mounted }) {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { isAuthenticated } = useAuth()
 
   const handleNav = (route) => {
     onNavigate(route)
@@ -31,9 +34,22 @@ export default function Header({ currentRoute, onNavigate, mounted }) {
               {link.label}
             </button>
           ))}
-          <button className="cta-small" onClick={() => handleNav('apply')}>
-            Apply Now
-          </button>
+
+          {isAuthenticated ? (
+            <UserMenu onNavigate={onNavigate} />
+          ) : (
+            <>
+              <button
+                className="nav-link"
+                onClick={() => handleNav('login')}
+              >
+                Sign In
+              </button>
+              <button className="cta-small" onClick={() => handleNav('signup')}>
+                Sign Up Free
+              </button>
+            </>
+          )}
         </nav>
 
         <button
@@ -58,9 +74,44 @@ export default function Header({ currentRoute, onNavigate, mounted }) {
               {link.label}
             </button>
           ))}
-          <button className="cta-small" onClick={() => handleNav('apply')}>
-            Apply Now
-          </button>
+
+          <div className="mobile-auth">
+            {isAuthenticated ? (
+              <>
+                <button className="mobile-link" onClick={() => handleNav('home')}>
+                  🏠 My Dashboard
+                </button>
+                <button className="mobile-link" onClick={() => handleNav('courses')}>
+                  📚 My Courses
+                </button>
+                <button className="mobile-link" onClick={() => handleNav('apply')}>
+                  📝 My Applications
+                </button>
+                <button
+                  className="mobile-link mobile-signout"
+                  onClick={async () => {
+                    const { signOut } = await import('../contexts/AuthContext.jsx')
+                      .then(() => ({ signOut: null }))
+                      .catch(() => ({ signOut: null }))
+                    // Fallback: use navigate pattern
+                    setMobileOpen(false)
+                    window.location.href = '/logout'
+                  }}
+                >
+                  🚪 Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <button className="mobile-link" onClick={() => handleNav('login')}>
+                  Sign In
+                </button>
+                <button className="cta-small mobile-cta" onClick={() => handleNav('signup')}>
+                  Sign Up Free
+                </button>
+              </>
+            )}
+          </div>
         </div>
       )}
     </header>
