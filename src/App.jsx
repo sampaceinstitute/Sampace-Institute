@@ -19,6 +19,9 @@ import TermsPage from './pages/TermsPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import SignupPage from './pages/SignupPage.jsx'
 import ResetPasswordPage from './pages/ResetPasswordPage.jsx'
+import ProfilePage from './pages/ProfilePage.jsx'
+import DashboardPage from './pages/DashboardPage.jsx'
+import ProtectedRoute from './components/ProtectedRoute.jsx'
 import { findDivision } from './constants.js'
 
 function parseRoute(pathname) {
@@ -45,6 +48,8 @@ function parseRoute(pathname) {
   if (parts[0] === 'login') return { route: 'login' }
   if (parts[0] === 'signup') return { route: 'signup' }
   if (parts[0] === 'reset-password') return { route: 'resetPassword' }
+  if (parts[0] === 'profile') return { route: 'profile' }
+  if (parts[0] === 'dashboard') return { route: 'dashboard' }
   return { route: 'notFound' }
 }
 
@@ -68,6 +73,8 @@ function buildPath(routeObj) {
     case 'login': return '/login'
     case 'signup': return '/signup'
     case 'resetPassword': return '/reset-password'
+    case 'profile': return '/profile'
+    case 'dashboard': return '/dashboard'
     default: return '/'
   }
 }
@@ -92,6 +99,8 @@ function getPageTitle(routeObj) {
     case 'login': return `Sign In — ${base}`
     case 'signup': return `Create Account — ${base}`
     case 'resetPassword': return `Reset Password — ${base}`
+    case 'profile': return `My Profile — ${base}`
+    case 'dashboard': return `My Dashboard — ${base}`
     case 'notFound': return `Page Not Found — ${base}`
     default: return base
   }
@@ -149,6 +158,18 @@ export default function App() {
       case 'login': return <LoginPage onNavigate={navigate} />
       case 'signup': return <SignupPage onNavigate={navigate} />
       case 'resetPassword': return <ResetPasswordPage onNavigate={navigate} />
+      case 'profile':
+        return (
+          <ProtectedRoute onNavigate={navigate}>
+            <ProfilePage onNavigate={navigate} />
+          </ProtectedRoute>
+        )
+      case 'dashboard':
+        return (
+          <ProtectedRoute onNavigate={navigate}>
+            <DashboardPage onNavigate={navigate} />
+          </ProtectedRoute>
+        )
       case 'home':
         return <HomePage onNavigate={navigate} />
       case 'notFound':
