@@ -3,7 +3,9 @@ import Logo from './Logo.jsx'
 import NewsletterSignup from './NewsletterSignup.jsx'
 import { SITE } from '../constants.js'
 
-export default function Footer({ mounted }) {
+export default function Footer({ mounted, onNavigate }) {
+  const nav = (r) => (e) => { e.preventDefault(); onNavigate(r) }
+
   return (
     <footer className={`footer ${mounted ? 'fade-in-up-slow' : ''}`}>
       <div className="footer-grid">
@@ -14,31 +16,35 @@ export default function Footer({ mounted }) {
         </div>
 
         <div>
+          <h4>Explore</h4>
+          <p><a href="/schools" onClick={nav('schools')}>Schools & Divisions</a></p>
+          <p><a href="/courses" onClick={nav('courses')}>Course Catalog</a></p>
+          <p><a href="/events" onClick={nav('events')}>Events & Webinars</a></p>
+          <p><a href="/success-stories" onClick={nav('successStories')}>Success Stories</a></p>
+          <p><a href="/blog" onClick={nav('blog')}>Blog</a></p>
+        </div>
+
+        <div>
+          <h4>Support</h4>
+          <p><a href="/faq" onClick={nav('faq')}>FAQ</a></p>
+          <p><a href="/apply" onClick={nav('apply')}>Apply Now</a></p>
+          <p><a href="/contact" onClick={nav('contact')}>Contact Us</a></p>
+          <p><a href="/privacy" onClick={nav('privacy')}>Privacy Policy</a></p>
+          <p><a href="/terms" onClick={nav('terms')}>Terms of Service</a></p>
+        </div>
+
+        <div>
           <h4>Contact</h4>
           <p>📞 {SITE.phone}</p>
           <p>✉️ {SITE.email}</p>
-          <p>✉️ {SITE.adminEmail}</p>
-        </div>
-
-        <div>
-          <h4>Address</h4>
-          <p>{SITE.address.street}</p>
+          <p>📍 {SITE.address.street}</p>
           <p>{SITE.address.city}, {SITE.address.state}</p>
-          <p>{SITE.address.country}</p>
-        </div>
-
-        <div>
-          <h4>Explore</h4>
-          <p>🏫 13 Schools</p>
-          <p>📝 47 Departments</p>
-          <p>🎯 400+ Courses</p>
-          <p>📍 19 States</p>
         </div>
 
         <div>
           <h4>Newsletter</h4>
           <p className="footer-newsletter-copy">
-            Weekly JAMB tips, tech trends, and future-of-work insights.
+            Weekly tips, tech trends, and future-of-work insights.
           </p>
           <NewsletterSignup variant="footer" />
         </div>
@@ -50,7 +56,7 @@ export default function Footer({ mounted }) {
           <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube">▶️</a>
           <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">📘</a>
           <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">📷</a>
-          <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)">🐦</a>
+          <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="X">🐦</a>
           <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">💼</a>
         </div>
         <p>
