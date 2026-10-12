@@ -16,6 +16,9 @@ import EventsPage from './pages/EventsPage.jsx'
 import SuccessStoriesPage from './pages/SuccessStoriesPage.jsx'
 import PrivacyPage from './pages/PrivacyPage.jsx'
 import TermsPage from './pages/TermsPage.jsx'
+import LoginPage from './pages/LoginPage.jsx'
+import SignupPage from './pages/SignupPage.jsx'
+import ResetPasswordPage from './pages/ResetPasswordPage.jsx'
 import { findDivision } from './constants.js'
 
 function parseRoute(pathname) {
@@ -39,6 +42,9 @@ function parseRoute(pathname) {
   if (parts[0] === 'success-stories') return { route: 'successStories' }
   if (parts[0] === 'privacy') return { route: 'privacy' }
   if (parts[0] === 'terms') return { route: 'terms' }
+  if (parts[0] === 'login') return { route: 'login' }
+  if (parts[0] === 'signup') return { route: 'signup' }
+  if (parts[0] === 'reset-password') return { route: 'resetPassword' }
   return { route: 'notFound' }
 }
 
@@ -59,6 +65,9 @@ function buildPath(routeObj) {
     case 'successStories': return '/success-stories'
     case 'privacy': return '/privacy'
     case 'terms': return '/terms'
+    case 'login': return '/login'
+    case 'signup': return '/signup'
+    case 'resetPassword': return '/reset-password'
     default: return '/'
   }
 }
@@ -80,6 +89,9 @@ function getPageTitle(routeObj) {
     case 'successStories': return `Success Stories — ${base}`
     case 'privacy': return `Privacy Policy — ${base}`
     case 'terms': return `Terms of Service — ${base}`
+    case 'login': return `Sign In — ${base}`
+    case 'signup': return `Create Account — ${base}`
+    case 'resetPassword': return `Reset Password — ${base}`
     case 'notFound': return `Page Not Found — ${base}`
     default: return base
   }
@@ -134,6 +146,9 @@ export default function App() {
       case 'successStories': return <SuccessStoriesPage onNavigate={navigate} />
       case 'privacy': return <PrivacyPage />
       case 'terms': return <TermsPage />
+      case 'login': return <LoginPage onNavigate={navigate} />
+      case 'signup': return <SignupPage onNavigate={navigate} />
+      case 'resetPassword': return <ResetPasswordPage onNavigate={navigate} />
       case 'home':
         return <HomePage onNavigate={navigate} />
       case 'notFound':
