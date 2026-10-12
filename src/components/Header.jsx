@@ -6,11 +6,25 @@ import { useAuth } from '../contexts/AuthContext.jsx'
 
 export default function Header({ currentRoute, onNavigate, mounted }) {
   const [mobileOpen, setMobileOpen] = useState(false)
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, signOut, profile, user } = useAuth()
 
   const handleNav = (route) => {
     onNavigate(route)
     setMobileOpen(false)
+  }
+
+  const handleSignOut = async () => {
+    setMobileOpen(false)
+    await signOut()
+    onNavigate('home')
+  }
+
+  const getInitials = () => {
+    const name = profile?.full_name || user?.email || ''
+    if (!name) return '?'
+    const parts = name.trim().split(' ')
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
+    return name[0].toUpperCase()
   }
 
   return (
@@ -39,10 +53,7 @@ export default function Header({ currentRoute, onNavigate, mounted }) {
             <UserMenu onNavigate={onNavigate} />
           ) : (
             <>
-              <button
-                className="nav-link"
-                onClick={() => handleNav('login')}
-              >
+              <button className="nav-link" onClick={() => handleNav('login')}>
                 Sign In
               </button>
               <button className="cta-small" onClick={() => handleNav('signup')}>
@@ -78,6 +89,15 @@ export default function Header({ currentRoute, onNavigate, mounted }) {
           <div className="mobile-auth">
             {isAuthenticated ? (
               <>
+                <div className="mobile-user-info">
+                  <span className="user-avatar">{getInitials()}</span>
+                  <div>
+                    <div className="user-dropdown-name">
+                      {profile?.full_name || 'SAMPACE User'}
+                    </div>
+                    <div className="user-dropdown-email">{user?.email}</div>
+                  </div>
+                </div>
                 <button className="mobile-link" onClick={() => handleNav('home')}>
                   🏠 My Dashboard
                 </button>
@@ -87,17 +107,7 @@ export default function Header({ currentRoute, onNavigate, mounted }) {
                 <button className="mobile-link" onClick={() => handleNav('apply')}>
                   📝 My Applications
                 </button>
-                <button
-                  className="mobile-link mobile-signout"
-                  onClick={async () => {
-                    const { signOut } = await import('../contexts/AuthContext.jsx')
-                      .then(() => ({ signOut: null }))
-                      .catch(() => ({ signOut: null }))
-                    // Fallback: use navigate pattern
-                    setMobileOpen(false)
-                    window.location.href = '/logout'
-                  }}
-                >
+                <button className="mobile-link mobile-signout" onClick={handleSignOut}>
                   🚪 Sign Out
                 </button>
               </>
