@@ -11,11 +11,13 @@ import BlogPage from './pages/BlogPage.jsx'
 import BlogPostPage from './pages/BlogPostPage.jsx'
 import FAQPage from './pages/FAQPage.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
+import ApplyPage from './pages/ApplyPage.jsx'
+import EventsPage from './pages/EventsPage.jsx'
+import SuccessStoriesPage from './pages/SuccessStoriesPage.jsx'
+import PrivacyPage from './pages/PrivacyPage.jsx'
+import TermsPage from './pages/TermsPage.jsx'
 import { findDivision } from './constants.js'
 
-// ============================================================
-// ROUTE PARSING — converts URL pathname into a route object
-// ============================================================
 function parseRoute(pathname) {
   const parts = pathname.split('/').filter(Boolean)
   if (parts.length === 0) return { route: 'home' }
@@ -33,12 +35,13 @@ function parseRoute(pathname) {
   }
   if (parts[0] === 'faq') return { route: 'faq' }
   if (parts[0] === 'apply') return { route: 'apply' }
+  if (parts[0] === 'events') return { route: 'events' }
+  if (parts[0] === 'success-stories') return { route: 'successStories' }
+  if (parts[0] === 'privacy') return { route: 'privacy' }
+  if (parts[0] === 'terms') return { route: 'terms' }
   return { route: 'notFound' }
 }
 
-// ============================================================
-// BUILD PATH — converts a route object into a URL pathname
-// ============================================================
 function buildPath(routeObj) {
   if (typeof routeObj === 'string') routeObj = { route: routeObj }
   switch (routeObj.route) {
@@ -52,13 +55,14 @@ function buildPath(routeObj) {
     case 'blogPost': return `/blog/${routeObj.slug}`
     case 'faq': return '/faq'
     case 'apply': return '/apply'
+    case 'events': return '/events'
+    case 'successStories': return '/success-stories'
+    case 'privacy': return '/privacy'
+    case 'terms': return '/terms'
     default: return '/'
   }
 }
 
-// ============================================================
-// PAGE TITLES — for SEO and browser tab
-// ============================================================
 function getPageTitle(routeObj) {
   const base = 'SAMPACE Educational Ltd'
   switch (routeObj.route) {
@@ -71,6 +75,11 @@ function getPageTitle(routeObj) {
     case 'blog': return `Blog — ${base}`
     case 'blogPost': return `Article — ${base}`
     case 'faq': return `FAQ — ${base}`
+    case 'apply': return `Apply Now — ${base}`
+    case 'events': return `Events & Webinars — ${base}`
+    case 'successStories': return `Success Stories — ${base}`
+    case 'privacy': return `Privacy Policy — ${base}`
+    case 'terms': return `Terms of Service — ${base}`
     case 'notFound': return `Page Not Found — ${base}`
     default: return base
   }
@@ -80,21 +89,16 @@ export default function App() {
   const [mounted, setMounted] = useState(false)
   const [routeObj, setRouteObj] = useState(() => parseRoute(window.location.pathname))
 
-  // Init: parse URL + listen for back/forward
   useEffect(() => {
     setMounted(true)
-
     const handlePopState = () => {
-      const newRoute = parseRoute(window.location.pathname)
-      setRouteObj(newRoute)
+      setRouteObj(parseRoute(window.location.pathname))
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
-
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
-  // Update document title on route change
   useEffect(() => {
     document.title = getPageTitle(routeObj)
   }, [routeObj])
@@ -103,7 +107,6 @@ export default function App() {
     const newRoute = typeof target === 'string' ? { route: target } : target
     const newPath = buildPath(newRoute)
 
-    // Only push if path actually changed
     if (newPath === window.location.pathname) {
       window.scrollTo({ top: 0, behavior: 'smooth' })
       return
@@ -117,31 +120,20 @@ export default function App() {
   const renderPage = () => {
     switch (routeObj.route) {
       case 'schools':
-        return (
-          <SchoolsPage
-            onSelectDivision={(id) => navigate({ route: 'division', divisionId: id })}
-          />
-        )
+        return <SchoolsPage onSelectDivision={(id) => navigate({ route: 'division', divisionId: id })} />
       case 'division':
-        return (
-          <DivisionPage
-            division={findDivision(routeObj.divisionId)}
-            onBack={() => navigate('schools')}
-          />
-        )
-      case 'courses':
-        return <CoursesPage onNavigate={navigate} />
-      case 'about':
-        return <AboutPage />
-      case 'contact':
-        return <ContactPage />
-      case 'blog':
-        return <BlogPage onNavigate={navigate} />
-      case 'blogPost':
-        return <BlogPostPage slug={routeObj.slug} onNavigate={navigate} />
-      case 'faq':
-        return <FAQPage />
-      case 'apply':
+        return <DivisionPage division={findDivision(routeObj.divisionId)} onBack={() => navigate('schools')} />
+      case 'courses': return <CoursesPage onNavigate={navigate} />
+      case 'about': return <AboutPage />
+      case 'contact': return <ContactPage />
+      case 'blog': return <BlogPage onNavigate={navigate} />
+      case 'blogPost': return <BlogPostPage slug={routeObj.slug} onNavigate={navigate} />
+      case 'faq': return <FAQPage />
+      case 'apply': return <ApplyPage />
+      case 'events': return <EventsPage />
+      case 'successStories': return <SuccessStoriesPage onNavigate={navigate} />
+      case 'privacy': return <PrivacyPage />
+      case 'terms': return <TermsPage />
       case 'home':
         return <HomePage onNavigate={navigate} />
       case 'notFound':
@@ -162,7 +154,7 @@ export default function App() {
 
       <div className="page-container">{renderPage()}</div>
 
-      <Footer mounted={mounted} />
+      <Footer mounted={mounted} onNavigate={navigate} />
     </div>
   )
 }
