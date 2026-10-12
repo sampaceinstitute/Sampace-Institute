@@ -62,14 +62,7 @@ export default function PrivacyPage() {
           account credentials.
         </p>
 
-        <h2>7. Children's Data</h2>
-        <p>
-          For learners under 18, we require verifiable parental consent before collecting
-          personal information. Parents may request access or deletion of their child's data
-          at any time.
-        </p>
-
-        <h2>8. Your Rights</h2>
+        <h2>7. Your Rights</h2>
         <ul>
           <li>Right to access your personal data.</li>
           <li>Right to correct inaccurate data.</li>
@@ -78,25 +71,25 @@ export default function PrivacyPage() {
           <li>Right to data portability.</li>
         </ul>
 
-        <h2>9. Cookies</h2>
+        <h2>8. Cookies</h2>
         <p>
           We use cookies to remember your preferences and improve site performance. You can
           disable cookies in your browser settings, though some features may not work properly.
         </p>
 
-        <h2>10. Data Retention</h2>
+        <h2>9. Data Retention</h2>
         <p>
           We retain your data for as long as your account is active or as needed to provide
           services. After account closure, we keep minimal records for legal and tax purposes.
         </p>
 
-        <h2>11. Changes to This Policy</h2>
+        <h2>10. Changes to This Policy</h2>
         <p>
           We may update this policy from time to time. Significant changes will be notified
           via email or on our website.
         </p>
 
-        <h2>12. Contact Us</h2>
+        <h2>11. Contact Us</h2>
         <p>
           For privacy questions, contact us at <strong>{SITE.email}</strong> or
           WhatsApp <strong>{SITE.phone}</strong>.
