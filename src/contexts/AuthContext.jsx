@@ -9,7 +9,6 @@ export function AuthProvider({ children }) {
   const [roles, setRoles] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // Load user + profile + roles on mount and on auth state change
   useEffect(() => {
     if (!isSupabaseConfigured()) {
       setLoading(false)
@@ -114,6 +113,23 @@ export function AuthProvider({ children }) {
     return { data, error }
   }
 
+  const updateProfile = async (updates) => {
+    if (!user?.id) return { error: { message: 'Not authenticated' } }
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', user.id)
+      .select()
+      .maybeSingle()
+
+    if (!error && data) {
+      setProfile(data)
+    }
+
+    return { data, error }
+  }
+
   const hasRole = (roleCode) => roles.some((r) => r.roles?.code === roleCode)
   const hasAnyRole = (codes = []) => codes.some((c) => hasRole(c))
 
@@ -126,6 +142,7 @@ export function AuthProvider({ children }) {
     signIn,
     signOut,
     resetPassword,
+    updateProfile,
     hasRole,
     hasAnyRole,
     isAuthenticated: Boolean(user)
