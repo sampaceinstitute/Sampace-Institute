@@ -39,7 +39,7 @@ export default function ResetPasswordPage({ onNavigate }) {
             <h1 className="auth-title">Check your email</h1>
             <p className="auth-subtitle">
               We've sent a password reset link to <strong>{email}</strong>.
-              Click the link in the email to set a new password.
+              Click the link to set a new password.
             </p>
             <button
               className="btn btn-primary"
