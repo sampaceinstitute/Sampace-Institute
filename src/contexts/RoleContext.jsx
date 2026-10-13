@@ -23,6 +23,7 @@ const ROLE_PRIORITY = [
 
 // Map each role code to a dashboard type
 const DASHBOARD_MAP = {
+   admin: 'admin', 
   super_admin: 'admin',
   platform_admin: 'admin',
   founder: 'admin',
