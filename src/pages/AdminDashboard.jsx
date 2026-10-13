@@ -22,9 +22,7 @@ export default function AdminDashboard({ onNavigate }) {
         <div className="dashboard-welcome-text">
           <div className="dashboard-role-badge role-admin">ADMINISTRATOR</div>
           <h1 className="dashboard-title">Administrator Console</h1>
-          <p className="dashboard-subtitle">
-            Welcome, {firstName}. You have full system access.
-          </p>
+          <p className="dashboard-subtitle">Welcome, {firstName}. You have full system access.</p>
         </div>
       </div>
 
@@ -54,7 +52,7 @@ export default function AdminDashboard({ onNavigate }) {
       <div className="dashboard-section">
         <h2 className="dashboard-section-title">System Administration</h2>
         <div className="dashboard-actions">
-          <button className="dashboard-action-card" onClick={() => onNavigate('dashboard')}>
+          <button className="dashboard-action-card" onClick={() => onNavigate('adminUsers')}>
             <div className="dashboard-action-icon">👥</div>
             <div className="dashboard-action-title">User Management</div>
             <div className="dashboard-action-desc">Assign roles, manage access</div>
@@ -92,12 +90,38 @@ export default function AdminDashboard({ onNavigate }) {
           </div>
           <div className="admin-stat-item">
             <div className="admin-stat-label">Database Tables</div>
-            <div className="admin-stat-value">8</div>
+            <div className="admin-stat-value">9</div>
           </div>
           <div className="admin-stat-item">
             <div className="admin-stat-label">Roles Defined</div>
             <div className="admin-stat-value">15</div>
           </div>
+        </div>
+      </div>
+
+      <div className="dashboard-section">
+        <h2 className="dashboard-section-title">Quick Actions</h2>
+        <div className="dashboard-actions">
+          <button className="dashboard-action-card" onClick={() => onNavigate('adminUsers')}>
+            <div className="dashboard-action-icon">👤</div>
+            <div className="dashboard-action-title">Manage Users</div>
+            <div className="dashboard-action-desc">Assign roles & permissions</div>
+          </button>
+          <button className="dashboard-action-card" onClick={() => onNavigate('courses')}>
+            <div className="dashboard-action-icon">📚</div>
+            <div className="dashboard-action-title">Course Catalog</div>
+            <div className="dashboard-action-desc">View all 400+ courses</div>
+          </button>
+          <button className="dashboard-action-card" onClick={() => onNavigate('schools')}>
+            <div className="dashboard-action-icon">🏫</div>
+            <div className="dashboard-action-title">Schools</div>
+            <div className="dashboard-action-desc">13 divisions & schools</div>
+          </button>
+          <button className="dashboard-action-card" onClick={() => onNavigate('profile')}>
+            <div className="dashboard-action-icon">⚙️</div>
+            <div className="dashboard-action-title">My Profile</div>
+            <div className="dashboard-action-desc">Edit your details</div>
+          </button>
         </div>
       </div>
 
