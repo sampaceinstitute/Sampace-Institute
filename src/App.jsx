@@ -21,7 +21,7 @@ import SignupPage from './pages/SignupPage.jsx'
 import ResetPasswordPage from './pages/ResetPasswordPage.jsx'
 import SetNewPasswordPage from './pages/SetNewPasswordPage.jsx'
 import ProfilePage from './pages/ProfilePage.jsx'
-import DashboardPage from './pages/DashboardPage.jsx'
+import RoleAwareDashboard from './components/RoleAwareDashboard.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import { findDivision } from './constants.js'
 
@@ -172,7 +172,7 @@ export default function App() {
       case 'dashboard':
         return (
           <ProtectedRoute onNavigate={navigate}>
-            <DashboardPage onNavigate={navigate} />
+            <RoleAwareDashboard onNavigate={navigate} />
           </ProtectedRoute>
         )
       case 'home':
