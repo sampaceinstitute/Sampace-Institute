@@ -5,7 +5,7 @@
   box-sizing: border-box;
 }
 
-:root {
+:root {                                                                                                            
   --navy: #0A1F44;
   --navy-2: #0d2a5c;
   --gold: #C9A227;
@@ -3256,4 +3256,32 @@ button { font-family: inherit; cursor: pointer; }
   .dashboard-actions {
     grid-template-columns: 1fr;
   }
+}
+
+/* ============================================================
+   DAY 11 ADDITIONS — Rate limit + Remember me
+   ============================================================ */
+
+.auth-checkbox-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  cursor: pointer;
+}
+
+.auth-checkbox-inline input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--gold);
+  cursor: pointer;
+}
+
+.auth-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
