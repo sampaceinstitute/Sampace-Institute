@@ -21,6 +21,8 @@ import SignupPage from './pages/SignupPage.jsx'
 import ResetPasswordPage from './pages/ResetPasswordPage.jsx'
 import SetNewPasswordPage from './pages/SetNewPasswordPage.jsx'
 import ProfilePage from './pages/ProfilePage.jsx'
+import MyApplicationsPage from './pages/MyApplicationsPage.jsx'
+import AdminUsersPage from './pages/AdminUsersPage.jsx'
 import RoleAwareDashboard from './components/RoleAwareDashboard.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import { findDivision } from './constants.js'
@@ -51,7 +53,9 @@ function parseRoute(pathname) {
   if (parts[0] === 'reset-password') return { route: 'resetPassword' }
   if (parts[0] === 'set-new-password') return { route: 'setNewPassword' }
   if (parts[0] === 'profile') return { route: 'profile' }
+  if (parts[0] === 'my-applications') return { route: 'myApplications' }
   if (parts[0] === 'dashboard') return { route: 'dashboard' }
+  if (parts[0] === 'admin' && parts[1] === 'users') return { route: 'adminUsers' }
   return { route: 'notFound' }
 }
 
@@ -77,7 +81,9 @@ function buildPath(routeObj) {
     case 'resetPassword': return '/reset-password'
     case 'setNewPassword': return '/set-new-password'
     case 'profile': return '/profile'
+    case 'myApplications': return '/my-applications'
     case 'dashboard': return '/dashboard'
+    case 'adminUsers': return '/admin/users'
     default: return '/'
   }
 }
@@ -104,7 +110,9 @@ function getPageTitle(routeObj) {
     case 'resetPassword': return `Reset Password — ${base}`
     case 'setNewPassword': return `Set New Password — ${base}`
     case 'profile': return `My Profile — ${base}`
+    case 'myApplications': return `My Activity — ${base}`
     case 'dashboard': return `My Dashboard — ${base}`
+    case 'adminUsers': return `User Management — ${base}`
     case 'notFound': return `Page Not Found — ${base}`
     default: return base
   }
@@ -167,6 +175,21 @@ export default function App() {
         return (
           <ProtectedRoute onNavigate={navigate}>
             <ProfilePage onNavigate={navigate} />
+          </ProtectedRoute>
+        )
+      case 'myApplications':
+        return (
+          <ProtectedRoute onNavigate={navigate}>
+            <MyApplicationsPage onNavigate={navigate} />
+          </ProtectedRoute>
+        )
+      case 'adminUsers':
+        return (
+          <ProtectedRoute
+            onNavigate={navigate}
+            requiredRoles={['super_admin', 'platform_admin', 'founder', 'group_ceo', 'entity_lead']}
+          >
+            <AdminUsersPage onNavigate={navigate} />
           </ProtectedRoute>
         )
       case 'dashboard':
