@@ -3824,3 +3824,82 @@ button { font-family: inherit; cursor: pointer; }
     align-items: flex-start;
   }
 }
+
+/* ============================================================
+   DAY 14 ADDITIONS — Dynamic form field styles
+   ============================================================ */
+
+/* ---------- LEVEL CARDS (Nursery/Primary/JSS/SSS) ---------- */
+.level-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.level-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.25rem 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--white);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.level-card:hover {
+  border-color: var(--border-hover);
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-3px);
+}
+
+.level-card.active {
+  border-color: var(--gold);
+  background: rgba(201, 162, 39, 0.08);
+  box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.15);
+}
+
+.level-card-icon {
+  font-size: 1.75rem;
+}
+
+.level-card-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.level-card-desc {
+  font-size: 0.7rem;
+  color: var(--text-soft);
+  line-height: 1.4;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .level-cards {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .level-card {
+    padding: 1rem 0.5rem;
+  }
+
+  .level-card-icon {
+    font-size: 1.5rem;
+  }
+
+  .level-card-label {
+    font-size: 0.75rem;
+  }
+
+  .level-card-desc {
+    font-size: 0.65rem;
+  }
+}
