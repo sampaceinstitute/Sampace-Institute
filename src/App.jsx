@@ -1,4 +1,3 @@
-import AdminApplicationsPage from './pages/AdminApplicationsPage.jsx'
 import React, { useEffect, useState } from 'react'
 import Header from './components/Header.jsx'
 import Footer from './components/Footer.jsx'
@@ -24,13 +23,14 @@ import SetNewPasswordPage from './pages/SetNewPasswordPage.jsx'
 import ProfilePage from './pages/ProfilePage.jsx'
 import MyApplicationsPage from './pages/MyApplicationsPage.jsx'
 import AdminUsersPage from './pages/AdminUsersPage.jsx'
+import AdminApplicationsPage from './pages/AdminApplicationsPage.jsx'
+import AdminApplicationDetailPage from './pages/AdminApplicationDetailPage.jsx'
 import RoleAwareDashboard from './components/RoleAwareDashboard.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import { findDivision } from './constants.js'
 
 function parseRoute(pathname) {
   const parts = pathname.split('/').filter(Boolean)
-  if (parts[0] === 'admin' && parts[1] === 'applications') return { route: 'adminApplications' }
   if (parts.length === 0) return { route: 'home' }
 
   if (parts[0] === 'schools') {
@@ -57,14 +57,19 @@ function parseRoute(pathname) {
   if (parts[0] === 'profile') return { route: 'profile' }
   if (parts[0] === 'my-applications') return { route: 'myApplications' }
   if (parts[0] === 'dashboard') return { route: 'dashboard' }
-  if (parts[0] === 'admin' && parts[1] === 'users') return { route: 'adminUsers' }
+  if (parts[0] === 'admin') {
+    if (parts[1] === 'users') return { route: 'adminUsers' }
+    if (parts[1] === 'applications') {
+      if (parts[2]) return { route: 'adminApplicationDetail', id: parts[2] }
+      return { route: 'adminApplications' }
+    }
+  }
   return { route: 'notFound' }
 }
 
 function buildPath(routeObj) {
   if (typeof routeObj === 'string') routeObj = { route: routeObj }
   switch (routeObj.route) {
-      case 'adminApplications': return '/admin/applications'
     case 'home': return '/'
     case 'schools': return '/schools'
     case 'division': return `/schools/${routeObj.divisionId}`
@@ -87,40 +92,36 @@ function buildPath(routeObj) {
     case 'myApplications': return '/my-applications'
     case 'dashboard': return '/dashboard'
     case 'adminUsers': return '/admin/users'
+    case 'adminApplications': return '/admin/applications'
+    case 'adminApplicationDetail': return `/admin/applications/${routeObj.id}`
     default: return '/'
   }
 }
 
 function getPageTitle(routeObj) {
   const base = 'SAMPACE Educational Ltd'
-  switch (routeObj.route) {
-      case 'adminApplications': return `Applications — ${base}`
-    case 'home': return `${base} — Empowering Learners`
-    case 'schools': return `All Schools & Divisions — ${base}`
-    case 'division': return `Division — ${base}`
-    case 'courses': return `Course Catalog — ${base}`
-    case 'about': return `About Us — ${base}`
-    case 'contact': return `Contact Us — ${base}`
-    case 'blog': return `Blog — ${base}`
-    case 'blogPost': return `Article — ${base}`
-    case 'faq': return `FAQ — ${base}`
-    case 'apply': return `Apply Now — ${base}`
-    case 'events': return `Events & Webinars — ${base}`
-    case 'successStories': return `Success Stories — ${base}`
-    case 'privacy': return `Privacy Policy — ${base}`
-    case 'terms': return `Terms of Service — ${base}`
-    case 'login': return `Sign In — ${base}`
-    case 'signup': return `Create Account — ${base}`
-    case 'resetPassword': return `Reset Password — ${base}`
-    case 'setNewPassword': return `Set New Password — ${base}`
-    case 'profile': return `My Profile — ${base}`
-    case 'myApplications': return `My Activity — ${base}`
-    case 'dashboard': return `My Dashboard — ${base}`
-    case 'adminUsers': return `User Management — ${base}`
-    case 'notFound': return `Page Not Found — ${base}`
-    default: return base
+  const map = {
+    home: `${base} — Empowering Learners`,
+    schools: `All Schools & Divisions — ${base}`,
+    courses: `Course Catalog — ${base}`,
+    about: `About Us — ${base}`,
+    contact: `Contact Us — ${base}`,
+    blog: `Blog — ${base}`,
+    faq: `FAQ — ${base}`,
+    apply: `Apply Now — ${base}`,
+    events: `Events — ${base}`,
+    profile: `My Profile — ${base}`,
+    myApplications: `My Activity — ${base}`,
+    dashboard: `My Dashboard — ${base}`,
+    adminUsers: `User Management — ${base}`,
+    adminApplications: `Applications Review — ${base}`,
+    adminApplicationDetail: `Application Detail — ${base}`,
+    notFound: `Page Not Found — ${base}`
   }
+  return map[routeObj.route] || base
 }
+
+const ADMIN_ROLES = ['super_admin', 'platform_admin', 'founder', 'group_ceo', 'entity_lead']
 
 export default function App() {
   const [mounted, setMounted] = useState(false)
@@ -143,12 +144,10 @@ export default function App() {
   const navigate = (target) => {
     const newRoute = typeof target === 'string' ? { route: target } : target
     const newPath = buildPath(newRoute)
-
     if (newPath === window.location.pathname) {
       window.scrollTo({ top: 0, behavior: 'smooth' })
       return
     }
-
     window.history.pushState({ route: newRoute }, '', newPath)
     setRouteObj(newRoute)
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -156,15 +155,6 @@ export default function App() {
 
   const renderPage = () => {
     switch (routeObj.route) {
-        case 'adminApplications':
-  return (
-    <ProtectedRoute
-      onNavigate={navigate}
-      requiredRoles={['super_admin', 'platform_admin', 'founder', 'group_ceo', 'entity_lead']}
-    >
-      <AdminApplicationsPage onNavigate={navigate} />
-    </ProtectedRoute>
-  )
       case 'schools':
         return <SchoolsPage onSelectDivision={(id) => navigate({ route: 'division', divisionId: id })} />
       case 'division':
@@ -185,32 +175,17 @@ export default function App() {
       case 'resetPassword': return <ResetPasswordPage onNavigate={navigate} />
       case 'setNewPassword': return <SetNewPasswordPage onNavigate={navigate} />
       case 'profile':
-        return (
-          <ProtectedRoute onNavigate={navigate}>
-            <ProfilePage onNavigate={navigate} />
-          </ProtectedRoute>
-        )
+        return <ProtectedRoute onNavigate={navigate}><ProfilePage onNavigate={navigate} /></ProtectedRoute>
       case 'myApplications':
-        return (
-          <ProtectedRoute onNavigate={navigate}>
-            <MyApplicationsPage onNavigate={navigate} />
-          </ProtectedRoute>
-        )
+        return <ProtectedRoute onNavigate={navigate}><MyApplicationsPage onNavigate={navigate} /></ProtectedRoute>
       case 'adminUsers':
-        return (
-          <ProtectedRoute
-            onNavigate={navigate}
-            requiredRoles={['super_admin', 'platform_admin', 'founder', 'group_ceo', 'entity_lead']}
-          >
-            <AdminUsersPage onNavigate={navigate} />
-          </ProtectedRoute>
-        )
+        return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminUsersPage onNavigate={navigate} /></ProtectedRoute>
+      case 'adminApplications':
+        return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminApplicationsPage onNavigate={navigate} /></ProtectedRoute>
+      case 'adminApplicationDetail':
+        return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminApplicationDetailPage id={routeObj.id} onNavigate={navigate} /></ProtectedRoute>
       case 'dashboard':
-        return (
-          <ProtectedRoute onNavigate={navigate}>
-            <RoleAwareDashboard onNavigate={navigate} />
-          </ProtectedRoute>
-        )
+        return <ProtectedRoute onNavigate={navigate}><RoleAwareDashboard onNavigate={navigate} /></ProtectedRoute>
       case 'home':
         return <HomePage onNavigate={navigate} />
       case 'notFound':
@@ -226,11 +201,8 @@ export default function App() {
           <span key={i} className={`particle particle-${i % 5}`} />
         ))}
       </div>
-
       <Header currentRoute={routeObj.route} onNavigate={navigate} mounted={mounted} />
-
       <div className="page-container">{renderPage()}</div>
-
       <Footer mounted={mounted} onNavigate={navigate} />
     </div>
   )
