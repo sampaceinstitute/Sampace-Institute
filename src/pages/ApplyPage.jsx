@@ -24,7 +24,7 @@ export default function ApplyPage() {
     motivation: ''
   })
 
-  const update = (field, value) => setForm({ ...form, [field]: value })
+  const update = (field, value) => setForm((prev) => ({ ...prev, [field]: value }))
 
   const selectedSchool = ALL_DIVISIONS.find((d) => d.id === form.schoolId)
   const departments = selectedSchool?.departments || []
@@ -179,14 +179,17 @@ export default function ApplyPage() {
               <label className="form-field">
                 <span>School *</span>
                 <select
-                  value={form.schoolId}
-                  onChange={(e) => {
-                    update('schoolId', e.target.value)
-                    update('departmentId', '')
-                    update('course', '')
-                  }}
-                  required
-                >
+  value={form.schoolId}
+  onChange={(e) => {
+    setForm((prev) => ({
+      ...prev,
+      schoolId: e.target.value,
+      departmentId: '',
+      course: ''
+    }))
+  }}
+  required
+>
                   <option value="">Select a school</option>
                   {ALL_DIVISIONS.map((d) => (
                     <option key={d.id} value={d.id}>
@@ -199,14 +202,16 @@ export default function ApplyPage() {
               <label className="form-field">
                 <span>Department *</span>
                 <select
-                  value={form.departmentId}
-                  onChange={(e) => {
-                    update('departmentId', e.target.value)
-                    update('course', '')
-                  }}
-                  disabled={!form.schoolId}
-                  required
-                >
+  value={form.departmentId}
+  onChange={(e) => {
+    setForm((prev) => ({
+      ...prev,
+      departmentId: e.target.value,
+      course: ''
+    }))
+  }}
+  ...
+>
                   <option value="">Select a department</option>
                   {departments.map((d) => (
                     <option key={d.id} value={d.id}>{d.name}</option>
