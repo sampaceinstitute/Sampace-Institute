@@ -57,11 +57,11 @@ export default function AdminDashboard({ onNavigate }) {
             <div className="dashboard-action-title">User Management</div>
             <div className="dashboard-action-desc">Assign roles, manage access</div>
           </button>
-          <button className="dashboard-action-card" onClick={() => onNavigate('dashboard')}>
-            <div className="dashboard-action-icon">📝</div>
-            <div className="dashboard-action-title">Review Applications</div>
-            <div className="dashboard-action-desc">Process pending applications</div>
-          </button>
+          <button className="dashboard-action-card" onClick={() => onNavigate('adminApplications')}>
+  <div className="dashboard-action-icon">📝</div>
+  <div className="dashboard-action-title">Review Applications</div>
+  <div className="dashboard-action-desc">Process pending applications</div>
+</button>
           <button className="dashboard-action-card" onClick={() => onNavigate('dashboard')}>
             <div className="dashboard-action-icon">📊</div>
             <div className="dashboard-action-title">Analytics</div>
