@@ -6,29 +6,46 @@ export default function ApplyPage() {
   const [submitted, setSubmitted] = useState(false)
 
   const [form, setForm] = useState({
-    // Step 1
     fullName: '',
     email: '',
     phone: '',
     gender: '',
-    // Step 2
     schoolId: '',
     departmentId: '',
     course: '',
     mode: 'Online',
-    // Step 3
     qualification: '',
     schoolAttended: '',
     graduationYear: '',
-    // Step 4
     motivation: ''
   })
 
-  const update = (field, value) => setForm((prev) => ({ ...prev, [field]: value }))
+  // ---------- SAFE UPDATERS (function-based, no stale closure) ----------
+  const updateField = (field, value) => {
+    setForm((prev) => ({ ...prev, [field]: value }))
+  }
 
-  const selectedSchool = ALL_DIVISIONS.find((d) => d.id === form.schoolId)
+  const handleSchoolChange = (schoolId) => {
+    setForm((prev) => ({
+      ...prev,
+      schoolId,
+      departmentId: '',
+      course: ''
+    }))
+  }
+
+  const handleDepartmentChange = (departmentId) => {
+    setForm((prev) => ({
+      ...prev,
+      departmentId,
+      course: ''
+    }))
+  }
+
+  // ---------- DERIVED DATA ----------
+  const selectedSchool = ALL_DIVISIONS.find((d) => d.id === form.schoolId) || null
   const departments = selectedSchool?.departments || []
-  const selectedDept = departments.find((d) => d.id === form.departmentId)
+  const selectedDept = departments.find((d) => d.id === form.departmentId) || null
   const courses = selectedDept?.courses || []
 
   const canProceed = () => {
@@ -49,8 +66,8 @@ export default function ApplyPage() {
       `📧 Email: ${form.email}\n` +
       `📱 Phone: ${form.phone}\n` +
       `⚧ Gender: ${form.gender || 'Not specified'}\n\n` +
-      `🏫 School: ${selectedSchool?.name}\n` +
-      `📂 Department: ${selectedDept?.name}\n` +
+      `🏫 School: ${selectedSchool?.name || ''}\n` +
+      `📂 Department: ${selectedDept?.name || ''}\n` +
       `📚 Course: ${form.course}\n` +
       `💻 Mode: ${form.mode}\n\n` +
       `🎓 Qualification: ${form.qualification}\n` +
@@ -134,7 +151,7 @@ export default function ApplyPage() {
                 <input
                   type="text"
                   value={form.fullName}
-                  onChange={(e) => update('fullName', e.target.value)}
+                  onChange={(e) => updateField('fullName', e.target.value)}
                   placeholder="e.g. Chidinma Okafor"
                   required
                 />
@@ -144,7 +161,7 @@ export default function ApplyPage() {
                 <input
                   type="email"
                   value={form.email}
-                  onChange={(e) => update('email', e.target.value)}
+                  onChange={(e) => updateField('email', e.target.value)}
                   placeholder="you@example.com"
                   required
                 />
@@ -154,14 +171,14 @@ export default function ApplyPage() {
                 <input
                   type="tel"
                   value={form.phone}
-                  onChange={(e) => update('phone', e.target.value)}
+                  onChange={(e) => updateField('phone', e.target.value)}
                   placeholder="08012345678"
                   required
                 />
               </label>
               <label className="form-field">
                 <span>Gender</span>
-                <select value={form.gender} onChange={(e) => update('gender', e.target.value)}>
+                <select value={form.gender} onChange={(e) => updateField('gender', e.target.value)}>
                   <option value="">Select</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
@@ -179,17 +196,10 @@ export default function ApplyPage() {
               <label className="form-field">
                 <span>School *</span>
                 <select
-  value={form.schoolId}
-  onChange={(e) => {
-    setForm((prev) => ({
-      ...prev,
-      schoolId: e.target.value,
-      departmentId: '',
-      course: ''
-    }))
-  }}
-  required
->
+                  value={form.schoolId}
+                  onChange={(e) => handleSchoolChange(e.target.value)}
+                  required
+                >
                   <option value="">Select a school</option>
                   {ALL_DIVISIONS.map((d) => (
                     <option key={d.id} value={d.id}>
@@ -202,17 +212,14 @@ export default function ApplyPage() {
               <label className="form-field">
                 <span>Department *</span>
                 <select
-  value={form.departmentId}
-  onChange={(e) => {
-    setForm((prev) => ({
-      ...prev,
-      departmentId: e.target.value,
-      course: ''
-    }))
-  }}
-  ...
->
-                  <option value="">Select a department</option>
+                  value={form.departmentId}
+                  onChange={(e) => handleDepartmentChange(e.target.value)}
+                  disabled={!form.schoolId}
+                  required
+                >
+                  <option value="">
+                    {form.schoolId ? 'Select a department' : 'Select a school first'}
+                  </option>
                   {departments.map((d) => (
                     <option key={d.id} value={d.id}>{d.name}</option>
                   ))}
@@ -223,11 +230,13 @@ export default function ApplyPage() {
                 <span>Course / Programme *</span>
                 <select
                   value={form.course}
-                  onChange={(e) => update('course', e.target.value)}
+                  onChange={(e) => updateField('course', e.target.value)}
                   disabled={!form.departmentId}
                   required
                 >
-                  <option value="">Select a course</option>
+                  <option value="">
+                    {form.departmentId ? 'Select a course' : 'Select a department first'}
+                  </option>
                   {courses.map((c, i) => (
                     <option key={i} value={c}>{c}</option>
                   ))}
@@ -242,7 +251,7 @@ export default function ApplyPage() {
                       key={m}
                       type="button"
                       className={`mode-pill ${form.mode === m ? 'active' : ''}`}
-                      onClick={() => update('mode', m)}
+                      onClick={() => updateField('mode', m)}
                     >
                       {m}
                     </button>
@@ -261,7 +270,7 @@ export default function ApplyPage() {
                 <span>Highest Qualification *</span>
                 <select
                   value={form.qualification}
-                  onChange={(e) => update('qualification', e.target.value)}
+                  onChange={(e) => updateField('qualification', e.target.value)}
                   required
                 >
                   <option value="">Select</option>
@@ -281,7 +290,7 @@ export default function ApplyPage() {
                 <input
                   type="text"
                   value={form.schoolAttended}
-                  onChange={(e) => update('schoolAttended', e.target.value)}
+                  onChange={(e) => updateField('schoolAttended', e.target.value)}
                   placeholder="e.g. King's College Lagos"
                 />
               </label>
@@ -290,7 +299,7 @@ export default function ApplyPage() {
                 <input
                   type="text"
                   value={form.graduationYear}
-                  onChange={(e) => update('graduationYear', e.target.value)}
+                  onChange={(e) => updateField('graduationYear', e.target.value)}
                   placeholder="e.g. 2025"
                 />
               </label>
@@ -306,7 +315,7 @@ export default function ApplyPage() {
               <textarea
                 rows="5"
                 value={form.motivation}
-                onChange={(e) => update('motivation', e.target.value)}
+                onChange={(e) => updateField('motivation', e.target.value)}
                 placeholder="Tell us briefly about your goals..."
               />
             </label>
@@ -316,9 +325,9 @@ export default function ApplyPage() {
               <div className="summary-row"><span>Name:</span><strong>{form.fullName}</strong></div>
               <div className="summary-row"><span>Email:</span><strong>{form.email}</strong></div>
               <div className="summary-row"><span>Phone:</span><strong>{form.phone}</strong></div>
-              <div className="summary-row"><span>School:</span><strong>{selectedSchool?.name}</strong></div>
-              <div className="summary-row"><span>Department:</span><strong>{selectedDept?.name}</strong></div>
-              <div className="summary-row"><span>Course:</span><strong>{form.course}</strong></div>
+              <div className="summary-row"><span>School:</span><strong>{selectedSchool?.name || '—'}</strong></div>
+              <div className="summary-row"><span>Department:</span><strong>{selectedDept?.name || '—'}</strong></div>
+              <div className="summary-row"><span>Course:</span><strong>{form.course || '—'}</strong></div>
               <div className="summary-row"><span>Mode:</span><strong>{form.mode}</strong></div>
             </div>
           </div>
