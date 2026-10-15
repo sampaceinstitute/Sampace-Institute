@@ -1,62 +1,78 @@
-import React, { useEffect, useState } from 'react'
-import { getAllApplications, updateApplicationStatus } from '../lib/applicationService.js'
+import React, { useEffect, useState, useMemo } from 'react'
+import { useAuth } from '../contexts/AuthContext.jsx'
+import { getAllApplications } from '../lib/dataService.js'
 
-const STATUS_FILTERS = [
-  { id: 'all', label: 'All' },
-  { id: 'submitted', label: 'Submitted' },
-  { id: 'under_review', label: 'Under Review' },
-  { id: 'approved', label: 'Approved' },
-  { id: 'unsuccessful', label: 'Unsuccessful' },
-  { id: 'enrolled', label: 'Enrolled' }
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'All Statuses' },
+  { value: 'submitted', label: '📥 Submitted' },
+  { value: 'under_review', label: '🔍 Under Review' },
+  { value: 'action_required', label: '⚡ Action Required' },
+  { value: 'approved', label: '✅ Approved' },
+  { value: 'waitlisted', label: '⏳ Waitlisted' },
+  { value: 'unsuccessful', label: '❌ Unsuccessful' },
+  { value: 'enrolled', label: '🎓 Enrolled' }
 ]
 
-const STATUS_COLORS = {
-  draft: '#a1a1aa',
-  submitted: '#E5C158',
-  under_review: '#22d3ee',
-  approved: '#4ade80',
-  offer_issued: '#a78bfa',
-  enrolled: '#4ade80',
-  unsuccessful: '#f87171',
-  withdrawn: '#a1a1aa'
+const FORM_TYPE_OPTIONS = [
+  { value: 'all', label: 'All Types' },
+  { value: 'school-admission', label: '🎓 School Admission' },
+  { value: 'exam-prep', label: '📝 Exam Prep' },
+  { value: 'training', label: '💻 Training' },
+  { value: 'service-request', label: '🛠️ Service Request' },
+  { value: 'higher-ed', label: '🎓 Higher Ed' }
+]
+
+const statusColor = (status) => {
+  const map = {
+    submitted: '#E5C158',
+    under_review: '#22d3ee',
+    action_required: '#fb923c',
+    approved: '#4ade80',
+    waitlisted: '#a78bfa',
+    unsuccessful: '#f87171',
+    enrolled: '#22d3ee',
+    draft: '#a1a1aa',
+    withdrawn: '#a1a1aa'
+  }
+  return map[status] || '#E5C158'
 }
 
 export default function AdminApplicationsPage({ onNavigate }) {
+  const { user } = useAuth()
   const [applications, setApplications] = useState([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('all')
-  const [selected, setSelected] = useState(null)
-  const [updating, setUpdating] = useState(false)
-
-  const load = async () => {
-    setLoading(true)
-    const { data } = await getAllApplications({ limit: 200 })
-    setApplications(data || [])
-    setLoading(false)
-  }
+  const [filterStatus, setFilterStatus] = useState('all')
+  const [filterType, setFilterType] = useState('all')
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
+    const load = async () => {
+      const res = await getAllApplications({})
+      setApplications(res.data || [])
+      setLoading(false)
+    }
     load()
   }, [])
 
-  const filtered = filter === 'all'
-    ? applications
-    : applications.filter((a) => a.status === filter)
-
-  const handleStatusChange = async (newStatus) => {
-    if (!selected) return
-    setUpdating(true)
-    const { data, error } = await updateApplicationStatus({
-      id: selected.id,
-      status: newStatus,
-      notes: ''
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return applications.filter((a) => {
+      if (filterStatus !== 'all' && a.status !== filterStatus) return false
+      if (filterType !== 'all' && a.form_type !== filterType) return false
+      if (q) {
+        const hay = `${a.reference} ${a.applicant_name} ${a.email} ${a.phone} ${a.school_name} ${a.course_title || a.course}`.toLowerCase()
+        if (!hay.includes(q)) return false
+      }
+      return true
     })
-    if (!error && data) {
-      setSelected(data)
-      setApplications((prev) => prev.map((a) => (a.id === data.id ? data : a)))
-    }
-    setUpdating(false)
-  }
+  }, [applications, filterStatus, filterType, search])
+
+  const stats = useMemo(() => ({
+    total: applications.length,
+    submitted: applications.filter((a) => a.status === 'submitted').length,
+    underReview: applications.filter((a) => a.status === 'under_review').length,
+    approved: applications.filter((a) => a.status === 'approved').length
+  }), [applications])
 
   const formatDate = (iso) => {
     if (!iso) return '—'
@@ -77,26 +93,50 @@ export default function AdminApplicationsPage({ onNavigate }) {
           <span className="badge-dot" />
           Admin · Applications
         </div>
-        <h1 className="page-title">Application Review</h1>
+        <h1 className="page-title">Applications Review</h1>
         <p className="page-subtitle">
-          Review, filter, and process student applications.
+          View, filter, and process every application across the platform.
         </p>
       </div>
 
-      <div className="admin-apps-filters">
-        {STATUS_FILTERS.map((f) => (
-          <button
-            key={f.id}
-            className={`admin-apps-filter ${filter === f.id ? 'active' : ''}`}
-            onClick={() => setFilter(f.id)}
-          >
-            {f.label}
-            {f.id === 'all' && ` (${applications.length})`}
-          </button>
-        ))}
-        <button className="admin-apps-refresh" onClick={load}>🔄 Refresh</button>
+      {/* Stat chips */}
+      <div className="admin-app-stats">
+        <div className="admin-app-stat">
+          <div className="admin-app-stat-num">{stats.total}</div>
+          <div className="admin-app-stat-label">Total</div>
+        </div>
+        <div className="admin-app-stat">
+          <div className="admin-app-stat-num" style={{ color: '#E5C158' }}>{stats.submitted}</div>
+          <div className="admin-app-stat-label">Submitted</div>
+        </div>
+        <div className="admin-app-stat">
+          <div className="admin-app-stat-num" style={{ color: '#22d3ee' }}>{stats.underReview}</div>
+          <div className="admin-app-stat-label">Under Review</div>
+        </div>
+        <div className="admin-app-stat">
+          <div className="admin-app-stat-num" style={{ color: '#4ade80' }}>{stats.approved}</div>
+          <div className="admin-app-stat-label">Approved</div>
+        </div>
       </div>
 
+      {/* Filters */}
+      <div className="admin-app-filters">
+        <input
+          type="text"
+          className="search-input"
+          placeholder="Search by reference, name, email, phone..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <select className="filter-select" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+          {STATUS_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+        </select>
+        <select className="filter-select" value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+          {FORM_TYPE_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+        </select>
+      </div>
+
+      {/* Results */}
       {loading ? (
         <div className="loading-state">
           <div className="loading-spinner" />
@@ -104,121 +144,53 @@ export default function AdminApplicationsPage({ onNavigate }) {
         </div>
       ) : filtered.length === 0 ? (
         <div className="dashboard-empty">
-          <div className="dashboard-empty-icon">📭</div>
-          <p>No applications match this filter.</p>
+          <div className="dashboard-empty-icon">📋</div>
+          <p>No applications match your filters.</p>
         </div>
       ) : (
-        <div className="admin-apps-list">
-          {filtered.map((app) => (
-            <button
-              key={app.id}
-              className={`admin-app-card ${selected?.id === app.id ? 'active' : ''}`}
-              onClick={() => setSelected(app)}
-            >
-              <div className="admin-app-card-top">
-                <div className="admin-app-ref">{app.reference}</div>
-                <div
-                  className="admin-app-status"
-                  style={{ color: STATUS_COLORS[app.status] || '#E5C158', borderColor: STATUS_COLORS[app.status] || '#E5C158' }}
-                >
-                  {app.status?.replace(/_/g, ' ').toUpperCase()}
+        <div className="admin-app-table">
+          <div className="admin-app-table-head">
+            <div>Reference</div>
+            <div>Applicant</div>
+            <div>Programme</div>
+            <div>Status</div>
+            <div>Date</div>
+            <div></div>
+          </div>
+          {filtered.map((a) => (
+            <div key={a.id} className="admin-app-row">
+              <div className="admin-app-ref">{a.reference}</div>
+              <div className="admin-app-applicant">
+                <div className="admin-app-name">{a.applicant_name || '—'}</div>
+                <div className="admin-app-contact">{a.phone || a.email}</div>
+              </div>
+              <div className="admin-app-programme">
+                <div className="admin-app-school">{a.school_name || '—'}</div>
+                <div className="admin-app-course">
+                  {a.form_type === 'school-admission'
+                    ? `${a.level || ''} · ${a.class_level || ''}${a.stream ? ' · ' + a.stream : ''}`
+                    : (a.course_title || a.service_label || a.course || '—')}
                 </div>
               </div>
-              <div className="admin-app-name">{app.applicant_name || 'Unnamed'}</div>
-              <div className="admin-app-course">{app.course_title || app.programme || '—'}</div>
-              <div className="admin-app-meta">
-                <span>{app.school_name || '—'}</span>
-                <span>·</span>
-                <span>{formatDate(app.created_at)}</span>
+              <div className="admin-app-status-cell">
+                <span
+                  className="my-card-status"
+                  style={{ color: statusColor(a.status), borderColor: statusColor(a.status) }}
+                >
+                  {a.status?.replace(/_/g, ' ').toUpperCase()}
+                </span>
               </div>
-            </button>
+              <div className="admin-app-date">{formatDate(a.submitted_at || a.created_at)}</div>
+              <div>
+                <button
+                  className="btn-admin-view"
+                  onClick={() => onNavigate({ route: 'adminApplicationDetail', id: a.id })}
+                >
+                  View →
+                </button>
+              </div>
+            </div>
           ))}
-        </div>
-      )}
-
-      {selected && (
-        <div className="admin-app-detail-overlay" onClick={() => setSelected(null)}>
-          <div className="admin-app-detail" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setSelected(null)}>✕</button>
-
-            <div className="admin-app-detail-header">
-              <div className="admin-app-ref">{selected.reference}</div>
-              <div
-                className="admin-app-status"
-                style={{ color: STATUS_COLORS[selected.status], borderColor: STATUS_COLORS[selected.status] }}
-              >
-                {selected.status?.replace(/_/g, ' ').toUpperCase()}
-              </div>
-            </div>
-
-            <h2 className="admin-app-detail-title">{selected.course_title || selected.programme || 'Application'}</h2>
-
-            <div className="admin-app-detail-section">
-              <h4>Applicant</h4>
-              <div className="admin-app-detail-row"><span>Name:</span><strong>{selected.applicant_name}</strong></div>
-              <div className="admin-app-detail-row"><span>Email:</span><strong>{selected.applicant_email || '—'}</strong></div>
-              <div className="admin-app-detail-row"><span>Phone:</span><strong>{selected.phone || '—'}</strong></div>
-              <div className="admin-app-detail-row"><span>Gender:</span><strong>{selected.gender || '—'}</strong></div>
-            </div>
-
-            <div className="admin-app-detail-section">
-              <h4>Programme</h4>
-              <div className="admin-app-detail-row"><span>School:</span><strong>{selected.school_name || '—'}</strong></div>
-              <div className="admin-app-detail-row"><span>Form Type:</span><strong>{selected.form_type || '—'}</strong></div>
-              {selected.level && <div className="admin-app-detail-row"><span>Level:</span><strong>{selected.level}</strong></div>}
-              {selected.class_level && <div className="admin-app-detail-row"><span>Class:</span><strong>{selected.class_level}</strong></div>}
-              {selected.stream && <div className="admin-app-detail-row"><span>Stream:</span><strong>{selected.stream}</strong></div>}
-              {selected.service_type && <div className="admin-app-detail-row"><span>Service:</span><strong>{selected.service_type}</strong></div>}
-              {selected.department_name && <div className="admin-app-detail-row"><span>Department:</span><strong>{selected.department_name}</strong></div>}
-              <div className="admin-app-detail-row"><span>Mode:</span><strong>{selected.preferred_mode || selected.contact_method || '—'}</strong></div>
-            </div>
-
-            {selected.motivation && (
-              <div className="admin-app-detail-section">
-                <h4>Motivation</h4>
-                <p className="admin-app-motivation">{selected.motivation}</p>
-              </div>
-            )}
-
-            <div className="admin-app-detail-section">
-              <h4>Submitted</h4>
-              <div className="admin-app-detail-row"><span>Date:</span><strong>{formatDate(selected.submitted_at || selected.created_at)}</strong></div>
-            </div>
-
-            <div className="admin-app-detail-actions">
-              <h4>Update Status</h4>
-              <div className="admin-app-status-buttons">
-                <button
-                  className="admin-app-status-btn approve"
-                  onClick={() => handleStatusChange('approved')}
-                  disabled={updating || selected.status === 'approved'}
-                >
-                  ✅ Approve
-                </button>
-                <button
-                  className="admin-app-status-btn review"
-                  onClick={() => handleStatusChange('under_review')}
-                  disabled={updating || selected.status === 'under_review'}
-                >
-                  🔎 Under Review
-                </button>
-                <button
-                  className="admin-app-status-btn reject"
-                  onClick={() => handleStatusChange('unsuccessful')}
-                  disabled={updating || selected.status === 'unsuccessful'}
-                >
-                  ❌ Unsuccessful
-                </button>
-                <button
-                  className="admin-app-status-btn enrolled"
-                  onClick={() => handleStatusChange('enrolled')}
-                  disabled={updating || selected.status === 'enrolled'}
-                >
-                  🎓 Enrolled
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
       )}
     </main>
