@@ -3903,3 +3903,248 @@ button { font-family: inherit; cursor: pointer; }
     font-size: 0.65rem;
   }
 }
+
+/* ============================================================
+   DAY 15 — Admin Applications Page
+   ============================================================ */
+
+.admin-apps-page {
+  padding: 4rem 2rem 5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.admin-apps-filters {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  align-items: center;
+}
+
+.admin-apps-filter {
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  color: var(--text-soft);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.admin-apps-filter:hover { border-color: var(--border-hover); color: var(--gold-light); }
+.admin-apps-filter.active {
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  color: var(--navy);
+  border-color: var(--gold);
+}
+
+.admin-apps-refresh {
+  margin-left: auto;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-soft);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.admin-apps-refresh:hover { border-color: var(--gold); color: var(--gold-light); }
+
+.admin-apps-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.admin-app-card {
+  text-align: left;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  color: var(--white);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.admin-app-card:hover {
+  border-color: var(--border-hover);
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-3px);
+}
+
+.admin-app-card.active {
+  border-color: var(--gold);
+  background: rgba(201, 162, 39, 0.06);
+}
+
+.admin-app-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-app-ref {
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-light);
+  font-weight: 700;
+}
+
+.admin-app-status {
+  padding: 0.25rem 0.6rem;
+  border: 1px solid currentColor;
+  border-radius: 100px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.admin-app-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.admin-app-course {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+}
+
+.admin-app-meta {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+/* Detail overlay */
+.admin-app-detail-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 31, 68, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.admin-app-detail {
+  position: relative;
+  max-width: 640px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: linear-gradient(135deg, #0d2a5c 0%, #0A1F44 100%);
+  border: 1px solid var(--border-hover);
+  border-radius: 20px;
+  padding: 2.5rem 2rem 2rem;
+  animation: modalIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+
+.admin-app-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-app-detail-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+}
+
+.admin-app-detail-section {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-app-detail-section h4 {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.85rem;
+  color: var(--gold-light);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.admin-app-detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.4rem 0;
+  font-size: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.admin-app-detail-row span { color: var(--text-dim); }
+.admin-app-detail-row strong { color: var(--white); text-align: right; }
+
+.admin-app-motivation {
+  font-size: 0.9rem;
+  color: var(--text-soft);
+  line-height: 1.7;
+  padding: 0.75rem 1rem;
+  background: rgba(201, 162, 39, 0.06);
+  border-left: 3px solid var(--gold);
+  border-radius: 4px;
+}
+
+.admin-app-status-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.admin-app-status-btn {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: 1px solid;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: transparent;
+}
+
+.admin-app-status-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.admin-app-status-btn.approve { color: #4ade80; border-color: rgba(74, 222, 128, 0.5); }
+.admin-app-status-btn.approve:hover:not(:disabled) { background: rgba(74, 222, 128, 0.15); }
+
+.admin-app-status-btn.review { color: #22d3ee; border-color: rgba(34, 211, 238, 0.5); }
+.admin-app-status-btn.review:hover:not(:disabled) { background: rgba(34, 211, 238, 0.15); }
+
+.admin-app-status-btn.reject { color: #f87171; border-color: rgba(248, 113, 113, 0.5); }
+.admin-app-status-btn.reject:hover:not(:disabled) { background: rgba(248, 113, 113, 0.15); }
+
+.admin-app-status-btn.enrolled { color: #a78bfa; border-color: rgba(167, 139, 250, 0.5); }
+.admin-app-status-btn.enrolled:hover:not(:disabled) { background: rgba(167, 139, 250, 0.15); }
+
+@media (max-width: 768px) {
+  .admin-apps-page { padding: 2.5rem 1.25rem 4rem; }
+  .admin-apps-list { grid-template-columns: 1fr; }
+  .admin-app-status-buttons { grid-template-columns: 1fr; }
+  .admin-app-detail { padding: 2rem 1.5rem 1.5rem; }
+}
