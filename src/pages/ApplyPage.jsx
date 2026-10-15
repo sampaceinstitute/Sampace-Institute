@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 import { ALL_DIVISIONS, SITE } from '../constants.js'
+import { useAuth } from '../contexts/AuthContext.jsx'
+import { saveApplication } from '../lib/applicationService.js'
 import {
   SCHOOL_LEVELS,
   SECONDARY_STREAMS,
@@ -11,40 +13,33 @@ import {
 } from '../data/formDefinitions.js'
 
 export default function ApplyPage() {
+  const { user } = useAuth()
   const [step, setStep] = useState(1)
   const [submitted, setSubmitted] = useState(false)
   const [reference, setReference] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
 
   const [form, setForm] = useState({
-    // Personal
     fullName: '',
     email: '',
     phone: '',
     gender: '',
-    // Programme
     schoolId: '',
-    // For school-admission
     level: '',
     classLevel: '',
     stream: '',
-    // For service-request
     serviceType: '',
-    // For standard
     departmentId: '',
     course: '',
-    // Additional questions
     additionalAnswer: '',
-    // Mode
     mode: 'Online',
-    // Academic
     qualification: '',
     schoolAttended: '',
     graduationYear: '',
-    // Final
     motivation: ''
   })
 
-  // ---------- SAFE UPDATERS ----------
   const updateField = (field, value) =>
     setForm((prev) => ({ ...prev, [field]: value }))
 
@@ -52,7 +47,6 @@ export default function ApplyPage() {
     setForm((prev) => ({
       ...prev,
       schoolId,
-      // Reset all programme-dependent fields
       level: '',
       classLevel: '',
       stream: '',
@@ -66,82 +60,99 @@ export default function ApplyPage() {
   const handleDepartmentChange = (departmentId) =>
     setForm((prev) => ({ ...prev, departmentId, course: '' }))
 
-  // ---------- DERIVED ----------
   const selectedSchool = ALL_DIVISIONS.find((d) => d.id === form.schoolId) || null
   const formType = selectedSchool ? getFormType(selectedSchool.id) : null
   const departments = selectedSchool?.departments || []
   const selectedDept = departments.find((d) => d.id === form.departmentId) || null
   const courses = selectedDept?.courses || []
 
-  // Selected school level's classes
   const selectedLevel = SCHOOL_LEVELS.find((l) => l.id === form.level) || null
   const availableClasses = selectedLevel?.classes || []
   const streamRequired = selectedLevel?.streamRequired || false
 
-  // ---------- VALIDATION ----------
   const canProceed = () => {
     if (step === 1) {
       return form.fullName.trim() && form.email.includes('@') && form.phone.length >= 10
     }
     if (step === 2) {
-      if (!form.schoolId) return false
-      if (!formType) return false
+      if (!form.schoolId || !formType) return false
       if (formType.type === 'school-admission') {
         if (!form.level || !form.classLevel) return false
         if (streamRequired && !form.stream) return false
         return true
       }
-      if (formType.type === 'service-request' || formType.type === 'consulting-request' || formType.type === 'research-request') {
-        return !!form.serviceType || !!form.departmentId
+      if (
+        formType.type === 'service-request' ||
+        formType.type === 'consulting-request' ||
+        formType.type === 'research-request'
+      ) {
+        return !!form.serviceType
       }
-      // Default: needs department + course
       return form.departmentId && form.course
     }
     if (step === 3) {
-      // Only validate academic step if it exists for this form type
       if (formType && !needsAcademicStep(formType)) return true
       return !!form.qualification
     }
     return true
   }
 
-  // ---------- STEP CONTROL ----------
   const getNextStep = () => {
-    // If on step 2 and this form skips academic, jump to step 4
     if (step === 2 && formType && !needsAcademicStep(formType)) return 4
     return step + 1
   }
 
   const getPrevStep = () => {
-    // If on step 4 and this form skips academic, jump back to step 2
     if (step === 4 && formType && !needsAcademicStep(formType)) return 2
     return step - 1
   }
 
-  const goNext = () => {
-    if (!canProceed()) return
-    setStep(getNextStep())
-  }
-
-  const goPrev = () => {
-    setStep(getPrevStep())
-  }
+  const goNext = () => canProceed() && setStep(getNextStep())
+  const goPrev = () => setStep(getPrevStep())
 
   // ---------- SUBMIT ----------
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!canProceed()) return
 
-    const ref = `SMP-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`
-    setReference(ref)
+    setSaving(true)
+    setSaveError('')
 
+    // 1) SAVE TO DATABASE
+    const { data, error, reference: ref } = await saveApplication({
+      userId: user?.id || null,
+      formType,
+      formData: form,
+      derived: {
+        schoolId: form.schoolId,
+        schoolName: selectedSchool?.name,
+        departmentName: selectedDept?.name,
+        courseId: form.course
+      }
+    })
+
+    if (error) {
+      console.warn('[Apply] Save failed but continuing to WhatsApp:', error)
+      setSaveError('Could not save to database, but you can still send via WhatsApp.')
+    }
+
+    const finalRef = data?.reference || ref || 'Pending'
+    setReference(finalRef)
+    setSaving(false)
+    setSubmitted(true)
+
+    // 2) OPEN WHATSAPP (with structured details)
     let programmeDetails = ''
     if (formType?.type === 'school-admission') {
       programmeDetails =
         `🏫 Level: ${selectedLevel?.label}\n` +
         `📚 Class: ${form.classLevel}\n` +
         (form.stream ? `🎯 Stream: ${form.stream}\n` : '')
-    } else if (formType?.type === 'service-request' || formType?.type === 'consulting-request' || formType?.type === 'research-request') {
+    } else if (
+      formType?.type === 'service-request' ||
+      formType?.type === 'consulting-request' ||
+      formType?.type === 'research-request'
+    ) {
       const service = PROFESSIONAL_SERVICES.find((s) => s.id === form.serviceType)
       programmeDetails = `🛠️ Service: ${service?.label || form.serviceType || 'Not specified'}\n`
     } else {
@@ -153,7 +164,7 @@ export default function ApplyPage() {
     const message = encodeURIComponent(
       `Hello SAMPACE! 👋\n\n` +
       `*NEW APPLICATION*\n` +
-      `Reference: ${ref}\n\n` +
+      `Reference: ${finalRef}\n\n` +
       `👤 Name: ${form.fullName}\n` +
       `📧 Email: ${form.email}\n` +
       `📱 Phone: ${form.phone}\n` +
@@ -170,13 +181,13 @@ export default function ApplyPage() {
     )
 
     window.open(`https://wa.me/${SITE.whatsapp.replace(/[^0-9]/g, '')}?text=${message}`, '_blank')
-    setSubmitted(true)
   }
 
   const resetForm = () => {
     setSubmitted(false)
     setStep(1)
     setReference('')
+    setSaveError('')
     setForm({
       fullName: '', email: '', phone: '', gender: '',
       schoolId: '', level: '', classLevel: '', stream: '',
@@ -187,7 +198,7 @@ export default function ApplyPage() {
     })
   }
 
-  // ---------- SUCCESS SCREEN ----------
+  // ---------- SUCCESS ----------
   if (submitted) {
     return (
       <main className="apply-page">
@@ -197,8 +208,18 @@ export default function ApplyPage() {
           <p className="page-subtitle">
             Your reference: <strong style={{ color: 'var(--gold-light)' }}>{reference}</strong>
           </p>
+          {saveError && (
+            <p className="diagnostic-note" style={{ color: '#fbbf24', marginTop: '0.75rem' }}>
+              ⚠️ {saveError}
+            </p>
+          )}
+          {user && !saveError && (
+            <p className="diagnostic-note" style={{ marginTop: '0.75rem' }}>
+              ✅ Saved to your account. Track it in <strong>My Applications</strong>.
+            </p>
+          )}
           <p className="page-subtitle" style={{ marginTop: '0.75rem' }}>
-            Check your WhatsApp. Our team will contact you within 24 hours with next steps.
+            Check your WhatsApp. Our team will contact you within 24 hours.
           </p>
           <a
             href={`https://wa.me/${SITE.whatsapp.replace(/[^0-9]/g, '')}`}
@@ -217,25 +238,23 @@ export default function ApplyPage() {
     )
   }
 
-  // ---------- MAIN FORM ----------
+  // ---------- FORM ----------
   const step2Title = formType?.label?.step2Title || 'Programme Selection'
+  const totalSteps = formType && !needsAcademicStep(formType) ? 3 : 4
 
   return (
     <main className="apply-page">
       <div className="page-header">
         <div className="badge">
           <span className="badge-dot" />
-          Step {step} of {formType && !needsAcademicStep(formType) ? 3 : 4}
+          Step {step} of {totalSteps}
         </div>
         <h1 className="page-title">Apply to SAMPACE</h1>
-        <p className="page-subtitle">
-          Complete the form below. Takes 2 minutes.
-        </p>
+        <p className="page-subtitle">Complete the form below. Takes 2 minutes.</p>
       </div>
 
       <div className="apply-progress">
         {[1, 2, 3, 4].map((n) => {
-          // Skip step 3 in progress indicator if not needed
           if (n === 3 && formType && !needsAcademicStep(formType)) return null
           return (
             <div key={n} className={`apply-step-dot ${step >= n ? 'active' : ''}`}>
@@ -246,40 +265,22 @@ export default function ApplyPage() {
       </div>
 
       <form className="apply-form" onSubmit={handleSubmit}>
-        {/* STEP 1: PERSONAL */}
+        {/* STEP 1 */}
         {step === 1 && (
           <div className="apply-step">
             <h3 className="apply-step-title">Personal Information</h3>
             <div className="form-grid">
               <label className="form-field">
                 <span>Full Name *</span>
-                <input
-                  type="text"
-                  value={form.fullName}
-                  onChange={(e) => updateField('fullName', e.target.value)}
-                  placeholder="e.g. Chidinma Okafor"
-                  required
-                />
+                <input type="text" value={form.fullName} onChange={(e) => updateField('fullName', e.target.value)} placeholder="e.g. Chidinma Okafor" required />
               </label>
               <label className="form-field">
                 <span>Email Address *</span>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => updateField('email', e.target.value)}
-                  placeholder="you@example.com"
-                  required
-                />
+                <input type="email" value={form.email} onChange={(e) => updateField('email', e.target.value)} placeholder="you@example.com" required />
               </label>
               <label className="form-field">
                 <span>WhatsApp Number *</span>
-                <input
-                  type="tel"
-                  value={form.phone}
-                  onChange={(e) => updateField('phone', e.target.value)}
-                  placeholder="08012345678"
-                  required
-                />
+                <input type="tel" value={form.phone} onChange={(e) => updateField('phone', e.target.value)} placeholder="08012345678" required />
               </label>
               <label className="form-field">
                 <span>Gender</span>
@@ -294,32 +295,22 @@ export default function ApplyPage() {
           </div>
         )}
 
-        {/* STEP 2: DYNAMIC PROGRAMME SELECTION */}
+        {/* STEP 2 */}
         {step === 2 && (
           <div className="apply-step">
             <h3 className="apply-step-title">{step2Title}</h3>
-
             <div className="form-grid">
-              {/* Always show School selector first */}
               <label className="form-field form-field-full">
                 <span>School / Division *</span>
-                <select
-                  value={form.schoolId}
-                  onChange={(e) => handleSchoolChange(e.target.value)}
-                  required
-                >
+                <select value={form.schoolId} onChange={(e) => handleSchoolChange(e.target.value)} required>
                   <option value="">Select a school</option>
                   {ALL_DIVISIONS.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.icon} {d.name}
-                    </option>
+                    <option key={d.id} value={d.id}>{d.icon} {d.name}</option>
                   ))}
                 </select>
               </label>
 
-              {/* -------------------------------------------------- */}
-              {/* TYPE 1: SCHOOL ADMISSION (Basic/Secondary)          */}
-              {/* -------------------------------------------------- */}
+              {/* SCHOOL ADMISSION */}
               {formType?.type === 'school-admission' && (
                 <>
                   <div className="form-field form-field-full">
@@ -330,14 +321,7 @@ export default function ApplyPage() {
                           key={lvl.id}
                           type="button"
                           className={`level-card ${form.level === lvl.id ? 'active' : ''}`}
-                          onClick={() =>
-                            setForm((prev) => ({
-                              ...prev,
-                              level: lvl.id,
-                              classLevel: '',
-                              stream: ''
-                            }))
-                          }
+                          onClick={() => setForm((prev) => ({ ...prev, level: lvl.id, classLevel: '', stream: '' }))}
                         >
                           <div className="level-card-icon">{lvl.icon}</div>
                           <div className="level-card-label">{lvl.label}</div>
@@ -352,19 +336,11 @@ export default function ApplyPage() {
                       <span>Class *</span>
                       <select
                         value={form.classLevel}
-                        onChange={(e) =>
-                          setForm((prev) => ({
-                            ...prev,
-                            classLevel: e.target.value,
-                            stream: ''
-                          }))
-                        }
+                        onChange={(e) => setForm((prev) => ({ ...prev, classLevel: e.target.value, stream: '' }))}
                         required
                       >
                         <option value="">Select a class</option>
-                        {availableClasses.map((c) => (
-                          <option key={c} value={c}>{c}</option>
-                        ))}
+                        {availableClasses.map((c) => <option key={c} value={c}>{c}</option>)}
                       </select>
                     </label>
                   )}
@@ -393,12 +369,7 @@ export default function ApplyPage() {
                     <span>Preferred Mode *</span>
                     <div className="mode-options">
                       {['Online', 'Physical', 'Hybrid'].map((m) => (
-                        <button
-                          key={m}
-                          type="button"
-                          className={`mode-pill ${form.mode === m ? 'active' : ''}`}
-                          onClick={() => updateField('mode', m)}
-                        >
+                        <button key={m} type="button" className={`mode-pill ${form.mode === m ? 'active' : ''}`} onClick={() => updateField('mode', m)}>
                           {m}
                         </button>
                       ))}
@@ -407,25 +378,15 @@ export default function ApplyPage() {
                 </>
               )}
 
-              {/* -------------------------------------------------- */}
-              {/* TYPE 2: SERVICE REQUEST (Professional Services)     */}
-              {/* -------------------------------------------------- */}
-              {(formType?.type === 'service-request' ||
-                formType?.type === 'consulting-request' ||
-                formType?.type === 'research-request') && (
+              {/* SERVICE REQUEST */}
+              {(formType?.type === 'service-request' || formType?.type === 'consulting-request' || formType?.type === 'research-request') && (
                 <>
                   <label className="form-field form-field-full">
                     <span>{formType?.label?.finalLabel || 'Service'} *</span>
-                    <select
-                      value={form.serviceType}
-                      onChange={(e) => updateField('serviceType', e.target.value)}
-                      required
-                    >
+                    <select value={form.serviceType} onChange={(e) => updateField('serviceType', e.target.value)} required>
                       <option value="">Select a service</option>
                       {PROFESSIONAL_SERVICES.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.icon} {s.label}
-                        </option>
+                        <option key={s.id} value={s.id}>{s.icon} {s.label}</option>
                       ))}
                     </select>
                   </label>
@@ -434,12 +395,7 @@ export default function ApplyPage() {
                     <span>Preferred Contact</span>
                     <div className="mode-options">
                       {['WhatsApp', 'Email', 'Phone Call'].map((m) => (
-                        <button
-                          key={m}
-                          type="button"
-                          className={`mode-pill ${form.mode === m ? 'active' : ''}`}
-                          onClick={() => updateField('mode', m)}
-                        >
+                        <button key={m} type="button" className={`mode-pill ${form.mode === m ? 'active' : ''}`} onClick={() => updateField('mode', m)}>
                           {m}
                         </button>
                       ))}
@@ -448,99 +404,63 @@ export default function ApplyPage() {
                 </>
               )}
 
-              {/* -------------------------------------------------- */}
-              {/* TYPE 3: STANDARD (Training, Higher Ed, Default)     */}
-              {/* -------------------------------------------------- */}
-              {formType &&
-                !['school-admission', 'service-request', 'consulting-request', 'research-request'].includes(formType.type) && (
-                  <>
-                    {needsDepartment(formType) && (
-                      <label className="form-field">
-                        <span>Department *</span>
-                        <select
-                          value={form.departmentId}
-                          onChange={(e) => handleDepartmentChange(e.target.value)}
-                          disabled={!form.schoolId}
-                          required
-                        >
-                          <option value="">
-                            {form.schoolId ? 'Select a department' : 'Select a school first'}
-                          </option>
-                          {departments.map((d) => (
-                            <option key={d.id} value={d.id}>{d.name}</option>
-                          ))}
-                        </select>
-                      </label>
-                    )}
-
-                    {needsCourse(formType) && (
-                      <label className="form-field">
-                        <span>{formType?.label?.finalLabel || 'Course'} *</span>
-                        <select
-                          value={form.course}
-                          onChange={(e) => updateField('course', e.target.value)}
-                          disabled={!form.departmentId}
-                          required
-                        >
-                          <option value="">
-                            {form.departmentId ? 'Select a course' : 'Select a department first'}
-                          </option>
-                          {courses.map((c, i) => (
-                            <option key={i} value={c}>{c}</option>
-                          ))}
-                        </select>
-                      </label>
-                    )}
-
-                    {/* Additional question if defined */}
-                    {formType.additionalQuestion && form.departmentId && (
-                      <label className="form-field form-field-full">
-                        <span>{formType.additionalQuestion.label}</span>
-                        <select
-                          value={form.additionalAnswer}
-                          onChange={(e) => updateField('additionalAnswer', e.target.value)}
-                        >
-                          <option value="">Select</option>
-                          {formType.additionalQuestion.options.map((o) => (
-                            <option key={o} value={o}>{o}</option>
-                          ))}
-                        </select>
-                      </label>
-                    )}
-
-                    <label className="form-field form-field-full">
-                      <span>Preferred Mode *</span>
-                      <div className="mode-options">
-                        {['Online', 'Physical', 'Hybrid'].map((m) => (
-                          <button
-                            key={m}
-                            type="button"
-                            className={`mode-pill ${form.mode === m ? 'active' : ''}`}
-                            onClick={() => updateField('mode', m)}
-                          >
-                            {m}
-                          </button>
-                        ))}
-                      </div>
+              {/* STANDARD (Training, Higher Ed) */}
+              {formType && !['school-admission', 'service-request', 'consulting-request', 'research-request'].includes(formType.type) && (
+                <>
+                  {needsDepartment(formType) && (
+                    <label className="form-field">
+                      <span>Department *</span>
+                      <select value={form.departmentId} onChange={(e) => handleDepartmentChange(e.target.value)} disabled={!form.schoolId} required>
+                        <option value="">{form.schoolId ? 'Select a department' : 'Select a school first'}</option>
+                        {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+                      </select>
                     </label>
-                  </>
-                )}
+                  )}
+
+                  {needsCourse(formType) && (
+                    <label className="form-field">
+                      <span>{formType?.label?.finalLabel || 'Course'} *</span>
+                      <select value={form.course} onChange={(e) => updateField('course', e.target.value)} disabled={!form.departmentId} required>
+                        <option value="">{form.departmentId ? 'Select a course' : 'Select a department first'}</option>
+                        {courses.map((c, i) => <option key={i} value={c}>{c}</option>)}
+                      </select>
+                    </label>
+                  )}
+
+                  {formType.additionalQuestion && form.departmentId && (
+                    <label className="form-field form-field-full">
+                      <span>{formType.additionalQuestion.label}</span>
+                      <select value={form.additionalAnswer} onChange={(e) => updateField('additionalAnswer', e.target.value)}>
+                        <option value="">Select</option>
+                        {formType.additionalQuestion.options.map((o) => <option key={o} value={o}>{o}</option>)}
+                      </select>
+                    </label>
+                  )}
+
+                  <label className="form-field form-field-full">
+                    <span>Preferred Mode *</span>
+                    <div className="mode-options">
+                      {['Online', 'Physical', 'Hybrid'].map((m) => (
+                        <button key={m} type="button" className={`mode-pill ${form.mode === m ? 'active' : ''}`} onClick={() => updateField('mode', m)}>
+                          {m}
+                        </button>
+                      ))}
+                    </div>
+                  </label>
+                </>
+              )}
             </div>
           </div>
         )}
 
-        {/* STEP 3: ACADEMIC (skipped for services) */}
+        {/* STEP 3 */}
         {step === 3 && formType && needsAcademicStep(formType) && (
           <div className="apply-step">
             <h3 className="apply-step-title">Academic Background</h3>
             <div className="form-grid">
               <label className="form-field">
                 <span>Highest Qualification *</span>
-                <select
-                  value={form.qualification}
-                  onChange={(e) => updateField('qualification', e.target.value)}
-                  required
-                >
+                <select value={form.qualification} onChange={(e) => updateField('qualification', e.target.value)} required>
                   <option value="">Select</option>
                   <option value="Primary">Primary School</option>
                   <option value="JSS">Junior Secondary</option>
@@ -555,31 +475,20 @@ export default function ApplyPage() {
               </label>
               <label className="form-field">
                 <span>School Attended</span>
-                <input
-                  type="text"
-                  value={form.schoolAttended}
-                  onChange={(e) => updateField('schoolAttended', e.target.value)}
-                  placeholder="e.g. King's College Lagos"
-                />
+                <input type="text" value={form.schoolAttended} onChange={(e) => updateField('schoolAttended', e.target.value)} placeholder="e.g. King's College Lagos" />
               </label>
               <label className="form-field">
                 <span>Year of Graduation</span>
-                <input
-                  type="text"
-                  value={form.graduationYear}
-                  onChange={(e) => updateField('graduationYear', e.target.value)}
-                  placeholder="e.g. 2025"
-                />
+                <input type="text" value={form.graduationYear} onChange={(e) => updateField('graduationYear', e.target.value)} placeholder="e.g. 2025" />
               </label>
             </div>
           </div>
         )}
 
-        {/* STEP 4: REVIEW */}
+        {/* STEP 4 */}
         {step === 4 && (
           <div className="apply-step">
             <h3 className="apply-step-title">Review & Submit</h3>
-
             <div className="apply-summary">
               <h4>Application Summary</h4>
               <div className="summary-row"><span>Name:</span><strong>{form.fullName}</strong></div>
@@ -598,9 +507,7 @@ export default function ApplyPage() {
               {['service-request', 'consulting-request', 'research-request'].includes(formType?.type) && (
                 <div className="summary-row">
                   <span>Service:</span>
-                  <strong>
-                    {PROFESSIONAL_SERVICES.find((s) => s.id === form.serviceType)?.label || form.serviceType || '—'}
-                  </strong>
+                  <strong>{PROFESSIONAL_SERVICES.find((s) => s.id === form.serviceType)?.label || '—'}</strong>
                 </div>
               )}
 
@@ -617,36 +524,22 @@ export default function ApplyPage() {
 
             <label className="form-field form-field-full" style={{ marginTop: '1.5rem' }}>
               <span>Anything else we should know? (optional)</span>
-              <textarea
-                rows="4"
-                value={form.motivation}
-                onChange={(e) => updateField('motivation', e.target.value)}
-                placeholder="Tell us briefly about your goals or requirements..."
-              />
+              <textarea rows="4" value={form.motivation} onChange={(e) => updateField('motivation', e.target.value)} placeholder="Tell us briefly about your goals..." />
             </label>
           </div>
         )}
 
-        {/* NAVIGATION */}
         <div className="apply-nav">
           {step > 1 && (
-            <button type="button" className="btn btn-outline" onClick={goPrev}>
-              ← Back
-            </button>
+            <button type="button" className="btn btn-outline" onClick={goPrev} disabled={saving}>← Back</button>
           )}
           {step < 4 ? (
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={goNext}
-              disabled={!canProceed()}
-              style={{ opacity: canProceed() ? 1 : 0.5 }}
-            >
+            <button type="button" className="btn btn-primary" onClick={goNext} disabled={!canProceed() || saving} style={{ opacity: canProceed() ? 1 : 0.5 }}>
               Continue →
             </button>
           ) : (
-            <button type="submit" className="btn btn-primary">
-              Submit Application →
+            <button type="submit" className="btn btn-primary" disabled={saving}>
+              {saving ? 'Submitting...' : 'Submit Application →'}
             </button>
           )}
         </div>
