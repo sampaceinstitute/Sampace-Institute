@@ -1,3 +1,4 @@
+import AdminApplicationsPage from './pages/AdminApplicationsPage.jsx'
 import React, { useEffect, useState } from 'react'
 import Header from './components/Header.jsx'
 import Footer from './components/Footer.jsx'
@@ -29,6 +30,7 @@ import { findDivision } from './constants.js'
 
 function parseRoute(pathname) {
   const parts = pathname.split('/').filter(Boolean)
+  if (parts[0] === 'admin' && parts[1] === 'applications') return { route: 'adminApplications' }
   if (parts.length === 0) return { route: 'home' }
 
   if (parts[0] === 'schools') {
@@ -62,6 +64,7 @@ function parseRoute(pathname) {
 function buildPath(routeObj) {
   if (typeof routeObj === 'string') routeObj = { route: routeObj }
   switch (routeObj.route) {
+      case 'adminApplications': return '/admin/applications'
     case 'home': return '/'
     case 'schools': return '/schools'
     case 'division': return `/schools/${routeObj.divisionId}`
@@ -91,6 +94,7 @@ function buildPath(routeObj) {
 function getPageTitle(routeObj) {
   const base = 'SAMPACE Educational Ltd'
   switch (routeObj.route) {
+      case 'adminApplications': return `Applications — ${base}`
     case 'home': return `${base} — Empowering Learners`
     case 'schools': return `All Schools & Divisions — ${base}`
     case 'division': return `Division — ${base}`
@@ -152,6 +156,15 @@ export default function App() {
 
   const renderPage = () => {
     switch (routeObj.route) {
+        case 'adminApplications':
+  return (
+    <ProtectedRoute
+      onNavigate={navigate}
+      requiredRoles={['super_admin', 'platform_admin', 'founder', 'group_ceo', 'entity_lead']}
+    >
+      <AdminApplicationsPage onNavigate={navigate} />
+    </ProtectedRoute>
+  )
       case 'schools':
         return <SchoolsPage onSelectDivision={(id) => navigate({ route: 'division', divisionId: id })} />
       case 'division':
