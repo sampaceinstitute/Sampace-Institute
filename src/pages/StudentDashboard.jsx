@@ -1,8 +1,24 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext.jsx'
+import { getStudentOverview, getMyEnrolledCourses } from '../lib/analyticsService.js'
 
 export default function StudentDashboard({ onNavigate, isNewUser }) {
   const { user, profile } = useAuth()
+  const [overview, setOverview] = useState(null)
+  const [enrolled, setEnrolled] = useState([])
+
+  useEffect(() => {
+    if (!user?.id) return
+    const load = async () => {
+      const [o, e] = await Promise.all([
+        getStudentOverview(user.id),
+        getMyEnrolledCourses(user.id)
+      ])
+      setOverview(o.data)
+      setEnrolled(e.data || [])
+    }
+    load()
+  }, [user?.id])
 
   const getInitials = () => {
     const name = profile?.full_name || user?.email || ''
@@ -13,6 +29,14 @@ export default function StudentDashboard({ onNavigate, isNewUser }) {
   }
 
   const firstName = profile?.full_name?.split(' ')[0] || 'Friend'
+  const formatNaira = (n) => '₦' + Math.round(n).toLocaleString('en-NG')
+
+  const getProgrammeTitle = (app) => {
+    if (app.form_type === 'school-admission') {
+      return `${app.level || ''} · ${app.class_level || ''}${app.stream ? ' · ' + app.stream : ''}`.trim()
+    }
+    return app.course_title || app.service_label || app.course || 'Programme'
+  }
 
   return (
     <main className="dashboard-page">
@@ -24,7 +48,7 @@ export default function StudentDashboard({ onNavigate, isNewUser }) {
           <p className="dashboard-subtitle">
             {isNewUser
               ? 'Your learner journey starts here. Explore courses or take the free diagnostic test.'
-              : 'Your SAMPACE overview is below.'}
+              : 'Here is your SAMPACE overview.'}
           </p>
         </div>
       </div>
@@ -34,9 +58,7 @@ export default function StudentDashboard({ onNavigate, isNewUser }) {
           <div className="dashboard-onboarding-icon">🎓</div>
           <div>
             <h3>Welcome to SAMPACE!</h3>
-            <p>
-              Start with these three steps to make the most of your account.
-            </p>
+            <p>Start with these three steps to make the most of your account.</p>
           </div>
         </div>
       )}
@@ -44,23 +66,25 @@ export default function StudentDashboard({ onNavigate, isNewUser }) {
       <div className="dashboard-stats">
         <div className="dashboard-stat">
           <div className="dashboard-stat-icon">📚</div>
-          <div className="dashboard-stat-number">0</div>
+          <div className="dashboard-stat-number">{overview?.enrolledCourses ?? 0}</div>
           <div className="dashboard-stat-label">Enrolled Courses</div>
         </div>
         <div className="dashboard-stat">
           <div className="dashboard-stat-icon">🎯</div>
-          <div className="dashboard-stat-number">—</div>
-          <div className="dashboard-stat-label">Readiness Score</div>
+          <div className="dashboard-stat-number">{overview?.diagnosticsTaken ?? 0}</div>
+          <div className="dashboard-stat-label">Diagnostics Taken</div>
         </div>
         <div className="dashboard-stat">
           <div className="dashboard-stat-icon">📝</div>
-          <div className="dashboard-stat-number">0</div>
+          <div className="dashboard-stat-number">{overview?.totalApplications ?? 0}</div>
           <div className="dashboard-stat-label">Applications</div>
         </div>
         <div className="dashboard-stat">
-          <div className="dashboard-stat-icon">🏆</div>
-          <div className="dashboard-stat-number">0</div>
-          <div className="dashboard-stat-label">Certificates</div>
+          <div className="dashboard-stat-icon">💰</div>
+          <div className="dashboard-stat-number" style={{ color: '#E5C148' }}>
+            {overview ? formatNaira(overview.totalPaid) : '₦0'}
+          </div>
+          <div className="dashboard-stat-label">Total Paid</div>
         </div>
       </div>
 
@@ -74,39 +98,46 @@ export default function StudentDashboard({ onNavigate, isNewUser }) {
           </button>
           <button className="dashboard-action-card" onClick={() => onNavigate('home')}>
             <div className="dashboard-action-icon">🎯</div>
-            <div className="dashboard-action-title">Take Diagnostic Test</div>
-            <div className="dashboard-action-desc">Free JAMB readiness check</div>
+            <div className="dashboard-action-title">Diagnostic Test</div>
+            <div className="dashboard-action-desc">Free readiness check</div>
           </button>
-          <button className="dashboard-action-card" onClick={() => onNavigate('apply')}>
-            <div className="dashboard-action-icon">📝</div>
-            <div className="dashboard-action-title">New Application</div>
-            <div className="dashboard-action-desc">Apply to a programme</div>
+          <button className="dashboard-action-card" onClick={() => onNavigate('wallet')}>
+            <div className="dashboard-action-icon">💳</div>
+            <div className="dashboard-action-title">My Wallet</div>
+            <div className="dashboard-action-desc">Payments & receipts</div>
           </button>
-          <button className="dashboard-action-card" onClick={() => onNavigate('profile')}>
-            <div className="dashboard-action-icon">⚙️</div>
-            <div className="dashboard-action-title">Edit Profile</div>
-            <div className="dashboard-action-desc">Update your details</div>
-          </button>
-        </div>
-      </div>
-
-      <div className="dashboard-section">
-        <h2 className="dashboard-section-title">My Courses</h2>
-        <div className="dashboard-empty">
-          <div className="dashboard-empty-icon">📚</div>
-          <p>You haven't enrolled in any courses yet.</p>
-          <button className="btn btn-primary" onClick={() => onNavigate('courses')}>
-            Browse Courses →
+          <button className="dashboard-action-card" onClick={() => onNavigate('myApplications')}>
+            <div className="dashboard-action-icon">📋</div>
+            <div className="dashboard-action-title">My Applications</div>
+            <div className="dashboard-action-desc">Track your activity</div>
           </button>
         </div>
       </div>
 
       <div className="dashboard-section">
-        <h2 className="dashboard-section-title">Recent Activity</h2>
-        <div className="dashboard-empty">
-          <div className="dashboard-empty-icon">📋</div>
-          <p>No activity yet. Your learning journey starts here.</p>
-        </div>
+        <h2 className="dashboard-section-title">My Enrolled Courses</h2>
+        {enrolled.length === 0 ? (
+          <div className="dashboard-empty">
+            <div className="dashboard-empty-icon">📚</div>
+            <p>You haven't enrolled in any courses yet.</p>
+            <button className="btn btn-primary" onClick={() => onNavigate('courses')}>
+              Browse Courses →
+            </button>
+          </div>
+        ) : (
+          <div className="student-courses-list">
+            {enrolled.map((app) => (
+              <div key={app.id} className="student-course-card">
+                <div className="student-course-info">
+                  <div className="student-course-ref">{app.reference}</div>
+                  <div className="student-course-title">{getProgrammeTitle(app)}</div>
+                  <div className="student-course-school">{app.school_name}</div>
+                </div>
+                <div className="student-course-badge">ENROLLED</div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </main>
   )
