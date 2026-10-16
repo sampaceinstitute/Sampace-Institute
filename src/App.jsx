@@ -123,7 +123,7 @@ function getPageTitle(routeObj) {
     myApplications: `My Activity — ${base}`,
     wallet: `My Wallet — ${base}`,
     dashboard: `My Dashboard — ${base}`,
-    adminAnalytics: `Analytics — ${base}`
+    adminAnalytics: `Analytics — ${base}`,
     adminUsers: `User Management — ${base}`,
     adminApplications: `Applications Review — ${base}`,
     adminApplicationDetail: `Application Detail — ${base}`,
