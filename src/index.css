@@ -4380,3 +4380,101 @@ button { font-family: inherit; cursor: pointer; }
   }
   .app-detail-section { padding: 1.25rem; }
 }
+
+/* ============================================================
+   DAY 17 — Wallet styles
+   ============================================================ */
+
+.wallet-page {
+  padding: 4rem 2rem 5rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.wallet-section { margin-bottom: 3rem; }
+
+.wallet-section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.wallet-list, .wallet-history {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.wallet-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  transition: all 0.3s ease;
+  flex-wrap: wrap;
+}
+
+.wallet-card:hover {
+  border-color: var(--border-hover);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.wallet-card-info { flex: 1; min-width: 240px; }
+.wallet-card-ref { font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-light); font-weight: 700; margin-bottom: 0.4rem; }
+.wallet-card-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 0.35rem; }
+.wallet-card-desc { font-size: 0.85rem; color: var(--text-soft); }
+.wallet-card-price { display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; }
+.wallet-price-value { font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 800; color: var(--gold-light); }
+.wallet-pay-btn { padding: 0.7rem 1.4rem; font-size: 0.9rem; }
+.wallet-contact-us { font-size: 0.85rem; color: var(--text-soft); font-style: italic; }
+
+.wallet-history-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  flex-wrap: wrap;
+}
+
+.wallet-history-left { flex: 1; min-width: 220px; }
+.wallet-history-ref { font-size: 0.75rem; color: var(--gold-light); font-weight: 700; letter-spacing: 0.5px; }
+.wallet-history-desc { font-size: 0.9rem; margin: 0.35rem 0; }
+.wallet-history-date { font-size: 0.75rem; color: var(--text-dim); }
+
+.wallet-history-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem; }
+.wallet-history-amount { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 800; color: var(--white); }
+
+.wallet-status {
+  padding: 0.25rem 0.7rem;
+  border-radius: 100px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  border: 1px solid currentColor;
+}
+
+.wallet-status-pending { color: #E5C158; }
+.wallet-status-success { color: #4ade80; }
+.wallet-status-failed { color: #f87171; }
+.wallet-status-abandoned { color: #a1a1aa; }
+
+@media (max-width: 768px) {
+  .wallet-page { padding: 2.5rem 1.25rem 4rem; }
+  .wallet-card { flex-direction: column; align-items: stretch; }
+  .wallet-card-price { align-items: stretch; }
+  .wallet-pay-btn { width: 100%; text-align: center; justify-content: center; }
+  .wallet-history-row { flex-direction: column; }
+  .wallet-history-right { align-items: flex-start; }
+}
