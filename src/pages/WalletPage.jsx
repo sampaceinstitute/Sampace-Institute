@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { getUserApplications } from '../lib/dataService.js'
-import { getUserPayments, createPaymentRecord, markPaymentSuccess, markPaymentFailed, generatePaymentReference, openPaystackPopup, isPaystackConfigured } from '../lib/paymentService.js'
+import {
+  getUserPayments, createPaymentRecord, verifyPaymentOnServer,
+  markPaymentFailed, generatePaymentReference, openPaystackPopup, isPaystackConfigured
+} from '../lib/paymentService.js'
 import { getPrice, formatNaira } from '../data/prices.js'
 
 export default function WalletPage({ onNavigate }) {
@@ -26,27 +29,15 @@ export default function WalletPage({ onNavigate }) {
   useEffect(() => { loadData() }, [user?.id])
 
   const getApplicationPrice = (app) => {
-    // Determine price based on form type and content
-    if (app.form_type === 'school-admission') {
-      return getPrice(app.class_level)
-    }
+    if (app.form_type === 'school-admission') return getPrice(app.class_level)
     if (app.form_type === 'service-request' || app.form_type === 'consulting-request') {
       return getPrice(app.service_label)
     }
     return getPrice(app.course_title || app.course)
   }
 
-  const isPaid = (app) => {
-    return payments.some((p) =>
-      p.application_id === app.id && p.status === 'success'
-    )
-  }
-
-  const hasPendingPayment = (app) => {
-    return payments.some((p) =>
-      p.application_id === app.id && p.status === 'pending'
-    )
-  }
+  const isPaid = (app) => payments.some((p) => p.application_id === app.id && p.status === 'success')
+  const hasPendingPayment = (app) => payments.some((p) => p.application_id === app.id && p.status === 'pending')
 
   const handlePay = async (app) => {
     setMessage(null)
@@ -67,7 +58,6 @@ export default function WalletPage({ onNavigate }) {
 
     const reference = generatePaymentReference()
 
-    // 1. Create pending payment record
     const recordRes = await createPaymentRecord({
       userId: user.id,
       applicationId: app.id,
@@ -83,7 +73,6 @@ export default function WalletPage({ onNavigate }) {
       return
     }
 
-    // 2. Open Paystack popup
     try {
       await openPaystackPopup({
         email: user.email,
@@ -96,14 +85,24 @@ export default function WalletPage({ onNavigate }) {
           programme: app.course_title || app.service_label || app.class_level
         },
         onSuccess: async (response) => {
-          // Mark payment success
-          await markPaymentSuccess(reference, response.reference, response)
-          setMessage({ type: 'success', text: `Payment successful! Reference: ${reference}` })
+          // NEW: Server-side verification
+          setMessage({ type: 'info', text: 'Verifying payment with Paystack...' })
+
+          const verifyRes = await verifyPaymentOnServer(reference)
+
+          if (verifyRes.error || !verifyRes.data?.success) {
+            setMessage({
+              type: 'error',
+              text: 'Verification failed: ' + (verifyRes.error?.message || 'Please contact support with reference ' + reference)
+            })
+          } else {
+            setMessage({ type: 'success', text: `Payment verified! Reference: ${reference}. Receipt sent to your email.` })
+          }
+
           setPaying(null)
           loadData()
         },
         onClose: async () => {
-          // User closed without paying
           await markPaymentFailed(reference)
           setMessage({ type: 'error', text: 'Payment cancelled.' })
           setPaying(null)
@@ -139,7 +138,6 @@ export default function WalletPage({ onNavigate }) {
         <div className="loading-state"><div className="loading-spinner" /><p>Loading...</p></div>
       ) : (
         <>
-          {/* Pending Payments */}
           <section className="wallet-section">
             <h2 className="wallet-section-title">Outstanding Payments</h2>
             {applications.filter((a) => !isPaid(a)).length === 0 ? (
@@ -170,7 +168,7 @@ export default function WalletPage({ onNavigate }) {
                             onClick={() => handlePay(app)}
                             disabled={paying === app.id}
                           >
-                            {paying === app.id ? 'Opening...' : pending ? 'Complete Payment' : 'Pay Now →'}
+                            {paying === app.id ? 'Processing...' : pending ? 'Complete Payment' : 'Pay Now →'}
                           </button>
                         )}
                         {price === -1 && <div className="wallet-contact-us">Contact us</div>}
@@ -182,7 +180,6 @@ export default function WalletPage({ onNavigate }) {
             )}
           </section>
 
-          {/* Payment History */}
           <section className="wallet-section">
             <h2 className="wallet-section-title">Payment History</h2>
             {payments.length === 0 ? (
