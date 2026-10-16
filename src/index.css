@@ -4478,3 +4478,325 @@ button { font-family: inherit; cursor: pointer; }
   .wallet-history-row { flex-direction: column; }
   .wallet-history-right { align-items: flex-start; }
 }
+
+/* ============================================================
+   DAY 20 — Analytics + Recent Activity
+   ============================================================ */
+
+.admin-analytics-page {
+  padding: 4rem 2rem 5rem;
+  max-width: 1300px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.analytics-section {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.analytics-section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--gold-light);
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.analytics-empty-text {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+/* Revenue chart */
+.revenue-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.35rem;
+  height: 220px;
+  padding: 0.5rem 0 1.75rem;
+  position: relative;
+  overflow-x: auto;
+}
+
+.revenue-bar-wrapper {
+  flex: 1;
+  min-width: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  position: relative;
+  justify-content: flex-end;
+}
+
+.revenue-bar {
+  width: 100%;
+  max-width: 40px;
+  background: linear-gradient(180deg, var(--gold-light), var(--gold));
+  border-radius: 6px 6px 0 0;
+  min-height: 4px;
+  position: relative;
+  transition: all 0.4s ease;
+  display: flex;
+  justify-content: center;
+}
+
+.revenue-bar:hover {
+  filter: brightness(1.15);
+}
+
+.revenue-bar-value {
+  position: absolute;
+  top: -18px;
+  font-size: 0.65rem;
+  color: var(--gold-light);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.revenue-bar-label {
+  position: absolute;
+  bottom: -22px;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+/* Two column analytics */
+.analytics-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+/* Lists */
+.analytics-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.analytics-list-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0;
+  font-size: 0.85rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.analytics-list-row:last-child { border-bottom: none; }
+
+.analytics-list-label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--text-soft);
+  text-transform: capitalize;
+}
+
+.analytics-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.analytics-list-value {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  color: var(--gold-light);
+  font-size: 1rem;
+}
+
+/* Horizontal bars */
+.analytics-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.analytics-bar-row {
+  display: grid;
+  grid-template-columns: 220px 1fr 50px;
+  gap: 1rem;
+  align-items: center;
+}
+
+.analytics-bar-label {
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.analytics-bar-track {
+  height: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 100px;
+  overflow: hidden;
+}
+
+.analytics-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--gold-light));
+  border-radius: 100px;
+  transition: width 0.6s ease;
+}
+
+.analytics-bar-value {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  color: var(--gold-light);
+  font-size: 0.9rem;
+  text-align: right;
+}
+
+/* Admin recent activity grid */
+.admin-recent-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.admin-recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.admin-recent-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--white);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  font-family: inherit;
+}
+
+.admin-recent-item:hover {
+  border-color: var(--border-hover);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.admin-recent-main { flex: 1; min-width: 0; }
+.admin-recent-title { font-size: 0.85rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-recent-sub { font-size: 0.72rem; color: var(--text-dim); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-recent-date { font-size: 0.7rem; color: var(--text-dim); }
+
+.admin-recent-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem; }
+.admin-recent-amount { font-family: 'Playfair Display', serif; font-weight: 700; color: var(--gold-light); font-size: 0.85rem; }
+.admin-recent-status { font-size: 0.6rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 800; }
+.status-success { color: #4ade80; }
+.status-pending { color: #E5C158; }
+.status-failed { color: #f87171; }
+
+/* Student enrolled courses */
+.student-courses-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.student-course-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.student-course-card:hover {
+  border-color: var(--border-hover);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.student-course-ref {
+  font-size: 0.7rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--gold-light);
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+
+.student-course-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.student-course-school {
+  font-size: 0.8rem;
+  color: var(--text-soft);
+}
+
+.student-course-badge {
+  padding: 0.4rem 0.9rem;
+  background: rgba(74, 222, 128, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.35);
+  border-radius: 100px;
+  color: #4ade80;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  white-space: nowrap;
+}
+
+/* Mobile */
+@media (max-width: 900px) {
+  .analytics-two-col,
+  .admin-recent-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .analytics-bar-row {
+    grid-template-columns: 140px 1fr 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-analytics-page {
+    padding: 2.5rem 1.25rem 4rem;
+  }
+
+  .analytics-section {
+    padding: 1.25rem;
+  }
+
+  .revenue-chart {
+    height: 160px;
+  }
+
+  .analytics-bar-row {
+    grid-template-columns: 100px 1fr 30px;
+    gap: 0.5rem;
+  }
+
+  .analytics-bar-label { font-size: 0.7rem; }
+
+  .student-course-card { flex-direction: column; align-items: flex-start; }
+}
