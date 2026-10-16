@@ -34,11 +34,39 @@ export default function AdminApplicationDetailPage({ id, onNavigate }) {
     load()
   }, [id])
 
-  const sendEnrollmentEmail = async (app) => {
+    const sendEnrollmentEmail = async (app) => {
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
       const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
       if (!supabaseUrl || !supabaseAnonKey) return
+
+      // Fallback: if app.email is empty, look up the applicant's profile email
+      let recipientEmail = app.email
+      if (!recipientEmail && app.user_id) {
+        try {
+          const profileRes = await fetch(
+            `${supabaseUrl}/rest/v1/profiles?id=eq.${app.user_id}&select=email`,
+            {
+              headers: {
+                'apikey': supabaseAnonKey,
+                'Authorization': `Bearer ${supabaseAnonKey}`
+              }
+            }
+          )
+          const profiles = await profileRes.json()
+          if (Array.isArray(profiles) && profiles[0]?.email) {
+            recipientEmail = profiles[0].email
+          }
+        } catch (lookupErr) {
+          console.warn('[Enrollment Email] Profile lookup failed:', lookupErr)
+        }
+      }
+
+      if (!recipientEmail) {
+        console.warn('[Enrollment Email] No email found for application', app.reference)
+        return
+      }
+
       await fetch(`${supabaseUrl}/functions/v1/send-enrollment-email`, {
         method: 'POST',
         headers: {
@@ -46,7 +74,7 @@ export default function AdminApplicationDetailPage({ id, onNavigate }) {
           'Authorization': `Bearer ${supabaseAnonKey}`
         },
         body: JSON.stringify({
-          to: app.email,
+          to: recipientEmail,
           name: app.applicant_name,
           reference: app.reference,
           school: app.school_name,
@@ -61,7 +89,7 @@ export default function AdminApplicationDetailPage({ id, onNavigate }) {
       console.warn('[Enrollment Email] failed:', err)
     }
   }
-
+  
   const handleSave = async () => {
     if (!newStatus) return
     setSaving(true)
