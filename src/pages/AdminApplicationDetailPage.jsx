@@ -19,6 +19,7 @@ export default function AdminApplicationDetailPage({ id, onNavigate }) {
   const [newStatus, setNewStatus] = useState('')
   const [notes, setNotes] = useState('')
   const [saveMsg, setSaveMsg] = useState('')
+  const [sendEnrollEmail, setSendEnrollEmail] = useState(true)
 
   useEffect(() => {
     const load = async () => {
@@ -33,6 +34,34 @@ export default function AdminApplicationDetailPage({ id, onNavigate }) {
     load()
   }, [id])
 
+  const sendEnrollmentEmail = async (app) => {
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+      if (!supabaseUrl || !supabaseAnonKey) return
+      await fetch(`${supabaseUrl}/functions/v1/send-enrollment-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseAnonKey}`
+        },
+        body: JSON.stringify({
+          to: app.email,
+          name: app.applicant_name,
+          reference: app.reference,
+          school: app.school_name,
+          programme: app.course_title || app.service_label || `${app.level || ''} · ${app.class_level || ''}`.trim(),
+          level: app.level,
+          classLevel: app.class_level,
+          stream: app.stream,
+          phone: app.phone
+        })
+      })
+    } catch (err) {
+      console.warn('[Enrollment Email] failed:', err)
+    }
+  }
+
   const handleSave = async () => {
     if (!newStatus) return
     setSaving(true)
@@ -41,11 +70,21 @@ export default function AdminApplicationDetailPage({ id, onNavigate }) {
     const res = await updateApplicationStatus(id, newStatus, user?.id, notes)
     if (res.error) {
       setSaveMsg('Error: ' + (res.error.message || 'Could not save'))
-    } else {
-      setApplication(res.data)
-      setSaveMsg('✓ Saved')
-      setTimeout(() => setSaveMsg(''), 3000)
+      setSaving(false)
+      return
     }
+
+    setApplication(res.data)
+
+    // If status became "enrolled" and email checkbox is on, send the email
+    if (newStatus === 'enrolled' && sendEnrollEmail) {
+      await sendEnrollmentEmail(res.data)
+      setSaveMsg('✓ Saved & Enrollment email sent')
+    } else {
+      setSaveMsg('✓ Saved')
+    }
+
+    setTimeout(() => setSaveMsg(''), 4000)
     setSaving(false)
   }
 
@@ -181,6 +220,17 @@ export default function AdminApplicationDetailPage({ id, onNavigate }) {
               placeholder="Add a note about your decision..."
             />
           </label>
+
+          {newStatus === 'enrolled' && (
+            <label className="auth-checkbox-inline" style={{ marginTop: '0.5rem' }}>
+              <input
+                type="checkbox"
+                checked={sendEnrollEmail}
+                onChange={(e) => setSendEnrollEmail(e.target.checked)}
+              />
+              <span>📧 Send branded enrollment confirmation email to student</span>
+            </label>
+          )}
 
           {saveMsg && (
             <div className={saveMsg.startsWith('✓') ? 'auth-success-banner' : 'auth-error'}>
