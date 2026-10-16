@@ -83,6 +83,12 @@ export default function UserMenu({ onNavigate }) {
             onClick={() => { setOpen(false); onNavigate('myApplications') }}
           >
             📋 My Applications
+         <button
+  className="user-dropdown-item"
+  onClick={() => { setOpen(false); onNavigate('wallet') }}
+>
+  💳 My Wallet
+</button>
           </button>
           <button
             className="user-dropdown-item"
