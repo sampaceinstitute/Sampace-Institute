@@ -29,7 +29,7 @@ export default function AdminDashboard({ onNavigate }) {
       <div className="dashboard-stats">
         <div className="dashboard-stat">
           <div className="dashboard-stat-icon">👥</div>
-          <div className="dashboard-stat-number">1</div>
+          <div className="dashboard-stat-number">—</div>
           <div className="dashboard-stat-label">Total Users</div>
         </div>
         <div className="dashboard-stat">
@@ -39,12 +39,12 @@ export default function AdminDashboard({ onNavigate }) {
         </div>
         <div className="dashboard-stat">
           <div className="dashboard-stat-icon">💰</div>
-          <div className="dashboard-stat-number">₦0</div>
+          <div className="dashboard-stat-number">—</div>
           <div className="dashboard-stat-label">Revenue</div>
         </div>
         <div className="dashboard-stat">
           <div className="dashboard-stat-icon">🎓</div>
-          <div className="dashboard-stat-number">0</div>
+          <div className="dashboard-stat-number">—</div>
           <div className="dashboard-stat-label">Enrollments</div>
         </div>
       </div>
@@ -62,6 +62,11 @@ export default function AdminDashboard({ onNavigate }) {
             <div className="dashboard-action-title">Review Applications</div>
             <div className="dashboard-action-desc">Process pending applications</div>
           </button>
+          <button className="dashboard-action-card" onClick={() => onNavigate('adminPayments')}>
+            <div className="dashboard-action-icon">💳</div>
+            <div className="dashboard-action-title">Payments</div>
+            <div className="dashboard-action-desc">See all transactions</div>
+          </button>
           <button className="dashboard-action-card" onClick={() => onNavigate('dashboard')}>
             <div className="dashboard-action-icon">📊</div>
             <div className="dashboard-action-title">Analytics</div>
@@ -74,11 +79,7 @@ export default function AdminDashboard({ onNavigate }) {
           </button>
         </div>
       </div>
-<button className="dashboard-action-card" onClick={() => onNavigate('adminPayments')}>
-  <div className="dashboard-action-icon">💳</div>
-  <div className="dashboard-action-title">Payments</div>
-  <div className="dashboard-action-desc">See all transactions</div>
-</button>
+
       <div className="dashboard-section">
         <h2 className="dashboard-section-title">Platform Overview</h2>
         <div className="admin-stats-grid">
@@ -94,7 +95,7 @@ export default function AdminDashboard({ onNavigate }) {
           </div>
           <div className="admin-stat-item">
             <div className="admin-stat-label">Database Tables</div>
-            <div className="admin-stat-value">9</div>
+            <div className="admin-stat-value">10</div>
           </div>
           <div className="admin-stat-item">
             <div className="admin-stat-label">Roles Defined</div>
