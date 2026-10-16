@@ -74,7 +74,11 @@ export default function AdminDashboard({ onNavigate }) {
           </button>
         </div>
       </div>
-
+<button className="dashboard-action-card" onClick={() => onNavigate('adminPayments')}>
+  <div className="dashboard-action-icon">💳</div>
+  <div className="dashboard-action-title">Payments</div>
+  <div className="dashboard-action-desc">See all transactions</div>
+</button>
       <div className="dashboard-section">
         <h2 className="dashboard-section-title">Platform Overview</h2>
         <div className="admin-stats-grid">
