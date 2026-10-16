@@ -1,9 +1,27 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { ALL_DIVISIONS } from '../constants.js'
+import { getAdminOverview, getRecentApplications, getRecentPayments } from '../lib/analyticsService.js'
 
 export default function AdminDashboard({ onNavigate }) {
   const { user, profile } = useAuth()
+  const [overview, setOverview] = useState(null)
+  const [recentApps, setRecentApps] = useState([])
+  const [recentPays, setRecentPays] = useState([])
+
+  useEffect(() => {
+    const load = async () => {
+      const [o, a, p] = await Promise.all([
+        getAdminOverview(),
+        getRecentApplications(4),
+        getRecentPayments(4)
+      ])
+      setOverview(o.data)
+      setRecentApps(a.data || [])
+      setRecentPays(p.data || [])
+    }
+    load()
+  }, [])
 
   const getInitials = () => {
     const name = profile?.full_name || user?.email || ''
@@ -14,6 +32,12 @@ export default function AdminDashboard({ onNavigate }) {
   }
 
   const firstName = profile?.full_name?.split(' ')[0] || 'Admin'
+  const formatNaira = (n) => '₦' + Math.round(n).toLocaleString('en-NG')
+
+  const formatDate = (iso) => {
+    if (!iso) return '—'
+    return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+  }
 
   return (
     <main className="dashboard-page">
@@ -29,22 +53,26 @@ export default function AdminDashboard({ onNavigate }) {
       <div className="dashboard-stats">
         <div className="dashboard-stat">
           <div className="dashboard-stat-icon">👥</div>
-          <div className="dashboard-stat-number">—</div>
+          <div className="dashboard-stat-number">{overview?.totalUsers ?? '—'}</div>
           <div className="dashboard-stat-label">Total Users</div>
         </div>
         <div className="dashboard-stat">
           <div className="dashboard-stat-icon">📝</div>
-          <div className="dashboard-stat-number">—</div>
+          <div className="dashboard-stat-number">{overview?.totalApplications ?? '—'}</div>
           <div className="dashboard-stat-label">Applications</div>
         </div>
         <div className="dashboard-stat">
           <div className="dashboard-stat-icon">💰</div>
-          <div className="dashboard-stat-number">—</div>
+          <div className="dashboard-stat-number" style={{ color: '#E5C158' }}>
+            {overview ? formatNaira(overview.totalRevenue) : '—'}
+          </div>
           <div className="dashboard-stat-label">Revenue</div>
         </div>
         <div className="dashboard-stat">
           <div className="dashboard-stat-icon">🎓</div>
-          <div className="dashboard-stat-number">—</div>
+          <div className="dashboard-stat-number" style={{ color: '#4ade80' }}>
+            {overview?.totalEnrollments ?? '—'}
+          </div>
           <div className="dashboard-stat-label">Enrollments</div>
         </div>
       </div>
@@ -67,16 +95,65 @@ export default function AdminDashboard({ onNavigate }) {
             <div className="dashboard-action-title">Payments</div>
             <div className="dashboard-action-desc">See all transactions</div>
           </button>
-          <button className="dashboard-action-card" onClick={() => onNavigate('dashboard')}>
+          <button className="dashboard-action-card" onClick={() => onNavigate('adminAnalytics')}>
             <div className="dashboard-action-icon">📊</div>
             <div className="dashboard-action-title">Analytics</div>
             <div className="dashboard-action-desc">Traffic, conversions, revenue</div>
           </button>
-          <button className="dashboard-action-card" onClick={() => onNavigate('dashboard')}>
-            <div className="dashboard-action-icon">⚙️</div>
-            <div className="dashboard-action-title">System Settings</div>
-            <div className="dashboard-action-desc">Configuration & features</div>
-          </button>
+        </div>
+      </div>
+
+      {/* Two-column: Recent Applications + Recent Payments */}
+      <div className="admin-recent-grid">
+        <div className="dashboard-section">
+          <h2 className="dashboard-section-title">Recent Applications</h2>
+          {recentApps.length === 0 ? (
+            <div className="dashboard-empty">
+              <div className="dashboard-empty-icon">📝</div>
+              <p>No applications yet.</p>
+            </div>
+          ) : (
+            <div className="admin-recent-list">
+              {recentApps.map((a) => (
+                <button
+                  key={a.id}
+                  className="admin-recent-item"
+                  onClick={() => onNavigate({ route: 'adminApplicationDetail', id: a.id })}
+                >
+                  <div className="admin-recent-main">
+                    <div className="admin-recent-title">{a.applicant_name || 'Unnamed'}</div>
+                    <div className="admin-recent-sub">{a.reference} · {a.school_name || '—'}</div>
+                  </div>
+                  <div className="admin-recent-date">{formatDate(a.created_at)}</div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="dashboard-section">
+          <h2 className="dashboard-section-title">Recent Payments</h2>
+          {recentPays.length === 0 ? (
+            <div className="dashboard-empty">
+              <div className="dashboard-empty-icon">💳</div>
+              <p>No payments yet.</p>
+            </div>
+          ) : (
+            <div className="admin-recent-list">
+              {recentPays.map((p) => (
+                <div key={p.reference} className="admin-recent-item">
+                  <div className="admin-recent-main">
+                    <div className="admin-recent-title">{p.reference}</div>
+                    <div className="admin-recent-sub">{p.description || 'Payment'}</div>
+                  </div>
+                  <div className="admin-recent-right">
+                    <div className="admin-recent-amount">{formatNaira(p.amount / 100)}</div>
+                    <div className={`admin-recent-status status-${p.status}`}>{p.status}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -101,14 +178,6 @@ export default function AdminDashboard({ onNavigate }) {
             <div className="admin-stat-label">Roles Defined</div>
             <div className="admin-stat-value">15</div>
           </div>
-        </div>
-      </div>
-
-      <div className="dashboard-section">
-        <h2 className="dashboard-section-title">System Health</h2>
-        <div className="dashboard-empty">
-          <div className="dashboard-empty-icon">✅</div>
-          <p>All systems operational. Database connected. Auth working.</p>
         </div>
       </div>
     </main>
