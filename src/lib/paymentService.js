@@ -1,39 +1,29 @@
 // ============================================================
 // SAMPACE PAYMENT SERVICE
-// Paystack + Supabase integration
 // ============================================================
 
 import { supabase, isSupabaseConfigured } from './supabaseClient.js'
 
 const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY
 
-export function getPaystackPublicKey() {
-  return PAYSTACK_PUBLIC_KEY
-}
+export function getPaystackPublicKey() { return PAYSTACK_PUBLIC_KEY }
+export function isPaystackConfigured() { return Boolean(PAYSTACK_PUBLIC_KEY) }
 
-export function isPaystackConfigured() {
-  return Boolean(PAYSTACK_PUBLIC_KEY)
-}
-
-// Generate a unique payment reference
 export function generatePaymentReference() {
   const year = new Date().getFullYear()
   const random = Math.floor(100000 + Math.random() * 900000)
   return `PAY-${year}-${random}`
 }
 
-// Load Paystack inline script
 export function loadPaystack() {
   return new Promise((resolve, reject) => {
     if (window.PaystackPop) return resolve(window.PaystackPop)
-
     const existing = document.querySelector('script[src*="paystack"]')
     if (existing) {
       existing.onload = () => resolve(window.PaystackPop)
       existing.onerror = reject
       return
     }
-
     const script = document.createElement('script')
     script.src = 'https://js.paystack.co/v1/inline.js'
     script.async = true
@@ -43,7 +33,6 @@ export function loadPaystack() {
   })
 }
 
-// Create a payment record in database (pending)
 export async function createPaymentRecord({ userId, applicationId, reference, amount, purpose, description }) {
   if (!isSupabaseConfigured()) return { error: { message: 'Supabase not configured' } }
   try {
@@ -53,7 +42,7 @@ export async function createPaymentRecord({ userId, applicationId, reference, am
         user_id: userId,
         application_id: applicationId || null,
         reference,
-        amount: Math.round(amount * 100), // convert to kobo
+        amount: Math.round(amount * 100),
         currency: 'NGN',
         channel: 'paystack',
         status: 'pending',
@@ -66,7 +55,21 @@ export async function createPaymentRecord({ userId, applicationId, reference, am
   } catch (err) { return { error: err } }
 }
 
-// Mark payment success
+// ---------- SERVER-SIDE VERIFICATION ----------
+export async function verifyPaymentOnServer(reference) {
+  if (!isSupabaseConfigured()) return { error: { message: 'Supabase not configured' } }
+  try {
+    const { data, error } = await supabase.functions.invoke('verify-payment', {
+      body: { reference }
+    })
+    if (error) return { error }
+    return { data }
+  } catch (err) {
+    return { error: err }
+  }
+}
+
+// Legacy client-side marks (kept for backward compat)
 export async function markPaymentSuccess(reference, paystackReference, metadata = {}) {
   if (!isSupabaseConfigured()) return { error: { message: 'Supabase not configured' } }
   try {
@@ -122,13 +125,12 @@ export async function getAllPayments() {
   } catch (err) { return { data: [], error: err } }
 }
 
-// Initiate Paystack popup
 export async function openPaystackPopup({ email, amount, reference, onSuccess, onClose, metadata }) {
   const PaystackPop = await loadPaystack()
   const handler = PaystackPop.setup({
     key: PAYSTACK_PUBLIC_KEY,
     email,
-    amount: Math.round(amount * 100), // kobo
+    amount: Math.round(amount * 100),
     currency: 'NGN',
     ref: reference,
     metadata: metadata || {},
