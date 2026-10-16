@@ -1,3 +1,5 @@
+import WalletPage from './pages/WalletPage.jsx'
+import AdminPaymentsPage from './pages/AdminPaymentsPage.jsx'
 import React, { useEffect, useState } from 'react'
 import Header from './components/Header.jsx'
 import Footer from './components/Footer.jsx'
@@ -31,8 +33,9 @@ import { findDivision } from './constants.js'
 
 function parseRoute(pathname) {
   const parts = pathname.split('/').filter(Boolean)
+if (parts[0] === 'wallet') return { route: 'wallet' }
+if (parts[0] === 'admin' && parts[1] === 'payments') return { route: 'adminPayments' }
   if (parts.length === 0) return { route: 'home' }
-
   if (parts[0] === 'schools') {
     if (parts[1]) return { route: 'division', divisionId: parts[1] }
     return { route: 'schools' }
@@ -70,6 +73,8 @@ function parseRoute(pathname) {
 function buildPath(routeObj) {
   if (typeof routeObj === 'string') routeObj = { route: routeObj }
   switch (routeObj.route) {
+    case 'wallet': return '/wallet'
+case 'adminPayments': return '/admin/payments'
     case 'home': return '/'
     case 'schools': return '/schools'
     case 'division': return `/schools/${routeObj.divisionId}`
@@ -101,6 +106,8 @@ function buildPath(routeObj) {
 function getPageTitle(routeObj) {
   const base = 'SAMPACE Educational Ltd'
   const map = {
+   wallet: `My Wallet — ${base}`,
+adminPayments: `Payments — ${base}`
     home: `${base} — Empowering Learners`,
     schools: `All Schools & Divisions — ${base}`,
     courses: `Course Catalog — ${base}`,
@@ -155,6 +162,10 @@ export default function App() {
 
   const renderPage = () => {
     switch (routeObj.route) {
+      case 'wallet':
+  return <ProtectedRoute onNavigate={navigate}><WalletPage onNavigate={navigate} /></ProtectedRoute>
+case 'adminPayments':
+  return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminPaymentsPage onNavigate={navigate} /></ProtectedRoute>
       case 'schools':
         return <SchoolsPage onSelectDivision={(id) => navigate({ route: 'division', divisionId: id })} />
       case 'division':
