@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Header from './components/Header.jsx'
 import Footer from './components/Footer.jsx'
+import SEOHelmet from './components/SEOHelmet.jsx' // <-- NEW IMPORT
 import HomePage from './pages/HomePage.jsx'
 import SchoolsPage from './pages/SchoolsPage.jsx'
 import DivisionPage from './pages/DivisionPage.jsx'
@@ -32,10 +33,10 @@ import RoleAwareDashboard from './components/RoleAwareDashboard.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import { findDivision } from './constants.js'
 
+// ... [parseRoute, buildPath, getPageTitle functions remain exactly the same] ...
 function parseRoute(pathname) {
   const parts = pathname.split('/').filter(Boolean)
   if (parts.length === 0) return { route: 'home' }
-
   if (parts[0] === 'schools') {
     if (parts[1]) return { route: 'division', divisionId: parts[1] }
     return { route: 'schools' }
@@ -61,7 +62,6 @@ function parseRoute(pathname) {
   if (parts[0] === 'my-applications') return { route: 'myApplications' }
   if (parts[0] === 'wallet') return { route: 'wallet' }
   if (parts[0] === 'dashboard') return { route: 'dashboard' }
-  
   if (parts[0] === 'admin') {
     if (parts[1] === 'users') return { route: 'adminUsers' }
     if (parts[1] === 'payments') return { route: 'adminPayments' }
@@ -134,6 +134,18 @@ function getPageTitle(routeObj) {
   return map[routeObj.route] || base
 }
 
+// Helper for SEO Descriptions
+function getPageDescription(routeObj) {
+  const map = {
+    home: 'SAMPACE is Nigeria\'s leading education platform. From JAMB prep to Space Law, explore 400+ courses across 13 schools.',
+    courses: 'Browse our massive catalog of courses. Technology, professional skills, basic education, and frontier sciences.',
+    schools: 'Explore the 13 SAMPACE divisions, from primary education to frontier sciences and future civilizations.',
+    apply: 'Start your SAMPACE journey today. Apply for school admission, professional courses, or our services.',
+    about: 'Learn about our vision, mission, and commitment to transforming education for the next 100 years.',
+  }
+  return map[routeObj.route] || 'SAMPACE Educational Ltd — Empowering Learners. Transforming Education.'
+}
+
 const ADMIN_ROLES = ['super_admin', 'platform_admin', 'founder', 'group_ceo', 'entity_lead']
 
 export default function App() {
@@ -150,10 +162,6 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
-  useEffect(() => {
-    document.title = getPageTitle(routeObj)
-  }, [routeObj])
-
   const navigate = (target) => {
     const newRoute = typeof target === 'string' ? { route: target } : target
     const newPath = buildPath(newRoute)
@@ -168,10 +176,8 @@ export default function App() {
 
   const renderPage = () => {
     switch (routeObj.route) {
-      case 'schools':
-        return <SchoolsPage onSelectDivision={(id) => navigate({ route: 'division', divisionId: id })} />
-      case 'division':
-        return <DivisionPage division={findDivision(routeObj.divisionId)} onBack={() => navigate('schools')} />
+      case 'schools': return <SchoolsPage onSelectDivision={(id) => navigate({ route: 'division', divisionId: id })} />
+      case 'division': return <DivisionPage division={findDivision(routeObj.divisionId)} onBack={() => navigate('schools')} />
       case 'courses': return <CoursesPage onNavigate={navigate} />
       case 'about': return <AboutPage />
       case 'contact': return <ContactPage />
@@ -187,34 +193,27 @@ export default function App() {
       case 'signup': return <SignupPage onNavigate={navigate} />
       case 'resetPassword': return <ResetPasswordPage onNavigate={navigate} />
       case 'setNewPassword': return <SetNewPasswordPage onNavigate={navigate} />
-      case 'profile':
-        return <ProtectedRoute onNavigate={navigate}><ProfilePage onNavigate={navigate} /></ProtectedRoute>
-      case 'myApplications':
-        return <ProtectedRoute onNavigate={navigate}><MyApplicationsPage onNavigate={navigate} /></ProtectedRoute>
-      case 'wallet':
-        return <ProtectedRoute onNavigate={navigate}><WalletPage onNavigate={navigate} /></ProtectedRoute>
-      case 'adminUsers':
-        return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminUsersPage onNavigate={navigate} /></ProtectedRoute>
-      case 'adminApplications':
-        return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminApplicationsPage onNavigate={navigate} /></ProtectedRoute>
-      case 'adminApplicationDetail':
-        return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminApplicationDetailPage id={routeObj.id} onNavigate={navigate} /></ProtectedRoute>
-      case 'adminPayments':
-        return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminPaymentsPage onNavigate={navigate} /></ProtectedRoute>
-      case 'adminAnalytics':
-        return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminAnalyticsPage onNavigate={navigate} /></ProtectedRoute>
-      case 'dashboard':
-        return <ProtectedRoute onNavigate={navigate}><RoleAwareDashboard onNavigate={navigate} /></ProtectedRoute>
-      case 'home':
-        return <HomePage onNavigate={navigate} />
+      case 'profile': return <ProtectedRoute onNavigate={navigate}><ProfilePage onNavigate={navigate} /></ProtectedRoute>
+      case 'myApplications': return <ProtectedRoute onNavigate={navigate}><MyApplicationsPage onNavigate={navigate} /></ProtectedRoute>
+      case 'wallet': return <ProtectedRoute onNavigate={navigate}><WalletPage onNavigate={navigate} /></ProtectedRoute>
+      case 'adminUsers': return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminUsersPage onNavigate={navigate} /></ProtectedRoute>
+      case 'adminApplications': return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminApplicationsPage onNavigate={navigate} /></ProtectedRoute>
+      case 'adminApplicationDetail': return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminApplicationDetailPage id={routeObj.id} onNavigate={navigate} /></ProtectedRoute>
+      case 'adminPayments': return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminPaymentsPage onNavigate={navigate} /></ProtectedRoute>
+      case 'adminAnalytics': return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminAnalyticsPage onNavigate={navigate} /></ProtectedRoute>
+      case 'dashboard': return <ProtectedRoute onNavigate={navigate}><RoleAwareDashboard onNavigate={navigate} /></ProtectedRoute>
+      case 'home': return <HomePage onNavigate={navigate} />
       case 'notFound':
-      default:
-        return <NotFoundPage onNavigate={navigate} />
+      default: return <NotFoundPage onNavigate={navigate} />
     }
   }
 
   return (
     <div className="app">
+      <SEOHelmet 
+        title={getPageTitle(routeObj)} 
+        description={getPageDescription(routeObj)} 
+      />
       <div className="particles">
         {[...Array(20)].map((_, i) => (
           <span key={i} className={`particle particle-${i % 5}`} />
