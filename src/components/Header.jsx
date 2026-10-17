@@ -98,15 +98,29 @@ export default function Header({ currentRoute, onNavigate, mounted }) {
                     <div className="user-dropdown-email">{user?.email}</div>
                   </div>
                 </div>
-                <button className="mobile-link" onClick={() => handleNav('home')}>
+                
+                {/* FIXED MOBILE LINKS MATCHING DESKTOP */}
+                <button className="mobile-link" onClick={() => handleNav('dashboard')}>
                   🏠 My Dashboard
                 </button>
                 <button className="mobile-link" onClick={() => handleNav('courses')}>
-                  📚 My Courses
+                  📚 Browse Courses
                 </button>
                 <button className="mobile-link" onClick={() => handleNav('apply')}>
-                  📝 My Applications
+                  📝 Apply
                 </button>
+                <button className="mobile-link" onClick={() => handleNav('myApplications')}>
+                  📋 My Applications
+                </button>
+                <button className="mobile-link" onClick={() => handleNav('wallet')}>
+                  💳 My Wallet
+                </button>
+                <button className="mobile-link" onClick={() => handleNav('profile')}>
+                  ⚙️ Profile Settings
+                </button>
+                
+                <div style={{ margin: '0.5rem 0', borderTop: '1px solid rgba(255,255,255,0.1)' }} />
+                
                 <button className="mobile-link mobile-signout" onClick={handleSignOut}>
                   🚪 Sign Out
                 </button>
