@@ -174,7 +174,7 @@ export async function getTopCourses(limit = 8) {
   try {
     const { data } = await supabase
       .from('applications')
-      .select('course_title')
+      .select('course_title')  // Only course_title, no "course"
 
     if (!data) return { data: [] }
 
@@ -194,7 +194,6 @@ export async function getTopCourses(limit = 8) {
     return { data: [] }
   }
 }
-
 // ---------- STUDENT: My Stats ----------
 export async function getStudentOverview(userId) {
   if (!isSupabaseConfigured() || !userId) return { data: null }
