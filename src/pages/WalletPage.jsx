@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { getUserApplications } from '../lib/dataService.js'
+import LoadingButton from '../components/LoadingButton.jsx'
 import {
   getUserPayments, createPaymentRecord, verifyPaymentOnServer,
   markPaymentFailed, generatePaymentReference, openPaystackPopup, isPaystackConfigured
@@ -163,13 +164,14 @@ export default function WalletPage({ onNavigate }) {
                       <div className="wallet-card-price">
                         <div className="wallet-price-value">{formatNaira(price)}</div>
                         {price > 0 && (
-                          <button
-                            className="btn btn-primary wallet-pay-btn"
-                            onClick={() => handlePay(app)}
-                            disabled={paying === app.id}
-                          >
-                            {paying === app.id ? 'Processing...' : pending ? 'Complete Payment' : 'Pay Now →'}
-                          </button>
+                          <LoadingButton
+  className="btn btn-primary wallet-pay-btn"
+  loading={paying === app.id}
+  loadingText="Processing..."
+  onClick={() => handlePay(app)}
+>
+  {pending ? 'Complete Payment' : 'Pay Now →'}
+</LoadingButton>
                         )}
                         {price === -1 && <div className="wallet-contact-us">Contact us</div>}
                       </div>
