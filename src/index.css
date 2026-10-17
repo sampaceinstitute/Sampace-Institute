@@ -4912,3 +4912,19 @@ button { font-family: inherit; cursor: pointer; }
   .error-boundary-actions { flex-direction: column; }
   .error-boundary-actions .btn { width: 100%; justify-content: center; }
 }
+
+.my-status-message {
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 4px solid;
+  border-radius: 0 8px 8px 0;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  line-height: 1.5;
+  margin-top: 0.5rem;
+}
+
+.my-card.action-needed {
+  border-color: var(--border-hover);
+  box-shadow: 0 0 15px rgba(201, 162, 39, 0.1);
+}
