@@ -174,13 +174,13 @@ export async function getTopCourses(limit = 8) {
   try {
     const { data } = await supabase
       .from('applications')
-      .select('course_title, course')
+      .select('course_title')
 
     if (!data) return { data: [] }
 
     const counts = {}
     data.forEach((a) => {
-      const c = a.course_title || a.course
+      const c = a.course_title
       if (c) counts[c] = (counts[c] || 0) + 1
     })
 
