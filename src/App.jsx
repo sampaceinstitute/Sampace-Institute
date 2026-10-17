@@ -24,8 +24,8 @@ import ProfilePage from './pages/ProfilePage.jsx'
 import MyApplicationsPage from './pages/MyApplicationsPage.jsx'
 import AdminUsersPage from './pages/AdminUsersPage.jsx'
 import AdminApplicationsPage from './pages/AdminApplicationsPage.jsx'
-import AdminAnalyticsPage from './pages/AdminAnalyticsPage.jsx'
 import AdminApplicationDetailPage from './pages/AdminApplicationDetailPage.jsx'
+import AdminAnalyticsPage from './pages/AdminAnalyticsPage.jsx'
 import WalletPage from './pages/WalletPage.jsx'
 import AdminPaymentsPage from './pages/AdminPaymentsPage.jsx'
 import RoleAwareDashboard from './components/RoleAwareDashboard.jsx'
@@ -61,11 +61,12 @@ function parseRoute(pathname) {
   if (parts[0] === 'my-applications') return { route: 'myApplications' }
   if (parts[0] === 'wallet') return { route: 'wallet' }
   if (parts[0] === 'dashboard') return { route: 'dashboard' }
+  
   if (parts[0] === 'admin') {
     if (parts[1] === 'users') return { route: 'adminUsers' }
     if (parts[1] === 'payments') return { route: 'adminPayments' }
+    if (parts[1] === 'analytics') return { route: 'adminAnalytics' }
     if (parts[1] === 'applications') {
-     if (parts[0] === 'admin' && parts[1] === 'analytics') return { route: 'adminAnalytics' } 
       if (parts[2]) return { route: 'adminApplicationDetail', id: parts[2] }
       return { route: 'adminApplications' }
     }
@@ -99,8 +100,8 @@ function buildPath(routeObj) {
     case 'wallet': return '/wallet'
     case 'dashboard': return '/dashboard'
     case 'adminUsers': return '/admin/users'
-    case 'adminAnalytics': return '/admin/analytics'
     case 'adminPayments': return '/admin/payments'
+    case 'adminAnalytics': return '/admin/analytics'
     case 'adminApplications': return '/admin/applications'
     case 'adminApplicationDetail': return `/admin/applications/${routeObj.id}`
     default: return '/'
@@ -123,11 +124,11 @@ function getPageTitle(routeObj) {
     myApplications: `My Activity — ${base}`,
     wallet: `My Wallet — ${base}`,
     dashboard: `My Dashboard — ${base}`,
-    adminAnalytics: `Analytics — ${base}`,
     adminUsers: `User Management — ${base}`,
     adminApplications: `Applications Review — ${base}`,
     adminApplicationDetail: `Application Detail — ${base}`,
     adminPayments: `Payments — ${base}`,
+    adminAnalytics: `Analytics — ${base}`,
     notFound: `Page Not Found — ${base}`
   }
   return map[routeObj.route] || base
@@ -198,10 +199,10 @@ export default function App() {
         return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminApplicationsPage onNavigate={navigate} /></ProtectedRoute>
       case 'adminApplicationDetail':
         return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminApplicationDetailPage id={routeObj.id} onNavigate={navigate} /></ProtectedRoute>
-      case 'adminAnalytics':
-  return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminAnalyticsPage onNavigate={navigate} /></ProtectedRoute>
       case 'adminPayments':
         return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminPaymentsPage onNavigate={navigate} /></ProtectedRoute>
+      case 'adminAnalytics':
+        return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminAnalyticsPage onNavigate={navigate} /></ProtectedRoute>
       case 'dashboard':
         return <ProtectedRoute onNavigate={navigate}><RoleAwareDashboard onNavigate={navigate} /></ProtectedRoute>
       case 'home':
