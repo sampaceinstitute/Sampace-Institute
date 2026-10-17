@@ -4928,3 +4928,54 @@ button { font-family: inherit; cursor: pointer; }
   border-color: var(--border-hover);
   box-shadow: 0 0 15px rgba(201, 162, 39, 0.1);
 }
+
+/* ============================================================
+   DAY 22 — Tablet & Mobile Polish
+   ============================================================ */
+
+/* Better tablet layout for dashboard stats */
+@media (min-width: 600px) and (max-width: 1024px) {
+  .dashboard-stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1rem !important;
+  }
+  
+  .dashboard-actions {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1rem !important;
+  }
+
+  .admin-app-stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .dashboard-title {
+    font-size: 1.75rem !important;
+  }
+
+  /* Make the desktop menu show on tablets in landscape */
+  .desktop-nav { display: flex !important; }
+  .mobile-toggle { display: none !important; }
+}
+
+/* Better spacing for forms on mobile */
+@media (max-width: 768px) {
+  .apply-form {
+    padding: 1.5rem 1rem !important;
+  }
+  
+  .apply-summary {
+    padding: 1rem !important;
+  }
+
+  .summary-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .summary-row strong {
+    text-align: left !important;
+    max-width: 100% !important;
+  }
+}
