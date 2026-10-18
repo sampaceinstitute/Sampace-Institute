@@ -30,6 +30,8 @@ import AdminApplicationDetailPage from './pages/AdminApplicationDetailPage.jsx'
 import AdminAnalyticsPage from './pages/AdminAnalyticsPage.jsx'
 import AdminExamsPage from './pages/AdminExamsPage.jsx'
 import AdminExamEditorPage from './pages/AdminExamEditorPage.jsx'
+import StudentExamsPage from './pages/StudentExamsPage.jsx'
+import StudentExamTakingPage from './pages/StudentExamTakingPage.jsx'
 import WalletPage from './pages/WalletPage.jsx'
 import AdminPaymentsPage from './pages/AdminPaymentsPage.jsx'
 import RoleAwareDashboard from './components/RoleAwareDashboard.jsx'
@@ -65,6 +67,7 @@ function parseRoute(pathname) {
   if (parts[0] === 'my-applications') return { route: 'myApplications' }
   if (parts[0] === 'wallet') return { route: 'wallet' }
   if (parts[0] === 'dashboard') return { route: 'dashboard' }
+  if (parts[0] === 'student' && parts[1] === 'exams') { if (parts[2]) return { route: 'studentExamTaking', id: parts[2] }; return { route: 'studentExams' } }
   if (parts[0] === 'admin') {
     if (parts[1] === 'users') return { route: 'adminUsers' }
     if (parts[1] === 'payments') return { route: 'adminPayments' }
@@ -111,6 +114,8 @@ function buildPath(routeObj) {
     case 'adminMessages': return '/admin/messages'
     case 'adminExams': return '/admin/exams'
     case 'adminExamEditor': return '/admin/exams/${routeObj.id}'
+    case 'studentExams': return '/student/exams'
+    case 'studentExamTaking': return '/student/exams/${routeObj.id}'
     case 'adminApplicationDetail': return `/admin/applications/${routeObj.id}`
     default: return '/'
   }
@@ -214,6 +219,10 @@ export default function App() {
   return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminExamsPage onNavigate={navigate} /></ProtectedRoute>
 case 'adminExamEditor':
   return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminExamEditorPage id={routeObj.id} onNavigate={navigate} /></ProtectedRoute>
+      case 'studentExams':
+  return <ProtectedRoute onNavigate={navigate}><StudentExamsPage onNavigate={navigate} /></ProtectedRoute>
+case 'studentExamTaking':
+  return <ProtectedRoute onNavigate={navigate}><StudentExamTakingPage id={routeObj.id} onNavigate={navigate} /></ProtectedRoute>
       case 'adminMessages':
   return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminMessagesPage onNavigate={navigate} /></ProtectedRoute>
       case 'home': return <HomePage onNavigate={navigate} />
