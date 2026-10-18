@@ -112,6 +112,11 @@ export default function AdminDashboard({ onNavigate }) {
   <div className="dashboard-action-title">Inbox</div>
   <div className="dashboard-action-desc">Read contact messages</div>
 </button> 
+          <button className="dashboard-action-card" onClick={() => onNavigate('adminGrading')}>
+  <div className="dashboard-action-icon">✍️</div>
+  <div className="dashboard-action-title">Grading</div>
+  <div className="dashboard-action-desc">Grade theory submissions</div>
+</button>
       
       {/* Two-column: Recent Applications + Recent Payments */}
       <div className="admin-recent-grid">
