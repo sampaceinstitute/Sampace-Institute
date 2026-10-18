@@ -102,7 +102,8 @@ export default function AdminDashboard({ onNavigate }) {
           </button>
         </div>
       </div>
-
+<button onClick={() => onNavigate('adminMessages')}>...📩 Inbox...</button>
+      
       {/* Two-column: Recent Applications + Recent Payments */}
       <div className="admin-recent-grid">
         <div className="dashboard-section">
@@ -126,7 +127,7 @@ export default function AdminDashboard({ onNavigate }) {
                   </div>
                   <div className="admin-recent-date">{formatDate(a.created_at)}</div>
                 </button>
-              ))}
+               ))}
             </div>
           )}
         </div>
