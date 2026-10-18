@@ -102,6 +102,11 @@ export default function AdminDashboard({ onNavigate }) {
           </button>
         </div>
       </div>
+          <button className="dashboard-action-card" onClick={() => onNavigate('adminExams')}>
+  <div className="dashboard-action-icon">📝</div>
+  <div className="dashboard-action-title">CBT Exams</div>
+  <div className="dashboard-action-desc">Create & manage tests</div>
+</button>
           <button className="dashboard-action-card" onClick={() => onNavigate('adminMessages')}>
   <div className="dashboard-action-icon">📩</div>
   <div className="dashboard-action-title">Inbox</div>
