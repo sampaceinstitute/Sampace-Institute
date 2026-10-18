@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient.js'
 import { useAuth } from '../contexts/AuthContext.jsx'
+import { ALL_DIVISIONS } from '../constants.js'
 import LoadingButton from '../components/LoadingButton.jsx'
 
 export default function AdminExamsPage({ onNavigate }) {
@@ -9,8 +10,21 @@ export default function AdminExamsPage({ onNavigate }) {
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
   
-  // New exam form state
-  const [form, setForm] = useState({ title: '', description: '', duration_minutes: 60 })
+  // Form state
+  const [form, setForm] = useState({ 
+    title: '', 
+    description: '', 
+    duration_minutes: 60,
+    schoolId: '', 
+    departmentId: '', 
+    courseId: '' 
+  })
+
+  // Derived state for dropdowns
+  const selectedSchool = ALL_DIVISIONS.find(d => d.id === form.schoolId)
+  const departments = selectedSchool?.departments || []
+  const selectedDept = departments.find(d => d.id === form.departmentId)
+  const courses = selectedDept?.courses || []
 
   const loadExams = async () => {
     const { data } = await supabase.from('exams').select('*').order('created_at', { ascending: false })
@@ -20,8 +34,13 @@ export default function AdminExamsPage({ onNavigate }) {
 
   useEffect(() => { loadExams() }, [])
 
+  const handleSchoolChange = (id) => setForm(prev => ({ ...prev, schoolId: id, departmentId: '', courseId: '' }))
+  const handleDeptChange = (id) => setForm(prev => ({ ...prev, departmentId: id, courseId: '' }))
+
   const handleCreateExam = async (e) => {
     e.preventDefault()
+    if (!form.courseId) return alert("Please select a course to link this exam to.")
+    
     setCreating(true)
 
     const { data, error } = await supabase
@@ -30,6 +49,9 @@ export default function AdminExamsPage({ onNavigate }) {
         title: form.title,
         description: form.description,
         duration_minutes: parseInt(form.duration_minutes),
+        school_id: form.schoolId,
+        department_id: form.departmentId,
+        course_id: form.courseId,
         created_by: user.id,
         status: 'draft'
       })
@@ -37,10 +59,9 @@ export default function AdminExamsPage({ onNavigate }) {
       .single()
 
     if (!error && data) {
-      // Redirect straight to the editor for this exam
       onNavigate({ route: 'adminExamEditor', id: data.id })
     } else {
-      alert('Error creating exam: ' + error.message)
+      alert('Error: ' + error.message)
     }
     setCreating(false)
   }
@@ -52,36 +73,55 @@ export default function AdminExamsPage({ onNavigate }) {
       <div className="page-header">
         <div className="badge"><span className="badge-dot" />Admin · CBT</div>
         <h1 className="page-title">Exam Manager</h1>
-        <p className="page-subtitle">Create and manage tests for your students.</p>
+        <p className="page-subtitle">Create and link tests to specific courses.</p>
       </div>
 
       <div className="contact-layout">
-        {/* Create Exam Form */}
         <div className="contact-form-container">
           <form className="auth-form" onSubmit={handleCreateExam}>
             <h3 className="apply-step-title">Create New Exam</h3>
+            
+            <label className="form-field">
+              <span>School / Division *</span>
+              <select required value={form.schoolId} onChange={e => handleSchoolChange(e.target.value)}>
+                <option value="">Select School</option>
+                {ALL_DIVISIONS.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+              </select>
+            </label>
+
+            <label className="form-field">
+              <span>Department *</span>
+              <select required disabled={!form.schoolId} value={form.departmentId} onChange={e => handleDeptChange(e.target.value)}>
+                <option value="">Select Department</option>
+                {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+              </select>
+            </label>
+
+            <label className="form-field">
+              <span>Course *</span>
+              <select required disabled={!form.departmentId} value={form.courseId} onChange={e => setForm({...form, courseId: e.target.value})}>
+                <option value="">Select Course</option>
+                {courses.map((c, i) => <option key={i} value={c}>{c}</option>)}
+              </select>
+            </label>
+
             <label className="form-field">
               <span>Exam Title *</span>
-              <input type="text" required value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="e.g. JAMB Physics Mock 1" />
+              <input type="text" required value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="e.g. Mid-Term Test" />
             </label>
+
             <label className="form-field">
               <span>Duration (Minutes) *</span>
               <input type="number" required value={form.duration_minutes} onChange={e => setForm({...form, duration_minutes: e.target.value})} />
             </label>
-            <label className="form-field">
-              <span>Description</span>
-              <textarea rows="2" value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="Optional instructions..." />
-            </label>
+
             <LoadingButton type="submit" loading={creating}>Create & Add Questions →</LoadingButton>
           </form>
         </div>
 
-        {/* List of Exams */}
         <div className="admin-users-list-panel">
           <h3 className="panel-title">Your Exams</h3>
-          {loading ? (
-             <div className="loading-state"><div className="loading-spinner" /></div>
-          ) : exams.length === 0 ? (
+          {loading ? <div className="loading-state"><div className="loading-spinner" /></div> : exams.length === 0 ? (
             <p className="analytics-empty-text">No exams created yet.</p>
           ) : (
             <div className="admin-users-scroll">
@@ -90,7 +130,7 @@ export default function AdminExamsPage({ onNavigate }) {
                   <div className="admin-user-row-avatar">📝</div>
                   <div className="admin-user-row-info">
                     <div className="admin-user-row-name">{ex.title}</div>
-                    <div className="admin-user-row-email">{ex.duration_minutes} mins · {ex.status.toUpperCase()}</div>
+                    <div className="admin-user-row-email">{ex.course_id || 'No course linked'} · {ex.status.toUpperCase()}</div>
                   </div>
                 </button>
               ))}
