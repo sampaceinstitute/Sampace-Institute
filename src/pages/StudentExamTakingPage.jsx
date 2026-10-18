@@ -67,90 +67,74 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
     if (attemptErr) return alert("Error starting exam. Please try again.")
 
     // 2. Grade and Save Answers
-    const handleSubmit = async (autoSubmit = false) => {
-  if (!autoSubmit) {
-    const confirm = window.confirm("Are you sure you want to submit your exam?")
-    if (!confirm) return
-  }
-
-  setSubmitting(true)
-
-  // 1. Create Attempt Record
-  const { data: attempt, error: attemptErr } = await supabase.from('exam_attempts').insert({
-    exam_id: id,
-    user_id: user.id,
-    status: 'completed',
-    completed_at: new Date().toISOString()
-  }).select().single()
-
-  if (attemptErr) return alert("Error starting exam. Please try again.")
-
-  // 2. Grade and Save Answers
-  let autoScore = 0
-  let pendingManualCount = 0
-  let totalPossibleMarks = 0
-  const finalAnswers = []
-
-  questions.forEach(q => {
-    totalPossibleMarks += q.marks
-    const studentAns = answers[q.id] || ''
-    let isCorrect = null
-
-    // Auto-grade MCQ and Gap questions
-    if (q.type === 'mcq' || q.type === 'gap') {
-      isCorrect = studentAns.toLowerCase().trim() === (q.correct_answer || '').toLowerCase().trim()
-      if (isCorrect) autoScore += q.marks
-    } else {
-      // Theory is pending manual grading
-      pendingManualCount++
+      const handleSubmit = async (autoSubmit = false) => {
+    if (!autoSubmit) {
+      const confirm = window.confirm("Are you sure you want to submit your exam?")
+      if (!confirm) return
     }
 
-    finalAnswers.push({
-      attempt_id: attempt.id,
-      question_id: q.id,
-      answer_text: studentAns,
-      is_correct: isCorrect // null for theory
-    })
-  })
+    setSubmitting(true)
 
-  await supabase.from('exam_answers').insert(finalAnswers)
-  await supabase.from('exam_attempts').update({ score: autoScore }).eq('id', attempt.id)
+    try {
+      // 1. Create Attempt Record
+      const { data: attempt, error: attemptErr } = await supabase.from('exam_attempts').insert({
+        exam_id: id,
+        user_id: user.id,
+        status: 'completed',
+        completed_at: new Date().toISOString()
+      }).select().single()
 
-  setResult({ 
-    score: autoScore, 
-    totalMarks: totalPossibleMarks,
-    pending: pendingManualCount
-  })
-  setSubmitting(false)
-    }
+      if (attemptErr) throw new Error("Failed to start submission: " + attemptErr.message)
 
-    questions.forEach(q => {
-      const studentAns = answers[q.id] || ''
-      let isCorrect = false
+      // 2. Grade and Prepare Answers
+      let autoScore = 0
+      let pendingManualCount = 0
+      let totalPossibleMarks = 0
+      const finalAnswers = []
 
-      // Auto-grade MCQ and Gap questions
-      if (q.type === 'mcq' || q.type === 'gap') {
-        if (studentAns.toLowerCase().trim() === (q.correct_answer || '').toLowerCase().trim()) {
-          isCorrect = true
-          totalScore += q.marks
+      questions.forEach(q => {
+        totalPossibleMarks += q.marks
+        const studentAns = answers[q.id] || ''
+        let isCorrect = null
+
+        if (q.type === 'mcq' || q.type === 'gap') {
+          isCorrect = studentAns.toLowerCase().trim() === (q.correct_answer || '').toLowerCase().trim()
+          if (isCorrect) autoScore += q.marks
+        } else {
+          pendingManualCount++
         }
-      }
 
-      finalAnswers.push({
-        attempt_id: attempt.id,
-        question_id: q.id,
-        answer_text: studentAns,
-        is_correct: isCorrect
+        finalAnswers.push({
+          attempt_id: attempt.id,
+          question_id: q.id,
+          answer_text: studentAns,
+          is_correct: isCorrect
+        })
       })
-    })
 
-    await supabase.from('exam_answers').insert(finalAnswers)
-    await supabase.from('exam_attempts').update({ score: totalScore }).eq('id', attempt.id)
+      // 3. Save Answers
+      const { error: ansErr } = await supabase.from('exam_answers').insert(finalAnswers)
+      if (ansErr) throw new Error("Failed to save answers: " + ansErr.message)
 
-    setResult({ score: totalScore, totalMarks: questions.reduce((sum, q) => sum + q.marks, 0) })
-    setSubmitting(false)
+      // 4. Update Attempt with Score
+      const { error: updateErr } = await supabase.from('exam_attempts').update({ score: autoScore }).eq('id', attempt.id)
+      if (updateErr) throw new Error("Failed to update score: " + updateErr.message)
+
+      // 5. Show Result
+      setResult({ 
+        score: autoScore, 
+        totalMarks: totalPossibleMarks,
+        pending: pendingManualCount
+      })
+
+    } catch (err) {
+      console.error(err)
+      alert(err.message || "An error occurred while submitting the exam.")
+    } finally {
+      setSubmitting(false)
+    }
   }
-
+    
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60)
     const s = seconds % 60
