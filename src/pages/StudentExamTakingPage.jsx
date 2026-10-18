@@ -50,34 +50,13 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
 
   const handleSubmit = async (autoSubmit = false) => {
     if (!autoSubmit) {
-      const confirm = window.confirm("Are you sure you want to submit your exam?")
-      if (!confirm) return
-    }
-
-    setSubmitting(true)
-
-    // 1. Create Attempt Record
-    const { data: attempt, error: attemptErr } = await supabase.from('exam_attempts').insert({
-      exam_id: id,
-      user_id: user.id,
-      status: 'completed',
-      completed_at: new Date().toISOString()
-    }).select().single()
-
-    if (attemptErr) return alert("Error starting exam. Please try again.")
-
-    // 2. Grade and Save Answers
-      const handleSubmit = async (autoSubmit = false) => {
-    if (!autoSubmit) {
       if (!window.confirm("Are you sure you want to submit your exam?")) return
     }
 
     setSubmitting(true)
 
     try {
-      console.log("1. Starting submission...")
-
-      // 1. Generate a UUID on the client side
+      // 1. Generate ID and create Attempt Record
       const attemptId = crypto.randomUUID()
       
       const { error: attemptErr } = await supabase.from('exam_attempts').insert({
@@ -90,13 +69,14 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
       })
 
       if (attemptErr) throw new Error("Attempt Error: " + attemptErr.message)
-      console.log("2. Attempt created successfully")
 
-      // 2. Grade
+      // 2. Grade and Save Answers
       let autoScore = 0
       let pendingManualCount = 0
       let totalPossibleMarks = 0
-      const finalAnswers = []
+      
+      // THIS IS THE VARIABLE THAT WAS MISSING:
+      const finalAnswers = [] 
 
       questions.forEach(q => {
         totalPossibleMarks += q.marks
@@ -119,16 +99,14 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
       })
 
       // 3. Insert Answers
-      console.log("3. Inserting answers...", finalAnswers)
       const { error: ansErr } = await supabase.from('exam_answers').insert(finalAnswers)
       if (ansErr) throw new Error("Answers Error: " + ansErr.message)
-      console.log("4. Answers saved")
 
       // 4. Update Attempt Score
       const { error: updateErr } = await supabase.from('exam_attempts').update({ score: autoScore }).eq('id', attemptId)
       if (updateErr) throw new Error("Update Score Error: " + updateErr.message)
-      console.log("5. Score updated")
 
+      // 5. Show Result
       setResult({ 
         score: autoScore, 
         totalMarks: totalPossibleMarks,
@@ -141,8 +119,8 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
     } finally {
       setSubmitting(false)
     }
-  }  
-    
+  }
+
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60)
     const s = seconds % 60
@@ -152,31 +130,31 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
   if (loading) return <main className="loading-state"><div className="loading-spinner" /></main>
 
   // RESULT SCREEN
-if (result) {
-  return (
-    <main className="apply-page">
-      <div className="apply-success">
-        <div className="success-icon">✓</div>
-        <h1 className="page-title">Exam Completed!</h1>
-        <p className="page-subtitle">Your auto-graded score:</p>
-        <div style={{ fontSize: '3rem', fontWeight: 800, color: 'var(--gold-light)', margin: '1rem 0' }}>
-          {result.score} / {result.totalMarks}
-        </div>
-        
-        {result.pending > 0 && (
-          <div className="auth-error" style={{ background: 'rgba(201, 162, 39, 0.1)', color: 'var(--gold-light)', borderColor: 'var(--gold)' }}>
-            ⚠️ {result.pending} Theory question(s) are pending manual review by your instructor.
+  if (result) {
+    return (
+      <main className="apply-page">
+        <div className="apply-success">
+          <div className="success-icon">✓</div>
+          <h1 className="page-title">Exam Completed!</h1>
+          <p className="page-subtitle">Your auto-graded score:</p>
+          <div style={{ fontSize: '3rem', fontWeight: 800, color: 'var(--gold-light)', margin: '1rem 0' }}>
+            {result.score} / {result.totalMarks}
           </div>
-        )}
+          
+          {result.pending > 0 && (
+            <div className="auth-error" style={{ background: 'rgba(201, 162, 39, 0.1)', color: 'var(--gold-light)', borderColor: 'var(--gold)' }}>
+              ⚠️ {result.pending} Theory question(s) are pending manual review by your instructor.
+            </div>
+          )}
 
-        <button className="btn btn-primary" onClick={() => onNavigate('studentExams')} style={{ marginTop: '2rem' }}>
-          Back to Exams
-        </button>
-      </div>
-    </main>
-  )
-}
-  
+          <button className="btn btn-primary" onClick={() => onNavigate('studentExams')} style={{ marginTop: '2rem' }}>
+            Back to Exams
+          </button>
+        </div>
+      </main>
+    )
+  }
+
   const q = questions[currentIdx]
 
   return (
