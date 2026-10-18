@@ -69,24 +69,30 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
     // 2. Grade and Save Answers
       const handleSubmit = async (autoSubmit = false) => {
     if (!autoSubmit) {
-      const confirm = window.confirm("Are you sure you want to submit your exam?")
-      if (!confirm) return
+      if (!window.confirm("Are you sure you want to submit your exam?")) return
     }
 
     setSubmitting(true)
 
     try {
-      // 1. Create Attempt Record
-      const { data: attempt, error: attemptErr } = await supabase.from('exam_attempts').insert({
+      console.log("1. Starting submission...")
+
+      // 1. Generate a UUID on the client side
+      const attemptId = crypto.randomUUID()
+      
+      const { error: attemptErr } = await supabase.from('exam_attempts').insert({
+        id: attemptId,
         exam_id: id,
         user_id: user.id,
         status: 'completed',
-        completed_at: new Date().toISOString()
-      }).select().single()
+        completed_at: new Date().toISOString(),
+        score: 0 // Default
+      })
 
-      if (attemptErr) throw new Error("Failed to start submission: " + attemptErr.message)
+      if (attemptErr) throw new Error("Attempt Error: " + attemptErr.message)
+      console.log("2. Attempt created successfully")
 
-      // 2. Grade and Prepare Answers
+      // 2. Grade
       let autoScore = 0
       let pendingManualCount = 0
       let totalPossibleMarks = 0
@@ -105,22 +111,24 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
         }
 
         finalAnswers.push({
-          attempt_id: attempt.id,
+          attempt_id: attemptId,
           question_id: q.id,
           answer_text: studentAns,
           is_correct: isCorrect
         })
       })
 
-      // 3. Save Answers
+      // 3. Insert Answers
+      console.log("3. Inserting answers...", finalAnswers)
       const { error: ansErr } = await supabase.from('exam_answers').insert(finalAnswers)
-      if (ansErr) throw new Error("Failed to save answers: " + ansErr.message)
+      if (ansErr) throw new Error("Answers Error: " + ansErr.message)
+      console.log("4. Answers saved")
 
-      // 4. Update Attempt with Score
-      const { error: updateErr } = await supabase.from('exam_attempts').update({ score: autoScore }).eq('id', attempt.id)
-      if (updateErr) throw new Error("Failed to update score: " + updateErr.message)
+      // 4. Update Attempt Score
+      const { error: updateErr } = await supabase.from('exam_attempts').update({ score: autoScore }).eq('id', attemptId)
+      if (updateErr) throw new Error("Update Score Error: " + updateErr.message)
+      console.log("5. Score updated")
 
-      // 5. Show Result
       setResult({ 
         score: autoScore, 
         totalMarks: totalPossibleMarks,
@@ -128,12 +136,12 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
       })
 
     } catch (err) {
-      console.error(err)
-      alert(err.message || "An error occurred while submitting the exam.")
+      console.error("Submission Failed:", err)
+      alert(err.message || "An error occurred while submitting.")
     } finally {
       setSubmitting(false)
     }
-  }
+  }  
     
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60)
