@@ -23,6 +23,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage.jsx'
 import SetNewPasswordPage from './pages/SetNewPasswordPage.jsx'
 import ProfilePage from './pages/ProfilePage.jsx'
 import MyApplicationsPage from './pages/MyApplicationsPage.jsx'
+import AdminMessagesPage from './pages/AdminMessagesPage.jsx'
 import AdminUsersPage from './pages/AdminUsersPage.jsx'
 import AdminApplicationsPage from './pages/AdminApplicationsPage.jsx'
 import AdminApplicationDetailPage from './pages/AdminApplicationDetailPage.jsx'
@@ -65,8 +66,8 @@ function parseRoute(pathname) {
   if (parts[0] === 'admin') {
     if (parts[1] === 'users') return { route: 'adminUsers' }
     if (parts[1] === 'payments') return { route: 'adminPayments' }
-    if (parts[1] === 'messages') return { route: 'adminMessages' }
     if (parts[1] === 'analytics') return { route: 'adminAnalytics' }
+    if (parts[1] === 'messages') return { route: 'adminMessages' }
     if (parts[1] === 'applications') {
       if (parts[2]) return { route: 'adminApplicationDetail', id: parts[2] }
       return { route: 'adminApplications' }
@@ -102,10 +103,9 @@ function buildPath(routeObj) {
     case 'dashboard': return '/dashboard'
     case 'adminUsers': return '/admin/users'
     case 'adminPayments': return '/admin/payments'
-    case 'adminMessages': return '/admin/messages'
-    case 'adminMessages': return <ProtectedRoute ...><AdminMessagesPage /></ProtectedRoute>
     case 'adminAnalytics': return '/admin/analytics'
     case 'adminApplications': return '/admin/applications'
+    case 'adminMessages': return '/admin/messages'
     case 'adminApplicationDetail': return `/admin/applications/${routeObj.id}`
     default: return '/'
   }
@@ -205,6 +205,8 @@ export default function App() {
       case 'adminPayments': return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminPaymentsPage onNavigate={navigate} /></ProtectedRoute>
       case 'adminAnalytics': return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminAnalyticsPage onNavigate={navigate} /></ProtectedRoute>
       case 'dashboard': return <ProtectedRoute onNavigate={navigate}><RoleAwareDashboard onNavigate={navigate} /></ProtectedRoute>
+      case 'adminMessages':
+  return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminMessagesPage onNavigate={navigate} /></ProtectedRoute>
       case 'home': return <HomePage onNavigate={navigate} />
       case 'notFound':
       default: return <NotFoundPage onNavigate={navigate} />
