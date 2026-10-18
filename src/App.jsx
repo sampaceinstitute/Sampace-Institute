@@ -121,7 +121,7 @@ function buildPath(routeObj) {
     case 'adminExams': return '/admin/exams'
     case 'adminExamEditor': return '/admin/exams/${routeObj.id}'
     case 'studentExams': return '/student/exams'
-    case 'studentExamTaking': return '/student/exams/${routeObj.id}'
+    case 'studentExamTaking': return `/student/exams/${routeObj.id}` // ✅ CORRECT (Backticks)
     case 'adminGrading': return '/admin/grading'
 case 'adminGradingDetail': return `/admin/grading/${routeObj.id}`
     case 'adminApplicationDetail': return `/admin/applications/${routeObj.id}`
