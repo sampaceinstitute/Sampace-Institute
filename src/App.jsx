@@ -65,6 +65,7 @@ function parseRoute(pathname) {
   if (parts[0] === 'admin') {
     if (parts[1] === 'users') return { route: 'adminUsers' }
     if (parts[1] === 'payments') return { route: 'adminPayments' }
+    if (parts[1] === 'messages') return { route: 'adminMessages' }
     if (parts[1] === 'analytics') return { route: 'adminAnalytics' }
     if (parts[1] === 'applications') {
       if (parts[2]) return { route: 'adminApplicationDetail', id: parts[2] }
@@ -101,6 +102,8 @@ function buildPath(routeObj) {
     case 'dashboard': return '/dashboard'
     case 'adminUsers': return '/admin/users'
     case 'adminPayments': return '/admin/payments'
+    case 'adminMessages': return '/admin/messages'
+    case 'adminMessages': return <ProtectedRoute ...><AdminMessagesPage /></ProtectedRoute>
     case 'adminAnalytics': return '/admin/analytics'
     case 'adminApplications': return '/admin/applications'
     case 'adminApplicationDetail': return `/admin/applications/${routeObj.id}`
