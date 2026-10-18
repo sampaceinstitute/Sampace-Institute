@@ -67,8 +67,62 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
     if (attemptErr) return alert("Error starting exam. Please try again.")
 
     // 2. Grade and Save Answers
-    let totalScore = 0
-    const finalAnswers = []
+    const handleSubmit = async (autoSubmit = false) => {
+  if (!autoSubmit) {
+    const confirm = window.confirm("Are you sure you want to submit your exam?")
+    if (!confirm) return
+  }
+
+  setSubmitting(true)
+
+  // 1. Create Attempt Record
+  const { data: attempt, error: attemptErr } = await supabase.from('exam_attempts').insert({
+    exam_id: id,
+    user_id: user.id,
+    status: 'completed',
+    completed_at: new Date().toISOString()
+  }).select().single()
+
+  if (attemptErr) return alert("Error starting exam. Please try again.")
+
+  // 2. Grade and Save Answers
+  let autoScore = 0
+  let pendingManualCount = 0
+  let totalPossibleMarks = 0
+  const finalAnswers = []
+
+  questions.forEach(q => {
+    totalPossibleMarks += q.marks
+    const studentAns = answers[q.id] || ''
+    let isCorrect = null
+
+    // Auto-grade MCQ and Gap questions
+    if (q.type === 'mcq' || q.type === 'gap') {
+      isCorrect = studentAns.toLowerCase().trim() === (q.correct_answer || '').toLowerCase().trim()
+      if (isCorrect) autoScore += q.marks
+    } else {
+      // Theory is pending manual grading
+      pendingManualCount++
+    }
+
+    finalAnswers.push({
+      attempt_id: attempt.id,
+      question_id: q.id,
+      answer_text: studentAns,
+      is_correct: isCorrect // null for theory
+    })
+  })
+
+  await supabase.from('exam_answers').insert(finalAnswers)
+  await supabase.from('exam_attempts').update({ score: autoScore }).eq('id', attempt.id)
+
+  setResult({ 
+    score: autoScore, 
+    totalMarks: totalPossibleMarks,
+    pending: pendingManualCount
+  })
+  setSubmitting(false)
+    }
 
     questions.forEach(q => {
       const studentAns = answers[q.id] || ''
@@ -106,25 +160,31 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
   if (loading) return <main className="loading-state"><div className="loading-spinner" /></main>
 
   // RESULT SCREEN
-  if (result) {
-    return (
-      <main className="apply-page">
-        <div className="apply-success">
-          <div className="success-icon">✓</div>
-          <h1 className="page-title">Exam Completed!</h1>
-          <p className="page-subtitle">You scored:</p>
-          <div style={{ fontSize: '3rem', fontWeight: 800, color: 'var(--gold-light)', margin: '1rem 0' }}>
-            {result.score} / {result.totalMarks}
-          </div>
-          <p className="diagnostic-note">Theory questions will be reviewed manually by your instructor.</p>
-          <button className="btn btn-primary" onClick={() => onNavigate('studentExams')} style={{ marginTop: '2rem' }}>
-            Back to Exams
-          </button>
+if (result) {
+  return (
+    <main className="apply-page">
+      <div className="apply-success">
+        <div className="success-icon">✓</div>
+        <h1 className="page-title">Exam Completed!</h1>
+        <p className="page-subtitle">Your auto-graded score:</p>
+        <div style={{ fontSize: '3rem', fontWeight: 800, color: 'var(--gold-light)', margin: '1rem 0' }}>
+          {result.score} / {result.totalMarks}
         </div>
-      </main>
-    )
-  }
+        
+        {result.pending > 0 && (
+          <div className="auth-error" style={{ background: 'rgba(201, 162, 39, 0.1)', color: 'var(--gold-light)', borderColor: 'var(--gold)' }}>
+            ⚠️ {result.pending} Theory question(s) are pending manual review by your instructor.
+          </div>
+        )}
 
+        <button className="btn btn-primary" onClick={() => onNavigate('studentExams')} style={{ marginTop: '2rem' }}>
+          Back to Exams
+        </button>
+      </div>
+    </main>
+  )
+}
+  
   const q = questions[currentIdx]
 
   return (
