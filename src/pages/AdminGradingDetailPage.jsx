@@ -33,7 +33,7 @@ export default function AdminGradingDetailPage({ id, onNavigate }) {
   const handleGrade = async (answerId, questionId, isCorrect, marks) => {
     setSavingId(answerId)
 
-    // 1. Update the answer record
+    // 1. Update the answer record in the database
     await supabase
       .from('exam_answers')
       .update({ is_correct: isCorrect })
@@ -48,11 +48,18 @@ export default function AdminGradingDetailPage({ id, onNavigate }) {
       .update({ score: newScore })
       .eq('id', id)
 
-    // 3. Reload
+    // 3. Update the LOCAL state so the buttons disappear immediately
+    setAnswers(prevAnswers => 
+      prevAnswers.map(ans => 
+        ans.id === answerId ? { ...ans, is_correct: isCorrect } : ans
+      )
+    )
+    
+    // 4. Update the local attempt score
     setAttempt({ ...attempt, score: newScore })
     setSavingId(null)
   }
-
+  
   if (loading) return <main className="loading-state"><div className="loading-spinner" /></main>
 
   return (
