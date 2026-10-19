@@ -44,6 +44,7 @@ export default function StudentResultsPage({ onNavigate }) {
             <p>You haven't taken any exams yet.</p>
             <button className="btn btn-primary" onClick={() => onNavigate('studentExams')}>
               Take an Exam →
+            <div key={res.id} className="my-card" onClick={() => onNavigate({ route: 'studentResultDetail', id: res.id })} style={{ cursor: 'pointer' }}>
             </button>
           </div>
         ) : (
@@ -52,7 +53,7 @@ export default function StudentResultsPage({ onNavigate }) {
               <div className="my-card-header">
                 <div className="my-card-reference">{new Date(res.completed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
                 <div className="my-card-status" style={{ borderColor: '#4ade80', color: '#4ade80' }}>
-                  SCORE: {res.score} / {res.exams?.total_marks || '—'}
+                  SCORE: {res.score} / {res.exams?.total_marks}
                 </div>
               </div>
               <h3 className="my-card-title">{res.exams?.title}</h3>
