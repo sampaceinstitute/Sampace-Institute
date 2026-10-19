@@ -120,17 +120,16 @@ function buildPath(routeObj) {
     case 'adminUsers': return '/admin/users'
     case 'adminPayments': return '/admin/payments'
     case 'adminAnalytics': return '/admin/analytics'
-    case 'adminApplications': return '/admin/applications'
     case 'adminMessages': return '/admin/messages'
     case 'adminExams': return '/admin/exams'
-    case 'adminExamEditor': return '/admin/exams/${routeObj.id}'
-        case 'studentExams': return '/student/exams'
+    case 'adminExamEditor': return `/admin/exams/${routeObj.id}`
+    case 'studentExams': return '/student/exams'
     case 'studentExamTaking': return `/student/exams/${routeObj.id}`
     case 'studentResults': return '/student/results'
-    // 👇 FIX THIS LINE (Add the backtick at the beginning)
-    case 'studentResultDetail': return `/student/result-detail/${routeObj.id}` 
+    case 'studentResultDetail': return `/student/result-detail/${routeObj.id}`
     case 'adminGrading': return '/admin/grading'
     case 'adminGradingDetail': return `/admin/grading/${routeObj.id}`
+    case 'adminApplications': return '/admin/applications'
     case 'adminApplicationDetail': return `/admin/applications/${routeObj.id}`
     default: return '/'
   }
