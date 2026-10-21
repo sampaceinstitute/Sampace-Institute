@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabaseClient.js'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import LoadingButton from '../components/LoadingButton.jsx'
@@ -11,11 +11,18 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
   
   // Exam state
   const [currentIdx, setCurrentIdx] = useState(0)
-  const [answers, setAnswers] = useState({}) // { questionId: "answer text" }
+  const [answers, setAnswers] = useState({})
   const [timeLeft, setTimeLeft] = useState(null)
   const [submitting, setSubmitting] = useState(false)
-  const [result, setResult] = useState(null) // Stores score after submission
+  const [result, setResult] = useState(null)
 
+  // Proctoring State
+  const videoRef = useRef(null)
+  const [cameraError, setCameraError] = useState(false)
+  const [tabSwitches, setTabSwitches] = useState(0)
+  const [showWarning, setShowWarning] = useState(false)
+
+  // 1. Load Exam and Request Camera
   useEffect(() => {
     const load = async () => {
       const { data: ex } = await supabase.from('exams').select('*').eq('id', id).single()
@@ -23,24 +30,46 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
       
       setExam(ex)
       setQuestions(qs || [])
-      setTimeLeft(ex.duration_minutes * 60) // convert to seconds
+      setTimeLeft(ex.duration_minutes * 60)
       setLoading(false)
     }
     load()
+
+    // Request Camera Access
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        .then(stream => {
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream
+          }
+        })
+        .catch(err => {
+          console.warn("Camera access denied:", err)
+          setCameraError(true)
+        })
+    }
   }, [id])
 
-  // Countdown Timer
+  // 2. Tab Switch Detection
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && !result) {
+        setTabSwitches(prev => prev + 1)
+        setShowWarning(true)
+      }
+    }
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange)
+  }, [result])
+
+  // 3. Timer
   useEffect(() => {
     if (timeLeft === null || result) return
     if (timeLeft <= 0) {
-      handleSubmit(true) // Auto-submit when time runs out
+      handleSubmit(true)
       return
     }
-
-    const timer = setInterval(() => {
-      setTimeLeft(prev => prev - 1)
-    }, 1000)
-
+    const timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000)
     return () => clearInterval(timer)
   }, [timeLeft, result])
 
@@ -56,7 +85,6 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
     setSubmitting(true)
 
     try {
-      // 1. Generate ID and create Attempt Record
       const attemptId = crypto.randomUUID()
       
       const { error: attemptErr } = await supabase.from('exam_attempts').insert({
@@ -65,18 +93,14 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
         user_id: user.id,
         status: 'completed',
         completed_at: new Date().toISOString(),
-        score: 0 // Default
+        score: 0
       })
-
       if (attemptErr) throw new Error("Attempt Error: " + attemptErr.message)
 
-      // 2. Grade and Save Answers
       let autoScore = 0
       let pendingManualCount = 0
       let totalPossibleMarks = 0
-      
-      // THIS IS THE VARIABLE THAT WAS MISSING:
-      const finalAnswers = [] 
+      const finalAnswers = []
 
       questions.forEach(q => {
         totalPossibleMarks += q.marks
@@ -98,20 +122,19 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
         })
       })
 
-      // 3. Insert Answers
       const { error: ansErr } = await supabase.from('exam_answers').insert(finalAnswers)
       if (ansErr) throw new Error("Answers Error: " + ansErr.message)
 
-      // 4. Update Attempt Score
-      const { error: updateErr } = await supabase.from('exam_attempts').update({ score: autoScore }).eq('id', attemptId)
+      const { error: updateErr } = await supabase.from('exam_attempts').update({ 
+        score: autoScore,
+        metadata: { tab_switches: tabSwitches } // Save proctoring flags to DB
+      }).eq('id', attemptId)
+      
+      // Note: If metadata column doesn't exist yet, we will add it via SQL next step
+      
       if (updateErr) throw new Error("Update Score Error: " + updateErr.message)
 
-      // 5. Show Result
-      setResult({ 
-        score: autoScore, 
-        totalMarks: totalPossibleMarks,
-        pending: pendingManualCount
-      })
+      setResult({ score: autoScore, totalMarks: totalPossibleMarks, pending: pendingManualCount })
 
     } catch (err) {
       console.error("Submission Failed:", err)
@@ -129,7 +152,6 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
 
   if (loading) return <main className="loading-state"><div className="loading-spinner" /></main>
 
-  // RESULT SCREEN
   if (result) {
     return (
       <main className="apply-page">
@@ -140,13 +162,11 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
           <div style={{ fontSize: '3rem', fontWeight: 800, color: 'var(--gold-light)', margin: '1rem 0' }}>
             {result.score} / {result.totalMarks}
           </div>
-          
           {result.pending > 0 && (
             <div className="auth-error" style={{ background: 'rgba(201, 162, 39, 0.1)', color: 'var(--gold-light)', borderColor: 'var(--gold)' }}>
               ⚠️ {result.pending} Theory question(s) are pending manual review by your instructor.
             </div>
           )}
-
           <button className="btn btn-primary" onClick={() => onNavigate('studentExams')} style={{ marginTop: '2rem' }}>
             Back to Exams
           </button>
@@ -159,13 +179,39 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
 
   return (
     <main className="admin-apps-page">
-      <div className="exam-header">
+      {/* PROCTORING WARNING MODAL */}
+      {showWarning && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '400px', textAlign: 'center' }}>
+            <div className="success-icon" style={{ background: 'rgba(248, 113, 113, 0.15)', color: '#f87171', borderColor: '#f87171' }}>!</div>
+            <h2 className="modal-title" style={{ color: '#f87171' }}>Warning!</h2>
+            <p className="modal-subtitle">You navigated away from the exam tab. This action has been logged and will be reported to your instructor.</p>
+            <button className="btn btn-primary" onClick={() => setShowWarning(false)}>Return to Exam</button>
+          </div>
+        </div>
+      )}
+
+      <div className="exam-header" style={{ position: 'relative' }}>
         <div>
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+             <span className="badge" style={{ background: 'var(--gold)', color: 'var(--navy)' }}>{exam.exam_type?.toUpperCase() || 'EXAM'}</span>
+          </div>
           <h2 className="exam-title">{exam.title}</h2>
           <p style={{ color: 'var(--text-soft)', fontSize: '0.85rem' }}>Question {currentIdx + 1} of {questions.length}</p>
         </div>
-        <div className={`exam-timer ${timeLeft < 300 ? 'timer-danger' : ''}`}>
-          ⏱ {formatTime(timeLeft)}
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          {/* WEBCAM FEED */}
+          <div style={{ width: '100px', height: '75px', background: '#000', borderRadius: '8px', overflow: 'hidden', border: '2px solid #4ade80' }}>
+             {cameraError ? (
+                <div style={{ color: '#f87171', fontSize: '0.6rem', padding: '0.5rem', textAlign: 'center' }}>Cam Blocked</div>
+             ) : (
+                <video ref={videoRef} autoPlay muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }} />
+             )}
+          </div>
+          <div className={`exam-timer ${timeLeft < 300 ? 'timer-danger' : ''}`}>
+            ⏱ {formatTime(timeLeft)}
+          </div>
         </div>
       </div>
 
@@ -178,13 +224,7 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
           <div className="exam-options">
             {q.options.map((opt, i) => (
               <label key={i} className={`exam-option ${answers[q.id] === opt ? 'selected' : ''}`}>
-                <input 
-                  type="radio" 
-                  name={q.id} 
-                  value={opt} 
-                  checked={answers[q.id] === opt}
-                  onChange={(e) => handleAnswer(q.id, e.target.value)}
-                />
+                <input type="radio" name={q.id} value={opt} checked={answers[q.id] === opt} onChange={(e) => handleAnswer(q.id, e.target.value)} />
                 <span>{opt}</span>
               </label>
             ))}
@@ -195,40 +235,22 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
           <div className="form-field">
             <span>Your Answer:</span>
             {q.type === 'theory' ? (
-              <textarea 
-                rows="6" 
-                value={answers[q.id] || ''} 
-                onChange={(e) => handleAnswer(q.id, e.target.value)} 
-                placeholder="Type your answer here..." 
-              />
+              <textarea rows="6" value={answers[q.id] || ''} onChange={(e) => handleAnswer(q.id, e.target.value)} placeholder="Type your answer here..." />
             ) : (
-              <input 
-                type="text" 
-                value={answers[q.id] || ''} 
-                onChange={(e) => handleAnswer(q.id, e.target.value)} 
-                placeholder="Type the missing word..." 
-              />
+              <input type="text" value={answers[q.id] || ''} onChange={(e) => handleAnswer(q.id, e.target.value)} placeholder="Type the missing word..." />
             )}
           </div>
         )}
       </div>
 
       <div className="exam-footer">
-        <button 
-          className="btn btn-outline" 
-          disabled={currentIdx === 0} 
-          onClick={() => setCurrentIdx(prev => prev - 1)}
-        >
-          ← Previous
-        </button>
+        <button className="btn btn-outline" disabled={currentIdx === 0} onClick={() => setCurrentIdx(prev => prev - 1)}>← Previous</button>
         
         {currentIdx < questions.length - 1 ? (
-          <button className="btn btn-primary" onClick={() => setCurrentIdx(prev => prev + 1)}>
-            Next →
-          </button>
+          <button className="btn btn-primary" onClick={() => setCurrentIdx(prev => prev + 1)}>Next →</button>
         ) : (
           <LoadingButton className="btn btn-primary" loading={submitting} onClick={() => handleSubmit(false)}>
-            Submit Exam ✓
+            Submit {exam.exam_type?.toUpperCase() || 'EXAM'} ✓
           </LoadingButton>
         )}
       </div>
