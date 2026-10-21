@@ -18,21 +18,26 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
   // Proctoring State
   const videoRef = useRef(null)
   const [cameraError, setCameraError] = useState(false)
-  const [tabSwitches, setTabSwitches] = useState(0)
+  const strikes = useRef(0) // Using useRef fixes the React state closure bug!
   const [showWarning, setShowWarning] = useState(false)
 
+  // 1. Load Exam, Shuffle Questions, and Request Camera
   useEffect(() => {
     const load = async () => {
       const { data: ex } = await supabase.from('exams').select('*').eq('id', id).single()
       const { data: qs } = await supabase.from('questions').select('*').eq('exam_id', id).order('created_at', { ascending: true })
       
+      // SHUFFLE QUESTIONS HERE
+      const shuffledQs = (qs || []).sort(() => Math.random() - 0.5)
+      
       setExam(ex)
-      setQuestions(qs || [])
+      setQuestions(shuffledQs)
       setTimeLeft(ex.duration_minutes * 60)
       setLoading(false)
     }
     load()
 
+    // Request Camera
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices.getUserMedia({ video: true, audio: true })
         .then(stream => {
@@ -43,16 +48,30 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
           setCameraError(true)
         })
     }
+
+    // FORCE FULLSCREEN & ANTI-CHEAT
+    const elem = document.documentElement;
+    if (elem.requestFullscreen) elem.requestFullscreen().catch(() => {});
+    
+    const preventCopy = (e) => e.preventDefault();
+    document.addEventListener('copy', preventCopy);
+    document.addEventListener('paste', preventCopy);
+    document.addEventListener('contextmenu', preventCopy); // blocks right click
+
+    return () => {
+      document.removeEventListener('copy', preventCopy);
+      document.removeEventListener('paste', preventCopy);
+      document.removeEventListener('contextmenu', preventCopy);
+    }
   }, [id])
 
-  // Tab Switch Detection (3 Strikes Rule)
+  // 2. Tab Switch Detection (3-Strikes Rule)
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden && !result) {
-        const newCount = tabSwitches + 1
-        setTabSwitches(newCount)
+      if (document.hidden && !result && !submitting) {
+        strikes.current += 1
         
-        if (newCount >= 3) {
+        if (strikes.current >= 3) {
           alert("You have left the exam tab 3 times. Your exam is being submitted automatically for malpractice.")
           handleSubmit(true)
         } else {
@@ -62,8 +81,9 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
     }
     document.addEventListener("visibilitychange", handleVisibilityChange)
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange)
-  }, [result, tabSwitches]) // added tabSwitches to deps
+  }, [result, submitting])
 
+  // 3. Timer
   useEffect(() => {
     if (timeLeft === null || result) return
     if (timeLeft <= 0) {
@@ -94,7 +114,7 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
         status: 'completed',
         completed_at: new Date().toISOString(),
         score: 0,
-        metadata: { tab_switches: tabSwitches } // This will now work because we added the SQL column
+        metadata: { tab_switches: strikes.current } // Save the REAL strike count
       })
       if (attemptErr) throw new Error("Attempt Error: " + attemptErr.message)
 
@@ -174,13 +194,12 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
 
   return (
     <main className="admin-apps-page">
-      {/* 3 STRIKES WARNING */}
       {showWarning && (
         <div className="modal-overlay">
           <div className="modal-content" style={{ maxWidth: '400px', textAlign: 'center' }}>
             <div className="success-icon" style={{ background: 'rgba(248, 113, 113, 0.15)', color: '#f87171', borderColor: '#f87171' }}>!</div>
-            <h2 className="modal-title" style={{ color: '#f87171' }}>Warning {tabSwitches} of 3</h2>
-            <p className="modal-subtitle">You navigated away from the exam tab. This action has been logged. If you do this 3 times, your exam will automatically end and submit for malpractice.</p>
+            <h2 className="modal-title" style={{ color: '#f87171' }}>Warning {strikes.current} of 3</h2>
+            <p className="modal-subtitle">You navigated away from the exam. This action is logged. On the 3rd attempt, your exam will auto-submit.</p>
             <button className="btn btn-primary" onClick={() => setShowWarning(false)}>Return to Exam</button>
           </div>
         </div>
@@ -211,7 +230,7 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
         </div>
       </div>
 
-      <div className="exam-body">
+      <div className="exam-body" style={{ userSelect: 'none' }}> {/* Disables text selection */}
         {q.section && <div className="exam-section-badge">{q.section}</div>}
         <p className="exam-question">{q.question_text}</p>
         <p style={{ fontSize: '0.8rem', color: 'var(--gold-light)', marginBottom: '1.5rem' }}>[{q.marks} Mark(s)]</p>
