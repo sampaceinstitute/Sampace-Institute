@@ -32,6 +32,7 @@ import AdminExamsPage from './pages/AdminExamsPage.jsx'
 import AdminExamEditorPage from './pages/AdminExamEditorPage.jsx'
 import StudentExamsPage from './pages/StudentExamsPage.jsx'
 import StudentExamTakingPage from './pages/StudentExamTakingPage.jsx'
+import StudentInboxPage from './pages/StudentInboxPage.jsx'
 import AdminGradingPage from './pages/AdminGradingPage.jsx'
 import AdminGradingDetailPage from './pages/AdminGradingDetailPage.jsx'
 import StudentResultsPage from './pages/StudentResultsPage.jsx'
@@ -74,6 +75,7 @@ function parseRoute(pathname) {
   if (parts[0] === 'dashboard') return { route: 'dashboard' }
   if (parts[0] === 'student' && parts[1] === 'exams') { if (parts[2]) return { route: 'studentExamTaking', id: parts[2] }; return { route: 'studentExams' } }
   if (parts[0] === 'student' && parts[1] === 'results') return { route: 'studentResults' }
+  if (parts[0] === 'student' && parts[1] === 'inbox') return { route: 'studentInbox' }
   if (parts[0] === 'admin') {
     if (parts[1] === 'users') return { route: 'adminUsers' }
     if (parts[1] === 'payments') return { route: 'adminPayments' }
