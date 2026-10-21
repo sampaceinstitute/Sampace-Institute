@@ -34,6 +34,9 @@ export default function StudentResultDetailPage({ id, onNavigate }) {
 
       <div className="page-header">
         <div className="badge"><span className="badge-dot" />Result Breakdown</div>
+        <span className="badge" style={{ fontSize: '0.7rem', background: 'var(--gold)', color: 'var(--navy)', marginBottom: '0.5rem' }}>
+  {attempt?.exams?.exam_type?.toUpperCase() || 'EXAM'}
+</span>
         <h1 className="page-title">{attempt?.exams?.title}</h1>
         <p className="page-subtitle">
           Final Score: <strong style={{ color: 'var(--gold-light)', fontSize: '1.2rem' }}>{attempt?.score} / {attempt?.exams?.total_marks}</strong>
