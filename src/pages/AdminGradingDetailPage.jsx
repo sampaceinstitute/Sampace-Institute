@@ -8,9 +8,6 @@ export default function AdminGradingDetailPage({ id, onNavigate }) {
   const [loading, setLoading] = useState(true)
   const [savingId, setSavingId] = useState(null)
 
-  // Track manual marks input
-  const [manualMarks, setManualMarks] = useState({})
-
   const loadData = async () => {
     const { data: att } = await supabase
       .from('exam_attempts')
@@ -33,33 +30,17 @@ export default function AdminGradingDetailPage({ id, onNavigate }) {
   const handleGrade = async (answerId, questionId, isCorrect, marks) => {
     setSavingId(answerId)
 
-    // 1. Update the answer record in the database
-    await supabase
-      .from('exam_answers')
-      .update({ is_correct: isCorrect })
-      .eq('id', answerId)
-
-    // 2. Add the new marks to the total score
+    await supabase.from('exam_answers').update({ is_correct: isCorrect }).eq('id', answerId)
+    
     const currentScore = attempt.score || 0
     const newScore = isCorrect ? currentScore + marks : currentScore
+    await supabase.from('exam_attempts').update({ score: newScore }).eq('id', id)
 
-    await supabase
-      .from('exam_attempts')
-      .update({ score: newScore })
-      .eq('id', id)
-
-    // 3. Update the LOCAL state so the buttons disappear immediately
-    setAnswers(prevAnswers => 
-      prevAnswers.map(ans => 
-        ans.id === answerId ? { ...ans, is_correct: isCorrect } : ans
-      )
-    )
-    
-    // 4. Update the local attempt score
+    setAnswers(prevAnswers => prevAnswers.map(ans => ans.id === answerId ? { ...ans, is_correct: isCorrect } : ans))
     setAttempt({ ...attempt, score: newScore })
     setSavingId(null)
   }
-  
+
   if (loading) return <main className="loading-state"><div className="loading-spinner" /></main>
 
   return (
@@ -70,18 +51,23 @@ export default function AdminGradingDetailPage({ id, onNavigate }) {
         <div className="badge"><span className="badge-dot" />Grading</div>
         <h1 className="page-title">{attempt?.profiles?.full_name}</h1>
         <p className="page-subtitle">{attempt?.exams?.title} · Current Score: {attempt?.score}</p>
-            <div className="page-header">
-        <div className="badge"><span className="badge-dot" />Grading</div>
-        <h1 className="page-title">{attempt?.profiles?.full_name}</h1>
-        <p className="page-subtitle">{attempt?.exams?.title} · Current Score: {attempt?.score}</p>
         
-        {/* PROCTORING ALERTS */}
+        {/* PROCTORING EVIDENCE ALERTS */}
         {attempt?.metadata?.tab_switches > 0 && (
-          <div className="auth-error" style={{ marginTop: '1rem', background: 'rgba(248, 113, 113, 0.1)', borderColor: '#f87171' }}>
-            ⚠️ <strong>Proctoring Alert:</strong> This student navigated away from the exam tab {attempt.metadata.tab_switches} time(s).
+          <div style={{ marginTop: '1.5rem', background: 'rgba(248, 113, 113, 0.1)', border: '1px solid #f87171', padding: '1rem', borderRadius: '12px' }}>
+            <p style={{ color: '#f87171', fontWeight: 'bold' }}>⚠️ Malpractice Alert: Left tab {attempt.metadata.tab_switches} times.</p>
+            
+            {attempt.metadata.snapshots?.length > 0 && (
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+                {attempt.metadata.snapshots.map((url, i) => (
+                  <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                    <img src={url} alt="Snapshot Evidence" style={{ width: '100px', height: '75px', objectFit: 'cover', borderRadius: '8px', border: '2px solid #fff' }} />
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
         )}
-      </div>
       </div>
 
       <div className="my-list">
@@ -99,14 +85,12 @@ export default function AdminGradingDetailPage({ id, onNavigate }) {
                 <p style={{ color: 'var(--gold-light)', marginTop: '0.5rem' }}>{ans.answer_text || '(Blank)'}</p>
               </div>
 
-              {/* Show correct answer only for auto-graded questions */}
               {!isTheory && (
                 <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: ans.is_correct ? '#4ade80' : '#f87171' }}>
                   {ans.is_correct ? '✓ Auto-graded: Correct' : `✗ Auto-graded: Incorrect (Correct: ${q.correct_answer})`}
                 </p>
               )}
 
-              {/* Theory Grading Interface */}
               {isTheory && (
                 <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
                   <p style={{ fontSize: '0.85rem', color: 'var(--text-soft)', marginBottom: '1rem' }}>
