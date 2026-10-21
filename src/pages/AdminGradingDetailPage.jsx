@@ -70,6 +70,18 @@ export default function AdminGradingDetailPage({ id, onNavigate }) {
         <div className="badge"><span className="badge-dot" />Grading</div>
         <h1 className="page-title">{attempt?.profiles?.full_name}</h1>
         <p className="page-subtitle">{attempt?.exams?.title} · Current Score: {attempt?.score}</p>
+            <div className="page-header">
+        <div className="badge"><span className="badge-dot" />Grading</div>
+        <h1 className="page-title">{attempt?.profiles?.full_name}</h1>
+        <p className="page-subtitle">{attempt?.exams?.title} · Current Score: {attempt?.score}</p>
+        
+        {/* PROCTORING ALERTS */}
+        {attempt?.metadata?.tab_switches > 0 && (
+          <div className="auth-error" style={{ marginTop: '1rem', background: 'rgba(248, 113, 113, 0.1)', borderColor: '#f87171' }}>
+            ⚠️ <strong>Proctoring Alert:</strong> This student navigated away from the exam tab {attempt.metadata.tab_switches} time(s).
+          </div>
+        )}
+      </div>
       </div>
 
       <div className="my-list">
