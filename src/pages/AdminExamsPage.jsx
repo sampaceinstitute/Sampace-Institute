@@ -11,13 +11,14 @@ export default function AdminExamsPage({ onNavigate }) {
   const [creating, setCreating] = useState(false)
   
   // Form state
-  const [form, setForm] = useState({ 
+    const [form, setForm] = useState({ 
     title: '', 
     description: '', 
     duration_minutes: 60,
     schoolId: '', 
     departmentId: '', 
-    courseId: '' 
+    courseId: '',
+    examType: 'exam' //
   })
 
   // Derived state for dropdowns
@@ -43,7 +44,7 @@ export default function AdminExamsPage({ onNavigate }) {
     
     setCreating(true)
 
-    const { data, error } = await supabase
+        const { data, error } = await supabase
       .from('exams')
       .insert({
         title: form.title,
@@ -52,6 +53,7 @@ export default function AdminExamsPage({ onNavigate }) {
         school_id: form.schoolId,
         department_id: form.departmentId,
         course_id: form.courseId,
+        exam_type: form.examType, //
         created_by: user.id,
         status: 'draft'
       })
@@ -105,6 +107,18 @@ export default function AdminExamsPage({ onNavigate }) {
               </select>
             </label>
 
+            <label className="form-field">
+              <span>Assessment Type *</span>
+              <select required value={form.examType} onChange={e => setForm({...form, examType: e.target.value})}>
+                <option value="exam">Final Exam</option>
+                <option value="test">Test</option>
+                <option value="midterm">Mid-Term Test</option>
+                <option value="assignment">Assignment</option>
+                <option value="classwork">Classwork</option>
+                <option value="project">Project</option>
+              </select>
+            </label>
+  
             <label className="form-field">
               <span>Exam Title *</span>
               <input type="text" required value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="e.g. Mid-Term Test" />
