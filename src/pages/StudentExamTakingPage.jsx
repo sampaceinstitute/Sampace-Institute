@@ -9,7 +9,6 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
   const [questions, setQuestions] = useState([])
   const [loading, setLoading] = useState(true)
   
-  // Exam state
   const [currentIdx, setCurrentIdx] = useState(0)
   const [answers, setAnswers] = useState({})
   const [timeLeft, setTimeLeft] = useState(null)
@@ -22,7 +21,6 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
   const [tabSwitches, setTabSwitches] = useState(0)
   const [showWarning, setShowWarning] = useState(false)
 
-  // 1. Load Exam and Request Camera
   useEffect(() => {
     const load = async () => {
       const { data: ex } = await supabase.from('exams').select('*').eq('id', id).single()
@@ -35,13 +33,10 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
     }
     load()
 
-    // Request Camera Access
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices.getUserMedia({ video: true, audio: true })
         .then(stream => {
-          if (videoRef.current) {
-            videoRef.current.srcObject = stream
-          }
+          if (videoRef.current) videoRef.current.srcObject = stream
         })
         .catch(err => {
           console.warn("Camera access denied:", err)
@@ -50,19 +45,25 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
     }
   }, [id])
 
-  // 2. Tab Switch Detection
+  // Tab Switch Detection (3 Strikes Rule)
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && !result) {
-        setTabSwitches(prev => prev + 1)
-        setShowWarning(true)
+        const newCount = tabSwitches + 1
+        setTabSwitches(newCount)
+        
+        if (newCount >= 3) {
+          alert("You have left the exam tab 3 times. Your exam is being submitted automatically for malpractice.")
+          handleSubmit(true)
+        } else {
+          setShowWarning(true)
+        }
       }
     }
     document.addEventListener("visibilitychange", handleVisibilityChange)
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange)
-  }, [result])
+  }, [result, tabSwitches]) // added tabSwitches to deps
 
-  // 3. Timer
   useEffect(() => {
     if (timeLeft === null || result) return
     if (timeLeft <= 0) {
@@ -79,9 +80,8 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
 
   const handleSubmit = async (autoSubmit = false) => {
     if (!autoSubmit) {
-      if (!window.confirm("Are you sure you want to submit your exam?")) return
+      if (!window.confirm("Are you sure you want to submit?")) return
     }
-
     setSubmitting(true)
 
     try {
@@ -93,7 +93,8 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
         user_id: user.id,
         status: 'completed',
         completed_at: new Date().toISOString(),
-        score: 0
+        score: 0,
+        metadata: { tab_switches: tabSwitches } // This will now work because we added the SQL column
       })
       if (attemptErr) throw new Error("Attempt Error: " + attemptErr.message)
 
@@ -125,13 +126,7 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
       const { error: ansErr } = await supabase.from('exam_answers').insert(finalAnswers)
       if (ansErr) throw new Error("Answers Error: " + ansErr.message)
 
-      const { error: updateErr } = await supabase.from('exam_attempts').update({ 
-        score: autoScore,
-        metadata: { tab_switches: tabSwitches } // Save proctoring flags to DB
-      }).eq('id', attemptId)
-      
-      // Note: If metadata column doesn't exist yet, we will add it via SQL next step
-      
+      const { error: updateErr } = await supabase.from('exam_attempts').update({ score: autoScore }).eq('id', attemptId)
       if (updateErr) throw new Error("Update Score Error: " + updateErr.message)
 
       setResult({ score: autoScore, totalMarks: totalPossibleMarks, pending: pendingManualCount })
@@ -164,7 +159,7 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
           </div>
           {result.pending > 0 && (
             <div className="auth-error" style={{ background: 'rgba(201, 162, 39, 0.1)', color: 'var(--gold-light)', borderColor: 'var(--gold)' }}>
-              ⚠️ {result.pending} Theory question(s) are pending manual review by your instructor.
+              ⚠️ {result.pending} Theory question(s) are pending manual review.
             </div>
           )}
           <button className="btn btn-primary" onClick={() => onNavigate('studentExams')} style={{ marginTop: '2rem' }}>
@@ -179,13 +174,13 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
 
   return (
     <main className="admin-apps-page">
-      {/* PROCTORING WARNING MODAL */}
+      {/* 3 STRIKES WARNING */}
       {showWarning && (
         <div className="modal-overlay">
           <div className="modal-content" style={{ maxWidth: '400px', textAlign: 'center' }}>
             <div className="success-icon" style={{ background: 'rgba(248, 113, 113, 0.15)', color: '#f87171', borderColor: '#f87171' }}>!</div>
-            <h2 className="modal-title" style={{ color: '#f87171' }}>Warning!</h2>
-            <p className="modal-subtitle">You navigated away from the exam tab. This action has been logged and will be reported to your instructor.</p>
+            <h2 className="modal-title" style={{ color: '#f87171' }}>Warning {tabSwitches} of 3</h2>
+            <p className="modal-subtitle">You navigated away from the exam tab. This action has been logged. If you do this 3 times, your exam will automatically end and submit for malpractice.</p>
             <button className="btn btn-primary" onClick={() => setShowWarning(false)}>Return to Exam</button>
           </div>
         </div>
@@ -194,14 +189,15 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
       <div className="exam-header" style={{ position: 'relative' }}>
         <div>
           <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-             <span className="badge" style={{ background: 'var(--gold)', color: 'var(--navy)' }}>{exam.exam_type?.toUpperCase() || 'EXAM'}</span>
+             <span className="badge" style={{ background: 'var(--gold)', color: 'var(--navy)' }}>
+                {exam.exam_type?.toUpperCase() || 'EXAM'}
+             </span>
           </div>
           <h2 className="exam-title">{exam.title}</h2>
           <p style={{ color: 'var(--text-soft)', fontSize: '0.85rem' }}>Question {currentIdx + 1} of {questions.length}</p>
         </div>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          {/* WEBCAM FEED */}
           <div style={{ width: '100px', height: '75px', background: '#000', borderRadius: '8px', overflow: 'hidden', border: '2px solid #4ade80' }}>
              {cameraError ? (
                 <div style={{ color: '#f87171', fontSize: '0.6rem', padding: '0.5rem', textAlign: 'center' }}>Cam Blocked</div>
