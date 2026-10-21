@@ -62,6 +62,9 @@ export default function StudentResultsPage({ onNavigate }) {
                   SCORE: {res.score} / {res.exams?.total_marks || '—'}
                 </div>
               </div>
+              <span className="badge" style={{ fontSize: '0.6rem', background: 'rgba(255,255,255,0.1)', marginBottom: '0.5rem' }}>
+  {res.exams?.exam_type?.toUpperCase() || 'EXAM'}
+</span>
               <h3 className="my-card-title">{res.exams?.title}</h3>
               
               {res.score === 0 && (
