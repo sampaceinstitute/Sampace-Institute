@@ -178,7 +178,21 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
 
   const formatTime = (seconds) => `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, '0')}`
 
-  if (loading) return <main className="loading-state"><div className="loading-spinner" /></main>
+    // 🛑 BLOCK MOBILE/TABLET USERS
+  if (window.innerWidth < 1024) {
+    return (
+      <main className="apply-page">
+        <div className="apply-success">
+          <div className="success-icon" style={{ background: 'rgba(248, 113, 113, 0.1)', color: '#f87171', borderColor: '#f87171' }}>💻</div>
+          <h1 className="page-title">Desktop Required</h1>
+          <p className="page-subtitle">This exam is locked to desktop and laptop computers to prevent malpractice. Please log in from a computer to begin your test.</p>
+          <button className="btn btn-outline" onClick={() => onNavigate('studentExams')} style={{ marginTop: '2rem' }}>
+            Back to Exams
+          </button>
+        </div>
+      </main>
+    )
+  }
   if (scheduleError) return (
     <main className="apply-page"><div className="apply-success"><div className="success-icon" style={{background:'rgba(248,113,113,0.1)', color:'#f87171', borderColor:'#f87171'}}>!</div><h1 className="page-title">Access Denied</h1><p className="page-subtitle">{scheduleError}</p><button className="btn btn-primary" onClick={() => onNavigate('studentExams')} style={{ marginTop: '2rem' }}>Back to Exams</button></div></main>
   )
