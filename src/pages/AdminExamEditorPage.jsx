@@ -67,17 +67,26 @@ export default function AdminExamEditorPage({ id, onNavigate }) {
   }
 
   const handleSaveExamSettings = async () => {
-    setSavingExam(true)
-    await supabase.from('exams').update({
-      title: examTitle,
-      start_time: startTime ? new Date(startTime).toISOString() : null,
-      end_time: endTime ? new Date(endTime).toISOString() : null
-    }).eq('id', id)
-    alert('Exam settings saved!')
-    loadExam()
-    setSavingExam(false)
+  setSavingExam(true)
+  
+  // Ensure dates are converted properly to ISO strings for Supabase
+  const payload = {
+    title: examTitle,
+    start_time: startTime ? new Date(startTime).toISOString() : null,
+    end_time: endTime ? new Date(endTime).toISOString() : null
   }
 
+  const { error } = await supabase.from('exams').update(payload).eq('id', id)
+  
+  if (error) {
+    alert("Error saving schedule: " + error.message)
+  } else {
+    alert('Exam settings saved! If an end time is set, students will be locked out after it passes.')
+    loadExam()
+  }
+  setSavingExam(false)
+  }
+  
   const handleAddQuestion = async (e) => {
     e.preventDefault()
     setSaving(true)
