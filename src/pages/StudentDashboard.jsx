@@ -116,6 +116,11 @@ export default function StudentDashboard({ onNavigate, isNewUser }) {
   <div className="dashboard-action-title">CBT Exams</div>
   <div className="dashboard-action-desc">Take available tests</div>
 </button>
+          <button className="dashboard-action-card" onClick={() => onNavigate('studentInbox')}>
+  <div className="dashboard-action-icon">📩</div>
+  <div className="dashboard-action-title">My Inbox</div>
+  <div className="dashboard-action-desc">Messages & announcements</div>
+</button>
           <button className="dashboard-action-card" onClick={() => onNavigate('studentResults')}>
   <div className="dashboard-action-icon">📊</div>
   <div className="dashboard-action-title">My Results</div>
