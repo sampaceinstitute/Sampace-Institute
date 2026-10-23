@@ -10,18 +10,11 @@ export default function AdminExamsPage({ onNavigate }) {
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
   
-  // Form state
-    const [form, setForm] = useState({ 
-    title: '', 
-    description: '', 
-    duration_minutes: 60,
-    schoolId: '', 
-    departmentId: '', 
-    courseId: '',
-    examType: 'exam' //
+  const [form, setForm] = useState({ 
+    title: '', description: '', duration_minutes: 60,
+    schoolId: '', departmentId: '', courseId: '', examType: 'exam'
   })
 
-  // Derived state for dropdowns
   const selectedSchool = ALL_DIVISIONS.find(d => d.id === form.schoolId)
   const departments = selectedSchool?.departments || []
   const selectedDept = departments.find(d => d.id === form.departmentId)
@@ -35,16 +28,12 @@ export default function AdminExamsPage({ onNavigate }) {
 
   useEffect(() => { loadExams() }, [])
 
-  const handleSchoolChange = (id) => setForm(prev => ({ ...prev, schoolId: id, departmentId: '', courseId: '' }))
-  const handleDeptChange = (id) => setForm(prev => ({ ...prev, departmentId: id, courseId: '' }))
-
   const handleCreateExam = async (e) => {
     e.preventDefault()
     if (!form.courseId) return alert("Please select a course to link this exam to.")
-    
     setCreating(true)
 
-        const { data, error } = await supabase
+    const { data, error } = await supabase
       .from('exams')
       .insert({
         title: form.title,
@@ -53,7 +42,7 @@ export default function AdminExamsPage({ onNavigate }) {
         school_id: form.schoolId,
         department_id: form.departmentId,
         course_id: form.courseId,
-        exam_type: form.examType, //
+        exam_type: form.examType, // <-- THIS FIXES THE BADGE
         created_by: user.id,
         status: 'draft'
       })
@@ -68,6 +57,12 @@ export default function AdminExamsPage({ onNavigate }) {
     setCreating(false)
   }
 
+  const handleDeleteExam = async (id, title) => {
+    if (!window.confirm(`Are you sure you want to permanently delete "${title}" and all its student submissions?`)) return
+    await supabase.from('exams').delete().eq('id', id)
+    loadExams()
+  }
+
   return (
     <main className="admin-apps-page">
       <button className="back-button" onClick={() => onNavigate('dashboard')}>← Back to Dashboard</button>
@@ -75,7 +70,7 @@ export default function AdminExamsPage({ onNavigate }) {
       <div className="page-header">
         <div className="badge"><span className="badge-dot" />Admin · CBT</div>
         <h1 className="page-title">Exam Manager</h1>
-        <p className="page-subtitle">Create and link tests to specific courses.</p>
+        <p className="page-subtitle">Create, link, and manage tests.</p>
       </div>
 
       <div className="contact-layout">
@@ -85,7 +80,7 @@ export default function AdminExamsPage({ onNavigate }) {
             
             <label className="form-field">
               <span>School / Division *</span>
-              <select required value={form.schoolId} onChange={e => handleSchoolChange(e.target.value)}>
+              <select required value={form.schoolId} onChange={e => setForm({...form, schoolId: e.target.value, departmentId: '', courseId: ''})}>
                 <option value="">Select School</option>
                 {ALL_DIVISIONS.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
               </select>
@@ -93,7 +88,7 @@ export default function AdminExamsPage({ onNavigate }) {
 
             <label className="form-field">
               <span>Department *</span>
-              <select required disabled={!form.schoolId} value={form.departmentId} onChange={e => handleDeptChange(e.target.value)}>
+              <select required disabled={!form.schoolId} value={form.departmentId} onChange={e => setForm({...form, departmentId: e.target.value, courseId: ''})}>
                 <option value="">Select Department</option>
                 {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
               </select>
@@ -118,7 +113,7 @@ export default function AdminExamsPage({ onNavigate }) {
                 <option value="project">Project</option>
               </select>
             </label>
-  
+
             <label className="form-field">
               <span>Exam Title *</span>
               <input type="text" required value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="e.g. Mid-Term Test" />
@@ -140,13 +135,22 @@ export default function AdminExamsPage({ onNavigate }) {
           ) : (
             <div className="admin-users-scroll">
               {exams.map(ex => (
-                <button key={ex.id} className="admin-user-row" onClick={() => onNavigate({ route: 'adminExamEditor', id: ex.id })}>
-                  <div className="admin-user-row-avatar">📝</div>
-                  <div className="admin-user-row-info">
-                    <div className="admin-user-row-name">{ex.title}</div>
-                    <div className="admin-user-row-email">{ex.course_id || 'No course linked'} · {ex.status.toUpperCase()}</div>
+                <div key={ex.id} className="admin-user-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'default' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, cursor: 'pointer' }} onClick={() => onNavigate({ route: 'adminExamEditor', id: ex.id })}>
+                    <div className="admin-user-row-avatar">📝</div>
+                    <div className="admin-user-row-info">
+                      <div className="admin-user-row-name">{ex.title}</div>
+                      <div className="admin-user-row-email">{ex.exam_type?.toUpperCase()} · {ex.status.toUpperCase()}</div>
+                    </div>
                   </div>
-                </button>
+                  <button 
+                    onClick={() => handleDeleteExam(ex.id, ex.title)}
+                    style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid #f87171', color: '#f87171', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer' }}
+                    title="Delete Exam"
+                  >
+                    🗑️
+                  </button>
+                </div>
               ))}
             </div>
           )}
@@ -154,4 +158,4 @@ export default function AdminExamsPage({ onNavigate }) {
       </div>
     </main>
   )
-}
+                  }
