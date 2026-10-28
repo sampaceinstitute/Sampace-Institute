@@ -6,6 +6,7 @@ export default function AdminExamEditorPage({ id, onNavigate }) {
   const [exam, setExam] = useState(null)
   const [questions, setQuestions] = useState([])
   const [loading, setLoading] = useState(true)
+  const [desktopOnly, setDesktopOnly] = useState(false)
   
   // Question form state
   const [editingId, setEditingId] = useState(null)
@@ -29,6 +30,7 @@ export default function AdminExamEditorPage({ id, onNavigate }) {
     
     setExam(examData)
     setExamTitle(examData.title)
+    setDesktopOnly(examData.desktop_only || false) // Add this
     
     // Format dates for datetime-local input (YYYY-MM-DDThh:mm)
     if (examData.start_time) setStartTime(new Date(examData.start_time).toISOString().slice(0, 16))
@@ -70,11 +72,12 @@ export default function AdminExamEditorPage({ id, onNavigate }) {
   setSavingExam(true)
   
   // Ensure dates are converted properly to ISO strings for Supabase
-  const payload = {
-    title: examTitle,
-    start_time: startTime ? new Date(startTime).toISOString() : null,
-    end_time: endTime ? new Date(endTime).toISOString() : null
-  }
+      const payload = {
+      title: examTitle,
+      start_time: startTime ? new Date(startTime).toISOString() : null,
+      end_time: endTime ? new Date(endTime).toISOString() : null,
+      desktop_only: desktopOnly // Add this
+    }
 
   const { error } = await supabase.from('exams').update(payload).eq('id', id)
   
