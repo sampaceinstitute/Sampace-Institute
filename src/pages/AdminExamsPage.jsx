@@ -55,7 +55,8 @@ export default function AdminExamsPage({ onNavigate }) {
     setCreating(false)
   }
 
-  const handleDeleteExam = async (id, title) => {
+  const handleDeleteExam = async (e, id, title) => {
+    e.stopPropagation() // Prevents clicking the row from firing
     if (!window.confirm(`Delete "${title}" permanently? All student submissions will be lost.`)) return
     await supabase.from('exams').delete().eq('id', id)
     loadExams()
@@ -127,7 +128,12 @@ export default function AdminExamsPage({ onNavigate }) {
           ) : (
             <div className="admin-users-scroll">
               {exams.map(ex => (
-                <div key={ex.id} className="admin-user-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div 
+                  key={ex.id} 
+                  className="admin-user-row" 
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+                  onClick={() => onNavigate({ route: 'adminExamEditor', id: ex.id })} // Clicking the row goes to Editor
+                >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
                     <div className="admin-user-row-avatar">📝</div>
                     <div className="admin-user-row-info">
@@ -137,8 +143,18 @@ export default function AdminExamsPage({ onNavigate }) {
                   </div>
                   
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button onClick={() => onNavigate({ route: 'adminExamView', id: ex.id })} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid var(--border)', color: '#fff', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer' }}>👁️ View</button>
-                    <button onClick={() => handleDeleteExam(ex.id, ex.title)} style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid #f87171', color: '#f87171', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer' }}>🗑️</button>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); onNavigate({ route: 'adminExamView', id: ex.id }); }} 
+                      style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid var(--border)', color: '#fff', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer' }}
+                    >
+                      👁️ View
+                    </button>
+                    <button 
+                      onClick={(e) => handleDeleteExam(e, ex.id, ex.title)} 
+                      style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid #f87171', color: '#f87171', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer' }}
+                    >
+                      🗑️
+                    </button>
                   </div>
                 </div>
               ))}
