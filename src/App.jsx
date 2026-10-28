@@ -35,6 +35,7 @@ import StudentExamTakingPage from './pages/StudentExamTakingPage.jsx'
 import StudentInboxPage from './pages/StudentInboxPage.jsx'
 import AdminGradingPage from './pages/AdminGradingPage.jsx'
 import AdminGradingDetailPage from './pages/AdminGradingDetailPage.jsx'
+import AdminExamViewPage from './pages/AdminExamViewPage.jsx'
 import StudentResultsPage from './pages/StudentResultsPage.jsx'
 import StudentResultDetailPage from './pages/StudentResultDetailPage.jsx'
 import WalletPage from './pages/WalletPage.jsx'
@@ -82,6 +83,7 @@ function parseRoute(pathname) {
     if (parts[1] === 'analytics') return { route: 'adminAnalytics' }
     if (parts[1] === 'messages') return { route: 'adminMessages' }
     if (parts[1] === 'exams') { if (parts[2]) return { route: 'adminExamEditor', id: parts[2] }; return { route: 'adminExams' } }
+    if (parts[1] === 'exams' && parts[2] && parts[3] === 'view') return { route: 'adminExamView', id: parts[2] }
     if (parts[1] === 'grading') { 
   if (parts[2]) return { route: 'adminGradingDetail', id: parts[2] }
   return { route: 'adminGrading' } 
@@ -125,6 +127,7 @@ function buildPath(routeObj) {
     case 'adminMessages': return '/admin/messages'
     case 'adminExams': return '/admin/exams'
     case 'adminExamEditor': return `/admin/exams/${routeObj.id}`
+    case 'adminExamView': return/admin/exams/${routeObj.id}/view``
     case 'studentExams': return '/student/exams'
     case 'studentExamTaking': return `/student/exams/${routeObj.id}`
     case 'studentResults': return '/student/results'
@@ -235,6 +238,8 @@ export default function App() {
   return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminExamsPage onNavigate={navigate} /></ProtectedRoute>
 case 'adminExamEditor':
   return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminExamEditorPage id={routeObj.id} onNavigate={navigate} /></ProtectedRoute>
+      case 'adminExamView':
+  return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminExamViewPage id={routeObj.id} onNavigate={navigate} /></ProtectedRoute>
       case 'studentExams':
   return <ProtectedRoute onNavigate={navigate}><StudentExamsPage onNavigate={navigate} /></ProtectedRoute>
 case 'studentExamTaking':
