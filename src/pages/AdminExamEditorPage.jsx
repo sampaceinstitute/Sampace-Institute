@@ -47,7 +47,7 @@ export default function AdminExamEditorPage({ id, onNavigate }) {
 
   useEffect(() => { loadExam() }, [id])
 
-  const handleSaveExamSettings = async () => {
+    const handleSaveExamSettings = async () => {
     setSavingExam(true)
     
     const payload = {
@@ -67,7 +67,7 @@ export default function AdminExamEditorPage({ id, onNavigate }) {
     }
     setSavingExam(false)
   }
-
+  
   const handleAddQuestion = async (e) => {
     e.preventDefault()
     setSaving(true)
