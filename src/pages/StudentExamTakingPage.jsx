@@ -25,7 +25,15 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
 
   useEffect(() => {
     const load = async () => {
-      const { data: ex } = await supabase.from('exams').select('*').eq('id', id).single()
+      // Fetch Exam
+      const { data: ex, error: exError } = await supabase.from('exams').select('*').eq('id', id).single()
+      
+      // 🛑 BUG FIX: If exam doesn't exist, stop loading gracefully
+      if (exError || !ex) {
+        setScheduleError('This exam could not be found. It may have been deleted.')
+        setLoading(false)
+        return
+      }
       
       // 🛑 ENFORCE EXAM SCHEDULE
       const now = new Date().getTime()
@@ -46,7 +54,6 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
       setExam(ex)
       setQuestions(shuffledQs)
       
-      // If joining late, recalculate time left so they don't get full time
       let calculatedTime = ex.duration_minutes * 60
       if (ex.end_time) {
         const endTime = new Date(ex.end_time).getTime()
@@ -64,7 +71,6 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
         .catch(err => setCameraError(true))
     }
 
-    // Anti-Cheat
     const elem = document.documentElement;
     if (elem.requestFullscreen) elem.requestFullscreen().catch(() => {});
     const preventCopy = (e) => e.preventDefault();
@@ -79,7 +85,6 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
     }
   }, [id])
 
-  // 📸 SNAPSHOT FUNCTION
   const takeSnapshot = () => {
     if (!videoRef.current) return null
     const canvas = document.createElement('canvas')
@@ -94,8 +99,6 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
     const handleVisibilityChange = () => {
       if (document.hidden && !result && !submitting) {
         strikes.current += 1
-        
-        // Take Snapshot Evidence
         const imgData = takeSnapshot()
         if (imgData) setSnapshots(prev => [...prev, imgData])
 
@@ -130,9 +133,7 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
       const attemptId = crypto.randomUUID()
       let uploadedSnapshotUrls = []
 
-      // Upload snapshots to Supabase Storage
       for (const imgData of snapshots) {
-        const base64Data = imgData.split(',')[1]
         const blob = await (await fetch(imgData)).blob()
         const fileName = `${attemptId}/${Date.now()}.jpg`
         const { data } = await supabase.storage.from('proctoring_snapshots').upload(fileName, blob)
@@ -178,24 +179,27 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
 
   const formatTime = (seconds) => `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, '0')}`
 
-    // 🛑 BLOCK MOBILE/TABLET USERS
-  if (window.innerWidth < 1024) {
+  if (loading) return <main className="loading-state"><div className="loading-spinner" /></main>
+
+  // 🛑 SHOW SCHEDULE ERROR OR NOT FOUND
+  if (scheduleError) return (
+    <main className="apply-page"><div className="apply-success"><div className="success-icon" style={{background:'rgba(248,113,113,0.1)', color:'#f87171', borderColor:'#f87171'}}>!</div><h1 className="page-title">Access Denied</h1><p className="page-subtitle">{scheduleError}</p><button className="btn btn-primary" onClick={() => onNavigate('studentExams')} style={{ marginTop: '2rem' }}>Back to Exams</button></div></main>
+  )
+
+  // 🛑 CONDITIONAL DESKTOP BLOCK
+  if (exam.desktop_only && window.innerWidth < 1024) {
     return (
       <main className="apply-page">
         <div className="apply-success">
           <div className="success-icon" style={{ background: 'rgba(248, 113, 113, 0.1)', color: '#f87171', borderColor: '#f87171' }}>💻</div>
           <h1 className="page-title">Desktop Required</h1>
-          <p className="page-subtitle">This exam is locked to desktop and laptop computers to prevent malpractice. Please log in from a computer to begin your test.</p>
-          <button className="btn btn-outline" onClick={() => onNavigate('studentExams')} style={{ marginTop: '2rem' }}>
-            Back to Exams
-          </button>
+          <p className="page-subtitle">The instructor has locked this exam to desktop and laptop computers to prevent malpractice. Please log in from a computer to begin your test.</p>
+          <button className="btn btn-outline" onClick={() => onNavigate('studentExams')} style={{ marginTop: '2rem' }}>Back to Exams</button>
         </div>
       </main>
     )
   }
-  if (scheduleError) return (
-    <main className="apply-page"><div className="apply-success"><div className="success-icon" style={{background:'rgba(248,113,113,0.1)', color:'#f87171', borderColor:'#f87171'}}>!</div><h1 className="page-title">Access Denied</h1><p className="page-subtitle">{scheduleError}</p><button className="btn btn-primary" onClick={() => onNavigate('studentExams')} style={{ marginTop: '2rem' }}>Back to Exams</button></div></main>
-  )
+
   if (result) return (
     <main className="apply-page"><div className="apply-success"><div className="success-icon">✓</div><h1 className="page-title">Exam Completed!</h1><p className="page-subtitle">Your auto-graded score:</p><div style={{ fontSize: '3rem', fontWeight: 800, color: 'var(--gold-light)', margin: '1rem 0' }}>{result.score} / {result.totalMarks}</div>{result.pending > 0 && (<div className="auth-error" style={{ background: 'rgba(201, 162, 39, 0.1)', color: 'var(--gold-light)', borderColor: 'var(--gold)' }}>⚠️ {result.pending} Theory question(s) are pending manual review.</div>)}<button className="btn btn-primary" onClick={() => onNavigate('studentExams')} style={{ marginTop: '2rem' }}>Back to Exams</button></div></main>
   )
