@@ -49,14 +49,14 @@ export default function AdminExamEditorPage({ id, onNavigate }) {
 
   useEffect(() => { loadExam() }, [id])
 
-    const handleSaveExamSettings = async () => {
+      const handleSaveExamSettings = async () => {
     setSavingExam(true)
     
     const payload = {
       title: examTitle,
       start_time: startTime ? new Date(startTime).toISOString() : null,
-      end_time: endTime ? new Date(endTime).toISOString() : null,
-      require_face_id: requireFaceId
+      end_time: endTime ? new Date(endTime).toISOString() : null, // <-- COMMA HERE
+      require_face_id: requireFaceId,                             // <-- COMMA HERE
       desktop_only: desktopOnly
     }
 
