@@ -21,6 +21,7 @@ export default function AdminExamEditorPage({ id, onNavigate }) {
   const [startTime, setStartTime] = useState('')
   const [endTime, setEndTime] = useState('')
   const [desktopOnly, setDesktopOnly] = useState(false)
+  const [requireFaceId, setRequireFaceId] = useState(false)
   const [savingExam, setSavingExam] = useState(false)
 
   const loadExam = async () => {
@@ -29,6 +30,7 @@ export default function AdminExamEditorPage({ id, onNavigate }) {
     
     setExam(examData)
     setExamTitle(examData.title)
+    setRequireFaceId(examData.require_face_id || false)
     setDesktopOnly(examData.desktop_only || false)
     
     // Format dates properly for datetime-local input
@@ -54,6 +56,7 @@ export default function AdminExamEditorPage({ id, onNavigate }) {
       title: examTitle,
       start_time: startTime ? new Date(startTime).toISOString() : null,
       end_time: endTime ? new Date(endTime).toISOString() : null,
+      require_face_id: requireFaceId
       desktop_only: desktopOnly
     }
 
@@ -150,7 +153,11 @@ export default function AdminExamEditorPage({ id, onNavigate }) {
           <input type="checkbox" checked={desktopOnly} onChange={(e) => setDesktopOnly(e.target.checked)} style={{ width: '20px', height: '20px' }} />
           <span style={{ fontSize: '0.95rem' }}>💻 <strong>Require Desktop/Laptop</strong> <br/><span style={{ fontSize: '0.8rem', color: 'var(--text-soft)' }}>Block mobile and tablet users. Only check this for high-stakes exams.</span></span>
         </label>
-
+        <label className="auth-checkbox" style={{ marginTop: '0.5rem', background: 'rgba(255,255,255,0.05)', padding: '0.75rem', borderRadius: '8px' }}>
+          <input type="checkbox" checked={requireFaceId} onChange={(e) => setRequireFaceId(e.target.checked)} style={{ width: '20px', height: '20px' }} />
+          <span style={{ fontSize: '0.95rem' }}>📸 <strong>Require Face Verification</strong> <br/><span style={{ fontSize: '0.8rem', color: 'var(--text-soft)' }}>Student must take a baseline selfie before the timer starts.</span></span>
+        </label>
+        
         <button className="btn btn-outline" onClick={handleSaveExamSettings} disabled={savingExam} style={{ marginTop: '1.5rem', width: '100%' }}>
           {savingExam ? 'Saving...' : 'Save Schedule & Access Settings'}
         </button>
