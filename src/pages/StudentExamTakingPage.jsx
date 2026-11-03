@@ -305,7 +305,7 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
       <div className="exam-layout">
         {/* LEFT: Question Area */}
         <div className="exam-main-area">
-          <div className="exam-body" style={{ userSelect: 'none' }}>
+          <div className="exam-body">
             {q.section && <div className="exam-section-badge">{q.section}</div>}
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <p className="exam-question">{q.question_text}</p>
