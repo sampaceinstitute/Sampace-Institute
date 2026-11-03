@@ -29,32 +29,37 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
   const [isVerified, setIsVerified] = useState(false)
   const [capturingFace, setCapturingFace] = useState(false)
 
-  // Proctoring
+  // Proctoring & Camera
   const videoRef = useRef(null)
+  const streamRef = useRef(null) // <-- SAFE PLACE FOR THE CAMERA STREAM
   const [cameraError, setCameraError] = useState(false)
   const strikes = useRef(0)
   const [showWarning, setShowWarning] = useState(false)
   const [snapshots, setSnapshots] = useState([])
 
-  // 1. INITIALIZATION
+  // 1. INITIALIZATION & CAMERA SETUP
   useEffect(() => {
+    // Request Camera FIRST
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        .then(stream => {
+          streamRef.current = stream // Save stream
+          if (videoRef.current) videoRef.current.srcObject = stream
+        })
+        .catch(() => setCameraError(true))
+    }
+
     const initExam = async () => {
       const now = new Date().getTime()
-
       const { data: ex, error: exError } = await supabase.from('exams').select('*').eq('id', id).single()
-      if (exError || !ex) { setScheduleError('Exam not found.'); setLoading(false); return }
       
-      if (ex.start_time && now < new Date(ex.start_time).getTime()) {
-        setScheduleError(`Exam opens at ${new Date(ex.start_time).toLocaleString()}.`); setLoading(false); return
-      }
-      if (ex.end_time && now > new Date(ex.end_time).getTime()) {
-        setScheduleError('This exam has closed.'); setLoading(false); return
-      }
+      if (exError || !ex) { setScheduleError('Exam not found.'); setLoading(false); return }
+      if (ex.start_time && now < new Date(ex.start_time).getTime()) { setScheduleError(`Exam opens at ${new Date(ex.start_time).toLocaleString()}.`); setLoading(false); return }
+      if (ex.end_time && now > new Date(ex.end_time).getTime()) { setScheduleError('This exam has closed.'); setLoading(false); return }
       
       setExam(ex)
-      if (!ex.require_face_id) setIsVerified(true) // Skip if not required
+      if (!ex.require_face_id) setIsVerified(true)
 
-      // Fetch/Create Attempt
       let { data: existingAttempt } = await supabase.from('exam_attempts').select('*').eq('exam_id', id).eq('user_id', user.id).eq('status', 'in_progress').maybeSingle()
       let currentAttempt = existingAttempt
 
@@ -97,26 +102,30 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
     }
     initExam()
 
-    if (navigator.mediaDevices) {
-      navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-        .then(stream => { if (videoRef.current) videoRef.current.srcObject = stream })
-        .catch(() => setCameraError(true))
-    }
     if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
     const preventCopy = (e) => e.preventDefault();
     document.addEventListener('copy', preventCopy); document.addEventListener('paste', preventCopy); document.addEventListener('contextmenu', preventCopy);
     return () => {
       document.removeEventListener('copy', preventCopy); document.removeEventListener('paste', preventCopy); document.removeEventListener('contextmenu', preventCopy);
+      // Stop camera on unmount
+      if (streamRef.current) streamRef.current.getTracks().forEach(track => track.stop())
     }
   }, [id, user.id])
 
-  // 2. TAB SWITCH
+  // 2. BIND CAMERA TO VIDEO ELEMENT ON RE-RENDERS
+  useEffect(() => {
+    if (videoRef.current && streamRef.current && !videoRef.current.srcObject) {
+      videoRef.current.srcObject = streamRef.current
+    }
+  }) // Runs on every render
+
+  // 3. TAB SWITCH
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && !result && !submitting && attemptId && isVerified) {
         strikes.current += 1
-        const canvas = document.createElement('canvas')
-        if (videoRef.current) {
+        if (videoRef.current && streamRef.current) {
+          const canvas = document.createElement('canvas')
           canvas.width = videoRef.current.videoWidth; canvas.height = videoRef.current.videoHeight
           canvas.getContext('2d').drawImage(videoRef.current, 0, 0)
           setSnapshots(prev => [...prev, canvas.toDataURL('image/jpeg', 0.5)])
@@ -129,7 +138,7 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange)
   }, [result, submitting, attemptId, isVerified])
 
-  // 3. TIMER
+  // 4. TIMER
   useEffect(() => {
     if (timeLeft === null || result || scheduleError || !isVerified) return
     if (timeLeft <= 0) { handleSubmit(true); return }
@@ -137,7 +146,7 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
     return () => clearInterval(timer)
   }, [timeLeft, result, scheduleError, isVerified])
 
-  // 4. FACE VERIFICATION
+  // 5. FACE VERIFICATION
   const handleVerifyFace = async () => {
     if (!videoRef.current) return
     setCapturingFace(true)
@@ -147,7 +156,6 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
     canvas.getContext('2d').drawImage(videoRef.current, 0, 0)
     const imgData = canvas.toDataURL('image/jpeg', 0.6)
 
-    // Upload to storage
     const blob = await (await fetch(imgData)).blob()
     const fileName = `${attemptId}/face_id_${Date.now()}.jpg`
     await supabase.storage.from('proctoring_snapshots').upload(fileName, blob)
@@ -156,7 +164,7 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
     setCapturingFace(false)
   }
 
-  // 5. SAVE & SUBMIT
+  // 6. SAVE & SUBMIT
   const handleAnswer = async (qId, val) => {
     setAnswers(prev => ({ ...prev, [qId]: val }))
     await supabase.from('exam_answers').upsert({
@@ -211,6 +219,9 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
          }
       }
       setResult({ score: autoScore, totalMarks: totalPossibleMarks, pending: pendingManualCount })
+      
+      // Stop camera after submission
+      if (streamRef.current) streamRef.current.getTracks().forEach(track => track.stop())
     } catch (err) { alert(err.message || "Error") } finally { setSubmitting(false) }
   }
 
@@ -256,6 +267,7 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
           <p style={{ color: 'var(--text-soft)', fontSize: '0.85rem' }}>Question {currentIdx + 1} of {questions.length}</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          {/* THE VIDEO ELEMENT FOR THE EXAM SCREEN */}
           <div style={{ width: '80px', height: '60px', background: '#000', borderRadius: '8px', overflow: 'hidden', border: '2px solid #4ade80' }}>
              {!cameraError && <video ref={videoRef} autoPlay muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }} />}
           </div>
