@@ -14,8 +14,8 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
   
   // Attempt Data
   const [attemptId, setAttemptId] = useState(null)
-  const [answers, setAnswers] = useState({}) // { qId: 'answer' }
-  const [flags, setFlags] = useState({}) // { qId: true/false }
+  const [answers, setAnswers] = useState({})
+  const [flags, setFlags] = useState({})
   const [currentIdx, setCurrentIdx] = useState(0)
   
   // Timer & UI
@@ -24,6 +24,10 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
   const [result, setResult] = useState(null)
   const [showCalculator, setShowCalculator] = useState(false)
   const [calcValue, setCalcValue] = useState('')
+  
+  // Face Verification State
+  const [isVerified, setIsVerified] = useState(false)
+  const [capturingFace, setCapturingFace] = useState(false)
 
   // Proctoring
   const videoRef = useRef(null)
@@ -32,168 +36,131 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
   const [showWarning, setShowWarning] = useState(false)
   const [snapshots, setSnapshots] = useState([])
 
-  // 1. INITIALIZATION & RESUME LOGIC
+  // 1. INITIALIZATION
   useEffect(() => {
     const initExam = async () => {
       const now = new Date().getTime()
 
-      // Fetch Exam
       const { data: ex, error: exError } = await supabase.from('exams').select('*').eq('id', id).single()
       if (exError || !ex) { setScheduleError('Exam not found.'); setLoading(false); return }
       
-      // Schedule Check
       if (ex.start_time && now < new Date(ex.start_time).getTime()) {
-        setScheduleError(`Exam opens at ${new Date(ex.start_time).toLocaleString()}.`)
-        setLoading(false); return
+        setScheduleError(`Exam opens at ${new Date(ex.start_time).toLocaleString()}.`); setLoading(false); return
       }
       if (ex.end_time && now > new Date(ex.end_time).getTime()) {
-        setScheduleError('This exam has closed.')
-        setLoading(false); return
+        setScheduleError('This exam has closed.'); setLoading(false); return
       }
       
       setExam(ex)
+      if (!ex.require_face_id) setIsVerified(true) // Skip if not required
 
-      // Fetch or Create Attempt
-      let { data: existingAttempt } = await supabase
-        .from('exam_attempts')
-        .select('*')
-        .eq('exam_id', id)
-        .eq('user_id', user.id)
-        .eq('status', 'in_progress')
-        .maybeSingle()
-
+      // Fetch/Create Attempt
+      let { data: existingAttempt } = await supabase.from('exam_attempts').select('*').eq('exam_id', id).eq('user_id', user.id).eq('status', 'in_progress').maybeSingle()
       let currentAttempt = existingAttempt
 
       if (!currentAttempt) {
-        // Create new attempt if none exists
         const newId = crypto.randomUUID()
         const expectedEnd = new Date(now + ex.duration_minutes * 60000).toISOString()
-        
         const { data: newAttempt, error: createErr } = await supabase.from('exam_attempts').insert({
-          id: newId,
-          exam_id: id,
-          user_id: user.id,
-          status: 'in_progress',
-          started_at: new Date().toISOString(),
-          expected_end_time: expectedEnd,
+          id: newId, exam_id: id, user_id: user.id, status: 'in_progress',
+          started_at: new Date().toISOString(), expected_end_time: expectedEnd,
           metadata: { tab_switches: 0, snapshots: [] }
         }).select().single()
-
         if (createErr) { alert("Error starting exam: " + createErr.message); return }
         currentAttempt = newAttempt
       }
 
       setAttemptId(currentAttempt.id)
 
-      // Fetch existing answers (if resuming)
-      const { data: savedAnswers } = await supabase
-        .from('exam_answers')
-        .select('*')
-        .eq('attempt_id', currentAttempt.id)
-
-      const loadedAnswers = {}
-      const loadedFlags = {}
+      const { data: savedAnswers } = await supabase.from('exam_answers').select('*').eq('attempt_id', currentAttempt.id)
+      const loadedAnswers = {}; const loadedFlags = {}
       savedAnswers?.forEach(ans => {
         loadedAnswers[ans.question_id] = ans.answer_text
         if (ans.is_flagged) loadedFlags[ans.question_id] = true
       })
-      setAnswers(loadedAnswers)
-      setFlags(loadedFlags)
+      setAnswers(loadedAnswers); setFlags(loadedFlags)
 
-      // Fetch Questions
       const { data: qs } = await supabase.from('questions').select('*').eq('exam_id', id).order('created_at', { ascending: true })
-      
-      // Only shuffle for new attempts
-      const finalQs = existingAttempt ? qs : (qs || []).sort(() => Math.random() - 0.5)
-      setQuestions(finalQs)
+      setQuestions(existingAttempt ? qs : (qs || []).sort(() => Math.random() - 0.5))
 
-      // Calculate Time Left
       const expectedEnd = new Date(currentAttempt.expected_end_time).getTime()
       const nowTime = new Date().getTime()
       let remainingSeconds = Math.floor((expectedEnd - nowTime) / 1000)
-
-      // If exam end time is sooner than expectedEnd, cap the timer
       if (ex.end_time) {
         const globalEnd = new Date(ex.end_time).getTime()
         const timeUntilGlobalEnd = Math.floor((globalEnd - nowTime) / 1000)
         if (timeUntilGlobalEnd < remainingSeconds) remainingSeconds = timeUntilGlobalEnd
       }
 
-      if (remainingSeconds <= 0) {
-        handleSubmit(true) // Time already ran out while they were offline
-      } else {
-        setTimeLeft(remainingSeconds)
-      }
-      
+      if (remainingSeconds <= 0) { handleSubmit(true) } else { setTimeLeft(remainingSeconds) }
       setLoading(false)
     }
     initExam()
 
-    // Proctoring & Anti-Cheat
     if (navigator.mediaDevices) {
       navigator.mediaDevices.getUserMedia({ video: true, audio: true })
         .then(stream => { if (videoRef.current) videoRef.current.srcObject = stream })
         .catch(() => setCameraError(true))
     }
     if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
-    
     const preventCopy = (e) => e.preventDefault();
-    document.addEventListener('copy', preventCopy);
-    document.addEventListener('paste', preventCopy);
-    document.addEventListener('contextmenu', preventCopy);
-
+    document.addEventListener('copy', preventCopy); document.addEventListener('paste', preventCopy); document.addEventListener('contextmenu', preventCopy);
     return () => {
-      document.removeEventListener('copy', preventCopy);
-      document.removeEventListener('paste', preventCopy);
-      document.removeEventListener('contextmenu', preventCopy);
+      document.removeEventListener('copy', preventCopy); document.removeEventListener('paste', preventCopy); document.removeEventListener('contextmenu', preventCopy);
     }
   }, [id, user.id])
 
-  // 2. TAB SWITCH DETECTION
+  // 2. TAB SWITCH
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden && !result && !submitting && attemptId) {
+      if (document.hidden && !result && !submitting && attemptId && isVerified) {
         strikes.current += 1
-        
         const canvas = document.createElement('canvas')
         if (videoRef.current) {
-          canvas.width = videoRef.current.videoWidth
-          canvas.height = videoRef.current.videoHeight
+          canvas.width = videoRef.current.videoWidth; canvas.height = videoRef.current.videoHeight
           canvas.getContext('2d').drawImage(videoRef.current, 0, 0)
-          const imgData = canvas.toDataURL('image/jpeg', 0.5)
-          setSnapshots(prev => [...prev, imgData])
+          setSnapshots(prev => [...prev, canvas.toDataURL('image/jpeg', 0.5)])
         }
-
-        if (strikes.current >= 3) {
-          alert("You have left the exam tab 3 times. Your exam is being submitted.")
-          handleSubmit(true)
-        } else {
-          setShowWarning(true)
-        }
+        if (strikes.current >= 3) { alert("You have left the tab 3 times. Exam submitted."); handleSubmit(true) } 
+        else { setShowWarning(true) }
       }
     }
     document.addEventListener("visibilitychange", handleVisibilityChange)
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange)
-  }, [result, submitting, attemptId])
+  }, [result, submitting, attemptId, isVerified])
 
   // 3. TIMER
   useEffect(() => {
-    if (timeLeft === null || result || scheduleError) return
+    if (timeLeft === null || result || scheduleError || !isVerified) return
     if (timeLeft <= 0) { handleSubmit(true); return }
     const timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000)
     return () => clearInterval(timer)
-  }, [timeLeft, result, scheduleError])
+  }, [timeLeft, result, scheduleError, isVerified])
 
-  // 4. AUTO-SAVE LOGIC
+  // 4. FACE VERIFICATION
+  const handleVerifyFace = async () => {
+    if (!videoRef.current) return
+    setCapturingFace(true)
+    
+    const canvas = document.createElement('canvas')
+    canvas.width = videoRef.current.videoWidth; canvas.height = videoRef.current.videoHeight
+    canvas.getContext('2d').drawImage(videoRef.current, 0, 0)
+    const imgData = canvas.toDataURL('image/jpeg', 0.6)
+
+    // Upload to storage
+    const blob = await (await fetch(imgData)).blob()
+    const fileName = `${attemptId}/face_id_${Date.now()}.jpg`
+    await supabase.storage.from('proctoring_snapshots').upload(fileName, blob)
+    
+    setIsVerified(true)
+    setCapturingFace(false)
+  }
+
+  // 5. SAVE & SUBMIT
   const handleAnswer = async (qId, val) => {
     setAnswers(prev => ({ ...prev, [qId]: val }))
-    
-    // Save to DB immediately (Upsert)
     await supabase.from('exam_answers').upsert({
-      attempt_id: attemptId,
-      question_id: qId,
-      answer_text: val,
-      is_flagged: flags[qId] || false
+      attempt_id: attemptId, question_id: qId, answer_text: val, is_flagged: flags[qId] || false
     }, { onConflict: 'attempt_id,question_id' })
   }
 
@@ -201,22 +168,14 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
     const qId = questions[currentIdx].id
     const newFlagState = !flags[qId]
     setFlags(prev => ({ ...prev, [qId]: newFlagState }))
-    
     await supabase.from('exam_answers').upsert({
-      attempt_id: attemptId,
-      question_id: qId,
-      answer_text: answers[qId] || '',
-      is_flagged: newFlagState
+      attempt_id: attemptId, question_id: qId, answer_text: answers[qId] || '', is_flagged: newFlagState
     }, { onConflict: 'attempt_id,question_id' })
   }
 
-  // 5. SUBMIT EXAM
   const handleSubmit = async (autoSubmit = false) => {
-    if (!autoSubmit) {
-      if (!window.confirm("Are you sure you want to submit?")) return
-    }
+    if (!autoSubmit && !window.confirm("Are you sure you want to submit?")) return
     setSubmitting(true)
-
     try {
       let uploadedSnapshotUrls = []
       for (const imgData of snapshots) {
@@ -230,7 +189,6 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
       }
 
       let autoScore = 0; let pendingManualCount = 0; let totalPossibleMarks = 0
-      
       questions.forEach(q => {
         totalPossibleMarks += q.marks
         const studentAns = answers[q.id] || ''
@@ -238,43 +196,49 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
         if (q.type === 'mcq' || q.type === 'gap') {
           isCorrect = studentAns.toLowerCase().trim() === (q.correct_answer || '').toLowerCase().trim()
           if (isCorrect) autoScore += q.marks
-        } else if (studentAns.trim() !== '') {
-          pendingManualCount++
-        }
+        } else if (studentAns.trim() !== '') { pendingManualCount++ }
       })
 
-      // Update Attempt Record
       await supabase.from('exam_attempts').update({ 
-        status: 'completed',
-        completed_at: new Date().toISOString(),
-        score: autoScore,
+        status: 'completed', completed_at: new Date().toISOString(), score: autoScore,
         metadata: { tab_switches: strikes.current, snapshots: uploadedSnapshotUrls }
       }).eq('id', attemptId)
 
-      // Update Auto-graded answers
       for (const q of questions) {
          if (q.type === 'mcq' || q.type === 'gap') {
             const isCorrect = (answers[q.id] || '').toLowerCase().trim() === (q.correct_answer || '').toLowerCase().trim()
             await supabase.from('exam_answers').update({ is_correct: isCorrect }).eq('attempt_id', attemptId).eq('question_id', q.id)
          }
       }
-
       setResult({ score: autoScore, totalMarks: totalPossibleMarks, pending: pendingManualCount })
-
-    } catch (err) {
-      alert(err.message || "An error occurred while submitting.")
-    } finally { setSubmitting(false) }
-  }
-
-  // CALCULATOR LOGIC
-  const calculate = () => {
-    try { setCalcValue(String(eval(calcValue))) } catch { setCalcValue('Error') }
+    } catch (err) { alert(err.message || "Error") } finally { setSubmitting(false) }
   }
 
   const formatTime = (seconds) => `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, '0')}`
 
   if (loading) return <main className="loading-state"><div className="loading-spinner" /></main>
   if (scheduleError) return <main className="apply-page"><div className="apply-success"><h1>Access Denied</h1><p>{scheduleError}</p><button className="btn btn-primary" onClick={() => onNavigate('studentExams')}>Back</button></div></main>
+  
+  // --- FACE VERIFICATION SCREEN ---
+  if (!isVerified) {
+    return (
+      <main className="apply-page">
+        <div className="apply-success" style={{ maxWidth: '500px' }}>
+          <h1 className="page-title">Identity Verification</h1>
+          <p className="page-subtitle" style={{ marginBottom: '1.5rem' }}>Please look directly at the camera. This photo will be used to verify your identity during this exam.</p>
+          
+          <div style={{ width: '200px', height: '150px', margin: '0 auto 1.5rem', background: '#000', borderRadius: '12px', overflow: 'hidden', border: '3px solid var(--gold)' }}>
+            <video ref={videoRef} autoPlay muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }} />
+          </div>
+          
+          <button className="btn btn-primary" onClick={handleVerifyFace} disabled={capturingFace}>
+            {capturingFace ? 'Capturing...' : 'Capture & Start Exam'}
+          </button>
+        </div>
+      </main>
+    )
+  }
+
   if (result) return <main className="apply-page"><div className="apply-success"><h1>Exam Completed!</h1><p>Auto-graded score:</p><div style={{ fontSize: '3rem', color: 'var(--gold)' }}>{result.score} / {result.totalMarks}</div><button className="btn btn-primary" onClick={() => onNavigate('studentExams')}>Back to Exams</button></div></main>
 
   const q = questions[currentIdx]
@@ -285,14 +249,12 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
         <div className="modal-overlay"><div className="modal-content" style={{ maxWidth: '400px', textAlign: 'center' }}><h2 className="modal-title" style={{ color: '#f87171' }}>Warning {strikes.current} of 3</h2><p className="modal-subtitle">You navigated away. A snapshot was logged. On the 3rd attempt, your exam auto-submits.</p><button className="btn btn-primary" onClick={() => setShowWarning(false)}>Return to Exam</button></div></div>
       )}
 
-      {/* HEADER */}
-      <div className="exam-header" style={{ position: 'relative' }}>
+      <div className="exam-header">
         <div>
           <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}><span className="badge" style={{ background: 'var(--gold)', color: 'var(--navy)' }}>{exam.exam_type?.toUpperCase()}</span></div>
           <h2 className="exam-title">{exam.title}</h2>
           <p style={{ color: 'var(--text-soft)', fontSize: '0.85rem' }}>Question {currentIdx + 1} of {questions.length}</p>
         </div>
-        
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <div style={{ width: '80px', height: '60px', background: '#000', borderRadius: '8px', overflow: 'hidden', border: '2px solid #4ade80' }}>
              {!cameraError && <video ref={videoRef} autoPlay muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }} />}
@@ -301,9 +263,7 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
         </div>
       </div>
 
-      {/* MAIN BODY: 2 Columns */}
       <div className="exam-layout">
-        {/* LEFT: Question Area */}
         <div className="exam-main-area">
           <div className="exam-body">
             {q.section && <div className="exam-section-badge">{q.section}</div>}
@@ -348,7 +308,6 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
           </div>
         </div>
 
-        {/* RIGHT: Question Grid & Tools */}
         <div className="exam-sidebar">
           {showCalculator && (
             <div className="calculator">
@@ -356,7 +315,7 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
               <div className="calc-buttons">
                 {['7','8','9','/','4','5','6','*','1','2','3','-','0','.','=','+'].map(btn => (
                   <button key={btn} onClick={() => {
-                    if (btn === '=') calculate();
+                    if (btn === '=') { try { setCalcValue(String(eval(calcValue))) } catch { setCalcValue('Error') } }
                     else setCalcValue(prev => prev + btn);
                   }} className="calc-btn">{btn}</button>
                 ))}
@@ -364,10 +323,7 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
               </div>
             </div>
           )}
-
-          <div className="exam-tools">
-             <button className="btn btn-outline" onClick={() => setShowCalculator(!showCalculator)}>🧮 Calculator</button>
-          </div>
+          <div className="exam-tools"><button className="btn btn-outline" onClick={() => setShowCalculator(!showCalculator)}>🧮 Calculator</button></div>
 
           <h3 style={{ marginTop: '1.5rem', marginBottom: '1rem', fontSize: '1rem', color: 'var(--gold-light)' }}>Question Grid</h3>
           <div className="question-grid">
@@ -375,22 +331,10 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
               let status = 'unanswered'
               if (answers[qq.id]) status = 'answered'
               if (flags[qq.id]) status = 'flagged'
-              
               return (
-                <button 
-                  key={qq.id} 
-                  className={`grid-btn ${status} ${i === currentIdx ? 'current' : ''}`}
-                  onClick={() => setCurrentIdx(i)}
-                >
-                  {i + 1}
-                </button>
+                <button key={qq.id} className={`grid-btn ${status} ${i === currentIdx ? 'current' : ''}`} onClick={() => setCurrentIdx(i)}>{i + 1}</button>
               )
             })}
-          </div>
-          <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', fontSize: '0.7rem', color: 'var(--text-soft)' }}>
-             <div>⬛ Answered</div>
-             <div>⬜ Unanswered</div>
-             <div>🚩 Flagged</div>
           </div>
         </div>
       </div>
