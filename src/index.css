@@ -5224,3 +5224,249 @@ button { font-family: inherit; cursor: pointer; }
   .exam-layout { grid-template-columns: 1fr; }
   .exam-sidebar { order: -1; } /* Puts grid on top for mobile */
 }
+
+/* ============================================================
+   PROFESSIONAL CBT ENGINE UI (PREMIUM OVERHAUL)
+   ============================================================ */
+
+/* Fix the exam page layout */
+.exam-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 1.5rem;
+  align-items: start;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* Sticky Header for the Exam */
+.exam-header {
+  background: rgba(10, 31, 68, 0.95) !important;
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid rgba(201, 162, 39, 0.3);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  padding: 1rem 2rem !important;
+  border-radius: 0 0 16px 16px !important;
+  margin-bottom: 2rem;
+}
+
+/* The Question Container */
+.exam-main-area {
+  background: #0d2a5c !important;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  overflow: hidden;
+}
+
+.exam-body {
+  padding: 2.5rem !important;
+}
+
+.exam-question {
+  font-size: 1.4rem !important;
+  font-weight: 500;
+  line-height: 1.7;
+  color: #fff;
+  margin-bottom: 2rem;
+}
+
+/* Sleek Option Buttons */
+.exam-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.exam-option {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.exam-option:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(201, 162, 39, 0.4);
+}
+
+.exam-option.selected {
+  background: rgba(201, 162, 39, 0.15);
+  border-color: var(--gold);
+  box-shadow: 0 0 15px rgba(201, 162, 39, 0.1);
+}
+
+.exam-option input[type="radio"] {
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  outline: none;
+  display: grid;
+  place-content: center;
+  transition: all 0.2s ease;
+}
+
+.exam-option input[type="radio"]::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  transform: scale(0);
+  transition: 120ms transform ease-in-out;
+  background-color: var(--gold);
+}
+
+.exam-option input[type="radio"]:checked {
+  border-color: var(--gold);
+}
+
+.exam-option input[type="radio"]:checked::before {
+  transform: scale(1);
+}
+
+/* Timer UI */
+.exam-timer {
+  font-family: 'Courier New', monospace;
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.1);
+  padding: 0.5rem 1.25rem;
+  border-radius: 10px;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  box-shadow: 0 0 20px rgba(74, 222, 128, 0.15);
+}
+
+.exam-timer.timer-danger {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.15);
+  border-color: rgba(248, 113, 113, 0.4);
+  box-shadow: 0 0 20px rgba(248, 113, 113, 0.3);
+  animation: pulse-danger 1s infinite alternate;
+}
+
+@keyframes pulse-danger {
+  from { transform: scale(1); }
+  to { transform: scale(1.02); }
+}
+
+/* Sidebar & Question Grid */
+.exam-sidebar {
+  background: #0d2a5c;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  position: sticky;
+  top: 100px;
+}
+
+.question-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+}
+
+.grid-btn {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.03);
+  color: var(--text-soft);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.grid-btn:hover { background: rgba(255,255,255,0.1); }
+
+/* Answered = Green */
+.grid-btn.answered {
+  background: rgba(74, 222, 128, 0.15);
+  border-color: #4ade80;
+  color: #4ade80;
+}
+
+/* Flagged = Gold */
+.grid-btn.flagged {
+  background: rgba(201, 162, 39, 0.15);
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+/* Current = White Outline */
+.grid-btn.current {
+  box-shadow: 0 0 0 2px #fff;
+  transform: scale(1.1);
+  z-index: 10;
+}
+
+/* Calculator Premium Look */
+.calculator {
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  margin-bottom: 1rem;
+}
+
+.calc-screen {
+  background: #000;
+  color: #4ade80;
+  font-family: 'Courier New', monospace;
+  font-size: 1.5rem;
+  text-align: right;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  border: 1px solid #222;
+  overflow-x: auto;
+}
+
+.calc-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.calc-btn {
+  padding: 1rem;
+  background: #222;
+  border: none;
+  color: #fff;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+.calc-btn:active { transform: scale(0.95); }
+.calc-btn:hover { background: #333; }
+
+/* Mobile Adjustments */
+@media (max-width: 900px) {
+  .exam-layout { grid-template-columns: 1fr; padding: 0; }
+  .exam-header { border-radius: 0 !important; padding: 1rem !important; }
+  .exam-sidebar { position: static; order: -1; margin-bottom: 1rem; }
+  .exam-body { padding: 1.5rem !important; }
+  .exam-question { font-size: 1.2rem !important; }
+  .grid-btn { font-size: 0.9rem; }
+}
