@@ -708,13 +708,11 @@ export const NAV_LINKS = [
   { label: 'Home', route: 'home' },
   { label: 'Schools', route: 'schools' },
   { label: 'Courses', route: 'courses' },
+  { label: 'For Schools', route: 'forSchools' }, // <-- NEW B2B LINK
   { label: 'Events', route: 'events' },
   { label: 'Blog', route: 'blog' },
-  { label: 'FAQ', route: 'faq' },
-  { label: 'About', route: 'about' },
   { label: 'Contact', route: 'contact' }
 ]
-
 // ------------------------------------------------------------
 // STATS (for hero animation)
 // ------------------------------------------------------------
