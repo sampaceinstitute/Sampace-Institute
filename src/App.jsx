@@ -8,6 +8,7 @@ import DivisionPage from './pages/DivisionPage.jsx'
 import CoursesPage from './pages/CoursesPage.jsx'
 import AboutPage from './pages/AboutPage.jsx'
 import ContactPage from './pages/ContactPage.jsx'
+import ForSchoolsPage from './pages/ForSchoolsPage.jsx'
 import BlogPage from './pages/BlogPage.jsx'
 import BlogPostPage from './pages/BlogPostPage.jsx'
 import FAQPage from './pages/FAQPage.jsx'
@@ -55,6 +56,7 @@ function parseRoute(pathname) {
   if (parts[0] === 'courses') return { route: 'courses' }
   if (parts[0] === 'about') return { route: 'about' }
   if (parts[0] === 'contact') return { route: 'contact' }
+  if (parts[0] === 'for-schools') return { route: 'forSchools' }
   if (parts[0] === 'blog') {
     if (parts[1]) return { route: 'blogPost', slug: parts[1] }
     return { route: 'blog' }
@@ -117,6 +119,7 @@ function buildPath(routeObj) {
     case 'division': return `/schools/${routeObj.divisionId}`
     case 'courses': return '/courses'
     case 'about': return '/about'
+    case 'forSchools': return '/for-schools'
     case 'contact': return '/contact'
     case 'blog': return '/blog'
     case 'blogPost': return `/blog/${routeObj.slug}`
@@ -201,6 +204,7 @@ export default function App() {
       case 'division': return <DivisionPage division={findDivision(routeObj.divisionId)} onBack={() => navigate('schools')} />
       case 'courses': return <CoursesPage onNavigate={navigate} />
       case 'about': return <AboutPage />
+      case 'forSchools': return <ForSchoolsPage />
       case 'contact': return <ContactPage />
       case 'blog': return <BlogPage onNavigate={navigate} />
       case 'blogPost': return <BlogPostPage slug={routeObj.slug} onNavigate={navigate} />
