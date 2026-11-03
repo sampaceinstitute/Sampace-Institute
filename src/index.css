@@ -5470,3 +5470,8 @@ button { font-family: inherit; cursor: pointer; }
   .exam-question { font-size: 1.2rem !important; }
   .grid-btn { font-size: 0.9rem; }
 }
+
+::selection {
+  background: rgba(201, 162, 39, 0.4);
+  color: #fff;
+}
