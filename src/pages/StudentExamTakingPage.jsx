@@ -327,7 +327,7 @@ export default function StudentExamTakingPage({ id, onNavigate }) {
               <div className="calc-buttons">
                 {['7','8','9','/','4','5','6','*','1','2','3','-','0','.','=','+'].map(btn => (
                   <button key={btn} onClick={() => {
-                    if (btn === '=') { try { setCalcValue(String(eval(calcValue))) } catch { setCalcValue('Error') } }
+                    if (btn === '=') { try { setCalcValue(String(new Function('return ' + calcValue)())) } catch { setCalcValue('Error') } }
                     else setCalcValue(prev => prev + btn);
                   }} className="calc-btn">{btn}</button>
                 ))}
