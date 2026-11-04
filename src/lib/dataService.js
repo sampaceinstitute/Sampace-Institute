@@ -228,3 +228,20 @@ export function generateReference() {
   const random = Math.floor(10000 + Math.random() * 90000)
   return `SMP-${year}-${random}`
 }
+
+// Inside saveApplication({ ..., dynamicData })
+const { data, error } = await supabase
+  .from('applications')
+  .insert({
+    // ... existing fields ...
+    parent_name: dynamicData?.parent_name || null,
+    parent_phone: dynamicData?.parent_phone || null,
+    parent_occupation: dynamicData?.parent_occupation || null,
+    parent_address: dynamicData?.parent_address || null,
+    previous_school: dynamicData?.previous_school || null,
+    jamb_reg_number: dynamicData?.jamb_reg_number || null,
+    jamb_score: dynamicData?.jamb_score || null,
+    blood_group: dynamicData?.blood_group || null,
+    genotype: dynamicData?.genotype || null,
+    dynamic_answers: dynamicData || {}
+  })
