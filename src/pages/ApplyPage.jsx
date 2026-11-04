@@ -46,6 +46,10 @@ export default function ApplyPage() {
     setDynamicData({}) // Reset dynamic fields when school changes
   }
 
+   const handleDepartmentChange = (departmentId) => {
+    setForm((prev) => ({ ...prev, departmentId, course: '' }))
+  }
+  
   const selectedSchool = ALL_DIVISIONS.find((d) => d.id === form.schoolId) || null
   const formType = selectedSchool ? getFormType(selectedSchool.id) : null
   const dynamicFields = selectedSchool ? getDynamicFields(selectedSchool.id) : []
