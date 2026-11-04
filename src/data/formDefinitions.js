@@ -211,3 +211,30 @@ export function needsDepartment(formType) {
 export function needsCourse(formType) {
   return !formType.hideCourse
 }
+
+// Define dynamic fields per school type
+export const DYNAMIC_FORM_FIELDS = {
+  'basic-secondary': [
+    { id: 'parent_name', label: 'Parent/Guardian Full Name', type: 'text', required: true },
+    { id: 'parent_phone', label: 'Parent Phone Number', type: 'tel', required: true },
+    { id: 'parent_occupation', label: 'Parent Occupation', type: 'text' },
+    { id: 'parent_address', label: 'Residential Address', type: 'text' },
+    { id: 'previous_school', label: 'Previous School Attended', type: 'text' },
+    { id: 'blood_group', label: 'Blood Group', type: 'select', options: ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'] },
+    { id: 'genotype', label: 'Genotype', type: 'select', options: ['AA', 'AS', 'SS', 'AC'] }
+  ],
+  'open-university': [
+    { id: 'jamb_reg_number', label: 'JAMB Registration Number', type: 'text' },
+    { id: 'jamb_score', label: 'JAMB Score', type: 'number' },
+    { id: 'parent_name', label: 'Next of Kin Name', type: 'text', required: true },
+    { id: 'parent_phone', label: 'Next of Kin Phone', type: 'tel', required: true }
+  ],
+  'extramural-exam-hub': [
+    { id: 'parent_phone', label: 'Parent Phone (if under 18)', type: 'tel' },
+    { id: 'previous_school', label: 'Current School', type: 'text' }
+  ]
+}
+
+export function getDynamicFields(schoolId) {
+  return DYNAMIC_FORM_FIELDS[schoolId] || []
+}
