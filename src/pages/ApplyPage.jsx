@@ -21,7 +21,6 @@ export default function ApplyPage() {
   const [reference, setReference] = useState('')
   const [saving, setSaving] = useState(false)
 
-  // State for standard fields
   const [form, setForm] = useState({
     fullName: '', email: '', phone: '', gender: '',
     schoolId: '', level: '', classLevel: '', stream: '',
@@ -31,7 +30,6 @@ export default function ApplyPage() {
     motivation: ''
   })
 
-  // State for dynamic fields (Parent info, Blood group, JAMB, etc.)
   const [dynamicData, setDynamicData] = useState({})
 
   const updateField = (field, value) => setForm((prev) => ({ ...prev, [field]: value }))
@@ -43,18 +41,16 @@ export default function ApplyPage() {
       schoolId, level: '', classLevel: '', stream: '',
       serviceType: '', departmentId: '', course: '', additionalAnswer: ''
     }))
-    setDynamicData({}) // Reset dynamic fields when school changes
+    setDynamicData({})
   }
 
-   const handleDepartmentChange = (departmentId) => {
+  const handleDepartmentChange = (departmentId) => {
     setForm((prev) => ({ ...prev, departmentId, course: '' }))
   }
-  
+
   const selectedSchool = ALL_DIVISIONS.find((d) => d.id === form.schoolId) || null
   const formType = selectedSchool ? getFormType(selectedSchool.id) : null
   const dynamicFields = selectedSchool ? getDynamicFields(selectedSchool.id) : []
-  
-  // ... (Keep all the existing derived state: departments, courses, selectedLevel, etc.) ...
   const departments = selectedSchool?.departments || []
   const selectedDept = departments.find((d) => d.id === form.departmentId) || null
   const courses = selectedDept?.courses || []
@@ -64,7 +60,6 @@ export default function ApplyPage() {
 
   const canProceed = () => {
     if (step === 1) return form.fullName.trim() && form.email.includes('@') && form.phone.length >= 10
-    
     if (step === 2) {
       if (!form.schoolId || !formType) return false
       if (formType.type === 'school-admission') {
@@ -75,14 +70,11 @@ export default function ApplyPage() {
       } else {
         if (!form.departmentId || !form.course) return false
       }
-
-      // Check required dynamic fields for this step
       for (const field of dynamicFields) {
         if (field.required && !dynamicData[field.id]) return false
       }
       return true
     }
-
     if (step === 3) {
       if (formType && !needsAcademicStep(formType)) return true
       return !!form.qualification
@@ -108,39 +100,21 @@ export default function ApplyPage() {
     setReference(ref)
     const service = PROFESSIONAL_SERVICES.find((s) => s.id === form.serviceType)
 
-    // Save standard + dynamic fields to DB
     try {
       await saveApplication({
-        userId: user?.id || null,
-        reference: ref,
-        formType: formType?.type,
-        schoolId: form.schoolId,
-        schoolName: selectedSchool?.name,
-        departmentId: form.departmentId,
-        departmentName: selectedDept?.name,
-        course: form.course,
-        courseTitle: form.course,
-        level: selectedLevel?.label || form.level,
-        classLevel: form.classLevel,
-        stream: form.stream,
-        serviceType: form.serviceType,
-        serviceLabel: service?.label,
-        preferredMode: form.mode,
-        additionalAnswer: form.additionalAnswer,
-        applicantName: form.fullName,
-        email: form.email,
-        phone: form.phone,
-        gender: form.gender,
-        qualification: form.qualification,
-        schoolAttended: form.schoolAttended,
-        graduationYear: form.graduationYear,
-        motivation: form.motivation,
-        // Pass the dynamic JSON data
-        dynamicData: dynamicData 
+        userId: user?.id || null, reference: ref, formType: formType?.type,
+        schoolId: form.schoolId, schoolName: selectedSchool?.name,
+        departmentId: form.departmentId, departmentName: selectedDept?.name,
+        course: form.course, courseTitle: form.course,
+        level: selectedLevel?.label || form.level, classLevel: form.classLevel, stream: form.stream,
+        serviceType: form.serviceType, serviceLabel: service?.label,
+        preferredMode: form.mode, additionalAnswer: form.additionalAnswer,
+        applicantName: form.fullName, email: form.email, phone: form.phone, gender: form.gender,
+        qualification: form.qualification, schoolAttended: form.schoolAttended, graduationYear: form.graduationYear,
+        motivation: form.motivation, dynamicData: dynamicData
       })
     } catch (err) { console.warn(err) }
 
-    // WhatsApp logic (Build the message dynamically)
     let programmeDetails = ''
     if (formType?.type === 'school-admission') {
       programmeDetails = `🏫 Level: ${selectedLevel?.label}\n📚 Class: ${form.classLevel}\n` + (form.stream ? `🎯 Stream: ${form.stream}\n` : '')
@@ -177,7 +151,6 @@ export default function ApplyPage() {
     setDynamicData({})
   }
 
-  // ... (Keep the submitted success screen) ...
   if (submitted) {
     return (
       <main className="apply-page">
@@ -196,14 +169,12 @@ export default function ApplyPage() {
 
   return (
     <main className="apply-page">
-      {/* Progress Bar */}
       <div className="page-header">
         <div className="badge"><span className="badge-dot" />Step {step} of {formType && !needsAcademicStep(formType) ? 3 : 4}</div>
         <h1 className="page-title">Apply to SAMPACE</h1>
       </div>
 
       <form className="apply-form" onSubmit={handleSubmit}>
-        {/* STEP 1: PERSONAL INFO (Keep as is) */}
         {step === 1 && (
           <div className="apply-step">
             <h3 className="apply-step-title">Personal Information</h3>
@@ -216,7 +187,6 @@ export default function ApplyPage() {
           </div>
         )}
 
-        {/* STEP 2: PROGRAMME SELECTION + DYNAMIC FIELDS */}
         {step === 2 && (
           <div className="apply-step">
             <h3 className="apply-step-title">{step2Title}</h3>
@@ -229,7 +199,6 @@ export default function ApplyPage() {
                 </select>
               </label>
 
-              {/* Standard School Admission Logic */}
               {formType?.type === 'school-admission' && (
                 <>
                   <div className="form-field form-field-full">
@@ -265,7 +234,6 @@ export default function ApplyPage() {
                 </>
               )}
 
-              {/* Standard Department/Course Logic for other schools */}
               {formType && !['school-admission', 'service-request', 'consulting-request', 'research-request'].includes(formType.type) && (
                 <>
                   {needsDepartment(formType) && (
@@ -287,7 +255,6 @@ export default function ApplyPage() {
                 </>
               )}
 
-              {/* 🛑 NEW: RENDER DYNAMIC FIELDS HERE 🛑 */}
               {dynamicFields.length > 0 && (
                 <div className="form-field form-field-full" style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
                   <h4 style={{ color: 'var(--gold-light)', marginBottom: '1rem' }}>Additional Information</h4>
@@ -312,7 +279,6 @@ export default function ApplyPage() {
           </div>
         )}
 
-        {/* STEP 3 & 4 (Keep as is) */}
         {step === 3 && formType && needsAcademicStep(formType) && (
           <div className="apply-step">
             <h3 className="apply-step-title">Academic Background</h3>
@@ -345,7 +311,6 @@ export default function ApplyPage() {
               <div className="summary-row"><span>School:</span><strong>{selectedSchool?.name}</strong></div>
               {form.course && <div className="summary-row"><span>Course:</span><strong>{form.course}</strong></div>}
               
-              {/* Show dynamic data in summary */}
               {Object.entries(dynamicData).map(([key, val]) => {
                 const field = dynamicFields.find(f => f.id === key)
                 if (!val) return null
@@ -359,7 +324,6 @@ export default function ApplyPage() {
           </div>
         )}
 
-        {/* Navigation (Keep as is) */}
         <div className="apply-nav">
           {step > 1 && <button type="button" className="btn btn-outline" onClick={() => setStep(getPrevStep())}>← Back</button>}
           {step < 4 ? (
