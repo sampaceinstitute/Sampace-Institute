@@ -214,14 +214,21 @@ export function needsCourse(formType) {
 
 // Define dynamic fields per school type
 export const DYNAMIC_FORM_FIELDS = {
-  'basic-secondary': [
+  // Replace the 'basic-secondary' array with this:
+'basic-secondary': [
     { id: 'parent_name', label: 'Parent/Guardian Full Name', type: 'text', required: true },
     { id: 'parent_phone', label: 'Parent Phone Number', type: 'tel', required: true },
     { id: 'parent_occupation', label: 'Parent Occupation', type: 'text' },
     { id: 'parent_address', label: 'Residential Address', type: 'text' },
+    { id: 'country', label: 'Country', type: 'text', required: true },
+    { id: 'state_origin', label: 'State/Region of Origin', type: 'text', required: true },
+    { id: 'emergency_name', label: 'Emergency Contact Name', type: 'text', required: true },
+    { id: 'emergency_phone', label: 'Emergency Contact Phone', type: 'tel', required: true },
     { id: 'previous_school', label: 'Previous School Attended', type: 'text' },
     { id: 'blood_group', label: 'Blood Group', type: 'select', options: ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'] },
-    { id: 'genotype', label: 'Genotype', type: 'select', options: ['AA', 'AS', 'SS', 'AC'] }
+    { id: 'genotype', label: 'Genotype', type: 'select', options: ['AA', 'AS', 'SS', 'AC'] },
+    { id: 'student_passport', label: 'Student Passport Photograph (Upload)', type: 'file', required: true },
+    { id: 'parent_passport', label: 'Parent Passport Photograph (Upload)', type: 'file', required: true }
   ],
   'open-university': [
     { id: 'jamb_reg_number', label: 'JAMB Registration Number', type: 'text' },
