@@ -3,30 +3,30 @@ import React, { useState, useEffect } from 'react'
 const PERSONAS = [
   {
     id: 'student',
-    icon: '🎓',
+    image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=600&auto=format&fit=crop',
     title: 'I am a Student',
-    description: 'I want to pass JAMB, WAEC, or learn a new skill',
+    description: 'I want to pass JAMB, WAEC, or learn a new tech skill.',
     cta: 'Start Free Test'
   },
   {
     id: 'parent',
-    icon: '👨‍👩‍👧',
+    image: 'https://images.unsplash.com/photo-1609220136736-443140cffec6?q=80&w=600&auto=format&fit=crop',
     title: 'I am a Parent',
-    description: 'I want to track my child\'s progress and fees',
+    description: 'I want to track my child\'s academic progress and fees.',
     cta: 'View Child Portal'
   },
   {
     id: 'school',
-    icon: '🏫',
+    image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=600&auto=format&fit=crop',
     title: 'I own a School',
-    description: 'I want LMS, teacher training, or consulting',
+    description: 'I need a management system, LMS, or teacher training.',
     cta: 'Book a Demo'
   },
   {
     id: 'corporate',
-    icon: '🏢',
+    image: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=600&auto=format&fit=crop',
     title: 'I represent a Company',
-    description: 'I want to train staff or partner with SAMPACE',
+    description: 'I want to train staff or partner with SAMPACE.',
     cta: 'Talk to Sales'
   }
 ]
@@ -36,67 +36,59 @@ export default function PersonaRouter({ onNavigate }) {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    const saved = localStorage.getItem('sampace_persona')
-    if (saved) setSelected(saved)
-
     const timer = setTimeout(() => setVisible(true), 100)
     return () => clearTimeout(timer)
   }, [])
 
   const handleSelect = (persona) => {
     setSelected(persona.id)
-    localStorage.setItem('sampace_persona', persona.id)
   }
 
   const handleContinue = () => {
     if (!selected) return
-    const routes = {
-      student: 'schools',
-      parent: 'contact',
-      school: 'contact',
-      corporate: 'contact'
-    }
+    const routes = { student: 'schools', parent: 'contact', school: 'forSchools', corporate: 'contact' }
     onNavigate(routes[selected] || 'schools')
   }
 
   return (
-    <section className={`persona-router ${visible ? 'visible' : ''}`}>
-      <div className="persona-header">
-        <div className="badge">
-          <span className="badge-dot" />
+    <section style={{ opacity: visible ? 1 : 0, transition: 'opacity 0.8s ease' }}>
+      <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+        <div className="badge" style={{ background: '#ECFDF5', color: '#065F46', border: '1px solid #A7F3D0' }}>
+          <span className="badge-dot" style={{ background: '#10B981' }} />
           Personalise your experience
         </div>
-        <h2 className="section-title">Who are you?</h2>
-        <p className="section-subtitle">
-          Tell us who you are so we can show you exactly what matters.
+        <h2 className="section-title" style={{ fontFamily: 'Playfair Display, serif', fontSize: '2.5rem', color: '#064E3B', marginTop: '1rem' }}>
+          Who are you?
+        </h2>
+        <p className="section-subtitle" style={{ color: '#64748B', maxWidth: '600px', margin: '0 auto' }}>
+          Tell us who you are so we can show you exactly what matters to you.
         </p>
       </div>
 
       <div className="persona-grid">
         {PERSONAS.map((p) => (
-          <button
+          <div
             key={p.id}
-            className={`persona-card ${selected === p.id ? 'selected' : ''}`}
+            className="persona-card"
             onClick={() => handleSelect(p)}
+            style={{ borderColor: selected === p.id ? '#10B981' : '#E2E8F0', boxShadow: selected === p.id ? '0 0 0 2px #10B981' : 'none' }}
           >
-            <div className="persona-icon">{p.icon}</div>
-            <h3 className="persona-title">{p.title}</h3>
-            <p className="persona-description">{p.description}</p>
-            <div className="persona-cta">
-              {selected === p.id ? '✓ Selected' : p.cta}
+            <img src={p.image} alt={p.title} className="persona-image" />
+            <div className="persona-content">
+              <h3 className="persona-title">{p.title}</h3>
+              <p className="persona-desc">{p.description}</p>
+              <div className="persona-cta">
+                {selected === p.id ? '✓ Selected' : p.cta}
+              </div>
             </div>
-          </button>
+          </div>
         ))}
       </div>
 
       {selected && (
-        <div className="persona-continue">
-          <button className="btn btn-primary" onClick={handleContinue}>
-            Continue as {
-              PERSONAS.find((p) => p.id === selected)?.title.replace('I am ', '')
-              .replace('I own ', '').replace('I represent ', '')
-            }
-            <span className="btn-arrow">→</span>
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2.5rem', animation: 'fadeInUp 0.5s ease' }}>
+          <button className="btn-premium btn-premium-primary" onClick={handleContinue}>
+            Continue →
           </button>
         </div>
       )}
