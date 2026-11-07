@@ -44,7 +44,7 @@ export default function HomePage({ onNavigate }) {
           </h1>
           
           <p className="editorial-subtitle" style={{ marginTop: '1.5rem', marginBottom: '2.5rem' }}>
-            From Nursery to Space Law — SAMPACE manages 13 divisions, online, hybrid, and on-campus learners, and B2B institutions through a unified AI platform.
+            From Nursery to Space Law, SAMPACE manages 13 divisions, online, hybrid, and on-campus learners, and B2B institutions through a unified AI platform.
           </p>
 
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
