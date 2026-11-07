@@ -1,151 +1,6 @@
-import React, { useEffect, useState } from 'react'
-import Header from './components/Header.jsx'
-import Footer from './components/Footer.jsx'
-import SEOHelmet from './components/SEOHelmet.jsx'
-import HomePage from './pages/HomePage.jsx'
-import SchoolsPage from './pages/SchoolsPage.jsx'
-import DivisionPage from './pages/DivisionPage.jsx'
-import CoursesPage from './pages/CoursesPage.jsx'
-import AboutPage from './pages/AboutPage.jsx'
-import ContactPage from './pages/ContactPage.jsx'
-import ForSchoolsPage from './pages/ForSchoolsPage.jsx'
-import BlogPage from './pages/BlogPage.jsx'
-import BlogPostPage from './pages/BlogPostPage.jsx'
-import FAQPage from './pages/FAQPage.jsx'
-import NotFoundPage from './pages/NotFoundPage.jsx'
-import ApplyPage from './pages/ApplyPage.jsx'
-import EventsPage from './pages/EventsPage.jsx'
-import SuccessStoriesPage from './pages/SuccessStoriesPage.jsx'
-import PrivacyPage from './pages/PrivacyPage.jsx'
-import TermsPage from './pages/TermsPage.jsx'
-import LoginPage from './pages/LoginPage.jsx'
-import SignupPage from './pages/SignupPage.jsx'
-import ResetPasswordPage from './pages/ResetPasswordPage.jsx'
-import SetNewPasswordPage from './pages/SetNewPasswordPage.jsx'
-import ProfilePage from './pages/ProfilePage.jsx'
-import MyApplicationsPage from './pages/MyApplicationsPage.jsx'
-import AdminUsersPage from './pages/AdminUsersPage.jsx'
-import AdminApplicationsPage from './pages/AdminApplicationsPage.jsx'
-import AdminApplicationDetailPage from './pages/AdminApplicationDetailPage.jsx'
-import AdminAnalyticsPage from './pages/AdminAnalyticsPage.jsx'
-import WalletPage from './pages/WalletPage.jsx'
-import AdminPaymentsPage from './pages/AdminPaymentsPage.jsx'
-import AdminMessagesPage from './pages/AdminMessagesPage.jsx'
-import AdminExamsPage from './pages/AdminExamsPage.jsx'
-import AdminExamEditorPage from './pages/AdminExamEditorPage.jsx'
-import AdminExamViewPage from './pages/AdminExamViewPage.jsx' // <-- IMPORT THIS
-import StudentExamsPage from './pages/StudentExamsPage.jsx'
-import StudentExamTakingPage from './pages/StudentExamTakingPage.jsx'
-import StudentResultsPage from './pages/StudentResultsPage.jsx'
-import StudentResultDetailPage from './pages/StudentResultDetailPage.jsx'
-import StudentInboxPage from './pages/StudentInboxPage.jsx'
-import AdminGradingPage from './pages/AdminGradingPage.jsx'
-import AdminGradingDetailPage from './pages/AdminGradingDetailPage.jsx'
-import RoleAwareDashboard from './components/RoleAwareDashboard.jsx'
-import ProtectedRoute from './components/ProtectedRoute.jsx'
-import { findDivision } from './constants.js'
-
-function parseRoute(pathname) {
-  const parts = pathname.split('/').filter(Boolean)
-  if (parts.length === 0) return { route: 'home' }
-
-  if (parts[0] === 'schools') {
-    if (parts[1]) return { route: 'division', divisionId: parts[1] }
-    return { route: 'schools' }
-  }
-  if (parts[0] === 'courses') return { route: 'courses' }
-  if (parts[0] === 'about') return { route: 'about' }
-  if (parts[0] === 'contact') return { route: 'contact' }
-  if (parts[0] === 'for-schools') return { route: 'forSchools' }
-  if (parts[0] === 'blog') {
-    if (parts[1]) return { route: 'blogPost', slug: parts[1] }
-    return { route: 'blog' }
-  }
-  if (parts[0] === 'faq') return { route: 'faq' }
-  if (parts[0] === 'apply') return { route: 'apply' }
-  if (parts[0] === 'events') return { route: 'events' }
-  if (parts[0] === 'success-stories') return { route: 'successStories' }
-  if (parts[0] === 'privacy') return { route: 'privacy' }
-  if (parts[0] === 'terms') return { route: 'terms' }
-  if (parts[0] === 'login') return { route: 'login' }
-  if (parts[0] === 'signup') return { route: 'signup' }
-  if (parts[0] === 'reset-password') return { route: 'resetPassword' }
-  if (parts[0] === 'set-new-password') return { route: 'setNewPassword' }
-  if (parts[0] === 'profile') return { route: 'profile' }
-  if (parts[0] === 'my-applications') return { route: 'myApplications' }
-  if (parts[0] === 'wallet') return { route: 'wallet' }
-  if (parts[0] === 'dashboard') return { route: 'dashboard' }
-  
-  if (parts[0] === 'admin') {
-    if (parts[1] === 'users') return { route: 'adminUsers' }
-    if (parts[1] === 'payments') return { route: 'adminPayments' }
-    if (parts[1] === 'analytics') return { route: 'adminAnalytics' }
-    if (parts[1] === 'messages') return { route: 'adminMessages' }
-    if (parts[1] === 'applications') {
-      if (parts[2]) return { route: 'adminApplicationDetail', id: parts[2] }
-      return { route: 'adminApplications' }
-    }
-    if (parts[1] === 'exams') {
-      if (parts[2] && parts[3] === 'view') return { route: 'adminExamView', id: parts[2] }
-      if (parts[2]) return { route: 'adminExamEditor', id: parts[2] }
-      return { route: 'adminExams' }
-    }
-    if (parts[1] === 'grading') {
-      if (parts[2]) return { route: 'adminGradingDetail', id: parts[2] }
-      return { route: 'adminGrading' }
-    }
-  }
-
-  if (parts[0] === 'student') {
-    if (parts[1] === 'exams') {
-      if (parts[2]) return { route: 'studentExamTaking', id: parts[2] }
-      return { route: 'studentExams' }
-    }
-    if (parts[1] === 'results') {
-      if (parts[2]) return { route: 'studentResultDetail', id: parts[2] }
-      return { route: 'studentResults' }
-    }
-    if (parts[1] === 'inbox') return { route: 'studentInbox' }
-  }
-
-  return { route: 'notFound' }
-}
-
-function buildPath(routeObj) {
-  if (typeof routeObj === 'string') routeObj = { route: routeObj }
-  switch (routeObj.route) {
-    case 'home': return '/'
-    case 'schools': return '/schools'
-    case 'division': return `/schools/${routeObj.divisionId}`
-    case 'courses': return '/courses'
-    case 'about': return '/about'
-    case 'forSchools': return '/for-schools'
-    case 'contact': return '/contact'
-    case 'blog': return '/blog'
-    case 'blogPost': return `/blog/${routeObj.slug}`
-    case 'faq': return '/faq'
-    case 'apply': return '/apply'
-    case 'events': return '/events'
-    case 'successStories': return '/success-stories'
-    case 'privacy': return '/privacy'
-    case 'terms': return '/terms'
-    case 'login': return '/login'
-    case 'signup': return '/signup'
-    case 'resetPassword': return '/reset-password'
-    case 'setNewPassword': return '/set-new-password'
-    case 'profile': return '/profile'
-    case 'myApplications': return '/my-applications'
-    case 'wallet': return '/wallet'
-    case 'dashboard': return '/dashboard'
-    case 'adminUsers': return '/admin/users'
-    case 'adminPayments': return '/admin/payments'
-    case 'adminAnalytics': return '/admin/analytics'
-    case 'adminMessages': return '/admin/messages'
-    case 'adminExams': return '/admin/exams'
-    case 'adminExamView': return `/admin/exams/${routeObj.id}/view`
-    case 'adminExamEditor': return `/admin/exams/${routeObj.id}`
-    case 'adminGrading': return '/admin/grading'
-    case 'adminGradingDetail': return `/admin/grading/${routeObj.id}`
+    case 'adminResultTemplates': return '/admin/result-templates'
+    case 'adminResults': return '/admin/results'
+    case 'studentReportCard': return '/report-card'
     case 'adminApplications': return '/admin/applications'
     case 'adminApplicationDetail': return `/admin/applications/${routeObj.id}`
     case 'studentExams': return '/student/exams'
@@ -165,7 +20,9 @@ function getPageTitle(routeObj) {
     adminExams: `Exam Manager — ${base}`,
     adminExamView: `Exam Details — ${base}`,
     adminExamEditor: `Edit Exam — ${base}`,
-    // ... you can add others here
+    adminResultTemplates: `Result Templates — ${base}`,
+    adminResults: `Results Entry — ${base}`,
+    studentReportCard: `My Report Card — ${base}`
   }
   return map[routeObj.route] || base
 }
@@ -232,6 +89,9 @@ export default function App() {
       case 'adminExamEditor': return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminExamEditorPage id={routeObj.id} onNavigate={navigate} /></ProtectedRoute>
       case 'adminGrading': return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminGradingPage onNavigate={navigate} /></ProtectedRoute>
       case 'adminGradingDetail': return <ProtectedRoute onNavigate={navigate} requiredRoles={ADMIN_ROLES}><AdminGradingDetailPage id={routeObj.id} onNavigate={navigate} /></ProtectedRoute>
+      case 'adminResultTemplates': return <ProtectedRoute onNavigate={navigate} requiredRoles={['super_admin', 'admin']}><AdminResultTemplatesPage onNavigate={navigate} /></ProtectedRoute>
+      case 'adminResults': return <ProtectedRoute onNavigate={navigate} requiredRoles={['super_admin', 'admin', 'teacher']}><AdminResultsEntryPage onNavigate={navigate} /></ProtectedRoute>
+      case 'studentReportCard': return <ProtectedRoute onNavigate={navigate} requiredRoles={['student']}><StudentReportCardPage onNavigate={navigate} /></ProtectedRoute>
       case 'studentExams': return <ProtectedRoute onNavigate={navigate}><StudentExamsPage onNavigate={navigate} /></ProtectedRoute>
       case 'studentExamTaking': return <ProtectedRoute onNavigate={navigate}><StudentExamTakingPage id={routeObj.id} onNavigate={navigate} /></ProtectedRoute>
       case 'studentResults': return <ProtectedRoute onNavigate={navigate}><StudentResultsPage onNavigate={navigate} /></ProtectedRoute>
