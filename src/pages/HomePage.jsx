@@ -31,23 +31,23 @@ export default function HomePage({ onNavigate }) {
   return (
     <>
       <main className="hero-split">
-        <div style={{ textAlign: 'left' }}>
+        {/* LEFT SIDE: EDITORIAL TEXT */}
+        <div style={{ textAlign: 'left' }} className="animate-fade-up">
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 1rem', background: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: '100px', fontSize: '0.75rem', color: '#065F46', marginBottom: '2rem', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 600 }}>
             <span style={{ width: '6px', height: '6px', background: '#10B981', borderRadius: '50%' }}></span>
-            13 Academic Divisions
+            AI-Powered Educational Ecosystem
           </div>
           
           <h1 className="editorial-title">
-            Empowering <br />
-            <span style={{ color: 'var(--brand-accent)' }}>Learners.</span><br />
-            Building Futures.
+            The Operating System <br />
+            for <span style={{ color: 'var(--brand-accent)' }}>Modern Education.</span>
           </h1>
           
           <p className="editorial-subtitle" style={{ marginTop: '1.5rem', marginBottom: '2.5rem' }}>
-            From Nursery to Space Law — SAMPACE is a unified ecosystem of 13 divisions delivering world-class education online, on-campus, and virtually.
+            From Nursery to Space Law — SAMPACE manages 13 divisions, online, hybrid, and on-campus learners, and B2B institutions through a unified AI platform.
           </p>
 
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
             <button className="btn-premium btn-premium-primary" onClick={() => onNavigate('schools')}>
               Explore 13 Divisions
             </button>
@@ -56,20 +56,21 @@ export default function HomePage({ onNavigate }) {
             </button>
           </div>
 
-          <div style={{ display: 'flex', gap: '2.5rem', marginTop: '4rem', borderTop: '1px solid var(--border-dark)', paddingTop: '2rem' }}>
-            <div>
-              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '2rem', fontWeight: 700, color: 'var(--brand-primary)' }}>{count.learners.toLocaleString()}+</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', marginTop: '0.25rem' }}>Learners</div>
+          {/* Social Proof */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '3rem' }}>
+            <div style={{ display: 'flex' }}>
+              {[1,2,3,4].map(i => (
+                <img key={i} src={`https://i.pravatar.cc/100?img=${i+10}`} alt="User" style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #fff', marginLeft: i > 1 ? '-12px' : '0' }} />
+              ))}
             </div>
-            <div>
-              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '2rem', fontWeight: 700, color: 'var(--brand-primary)' }}>{count.courses}+</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', marginTop: '0.25rem' }}>Courses</div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+              Trusted by <strong>{count.learners.toLocaleString()}+</strong> learners<br />across {count.states} states.
             </div>
           </div>
         </div>
 
-        {/* Real Product Mockup */}
-        <div className="product-mockup-frame">
+        {/* RIGHT SIDE: REAL PRODUCT MOCKUP */}
+        <div className="product-mockup-frame animate-fade-up delay-1">
           <div className="mockup-header">
             <div className="mockup-dot" style={{ background: '#ef4444' }}></div>
             <div className="mockup-dot" style={{ background: '#f59e0b' }}></div>
@@ -77,32 +78,47 @@ export default function HomePage({ onNavigate }) {
             <div style={{ marginLeft: 'auto', fontSize: '0.65rem', color: 'var(--text-muted)' }}>admin.sampaceedu.com.ng</div>
           </div>
           
-          <div style={{ padding: '2rem', background: '#FFFFFF', color: '#1E293B' }}>
+          <div style={{ padding: '2rem', background: '#FFFFFF', color: '#0F172A' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
               <div>
-                <h3 style={{ fontFamily: 'var(--font-sans)', fontSize: '1.25rem', fontWeight: 700, margin: 0, color: '#064E3B' }}>Super Admin Dashboard</h3>
+                <h3 style={{ fontFamily: 'var(--font-sans)', fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#064E3B' }}>Super Admin Dashboard</h3>
                 <p style={{ fontSize: '0.8rem', color: '#64748B', margin: '0.25rem 0 0' }}>All Divisions Overview</p>
               </div>
-              <div style={{ background: '#ECFDF5', color: '#065F46', padding: '0.25rem 0.75rem', borderRadius: '100px', fontSize: '0.75rem', fontWeight: 700, height: 'fit-content' }}>Online</div>
+              <div style={{ background: '#ECFDF5', color: '#065F46', padding: '0.25rem 0.75rem', borderRadius: '100px', fontSize: '0.75rem', fontWeight: 700, height: 'fit-content' }}>Live</div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
               <div style={{ background: '#F8FAFC', padding: '1rem', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
                 <div style={{ fontSize: '0.7rem', color: '#64748B', textTransform: 'uppercase', fontWeight: 600 }}>Total Revenue</div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#064E3B', marginTop: '0.5rem' }}>₦4.2M</div>
               </div>
               <div style={{ background: '#F8FAFC', padding: '1rem', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
                 <div style={{ fontSize: '0.7rem', color: '#64748B', textTransform: 'uppercase', fontWeight: 600 }}>AI Alerts</div>
-                <div style={{ fontSize: '1rem', fontWeight: 700, color: '#D97706', marginTop: '0.5rem' }}>3 Fee Defaults Flagged</div>
+                <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#D97706', marginTop: '0.5rem' }}>3 Fee Defaults Flagged</div>
               </div>
+            </div>
+
+            <div style={{ background: '#F8FAFC', padding: '1rem', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#64748B', marginBottom: '0.5rem' }}>
+                  <span>Extramural Enrollment</span>
+                  <span style={{ color: '#10B981', fontWeight: 'bold' }}>+24%</span>
+               </div>
+               <div style={{ width: '100%', height: '6px', background: '#E2E8F0', borderRadius: '4px' }}>
+                  <div style={{ width: '75%', height: '100%', background: '#10B981', borderRadius: '4px' }}></div>
+               </div>
             </div>
           </div>
         </div>
       </main>
 
-      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 2rem' }}>
+      {/* PERSONA SECTION */}
+      <div style={{ background: '#FFFFFF', padding: '5rem 2rem', borderTop: '1px solid var(--border-light)' }}>
         <PersonaRouter onNavigate={onNavigate} />
-        <div id="diagnostic-section" style={{ marginTop: '4rem' }}><DiagnosticWidget /></div>
+      </div>
+
+      {/* DIAGNOSTIC & TESTIMONIALS */}
+      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '4rem 2rem' }}>
+        <div id="diagnostic-section" style={{ marginTop: '2rem' }}><DiagnosticWidget /></div>
         <div style={{ marginTop: '4rem' }}><Testimonials /></div>
         <div style={{ marginTop: '4rem' }}><WhatsAppBar /></div>
       </div>
