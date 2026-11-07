@@ -1,39 +1,12 @@
 // ============================================================
 // SAMPACE DYNAMIC FORM DEFINITIONS
-// Each division has its own form structure.
-// The ApplyPage reads these to decide what fields to show.
 // ============================================================
 
 export const SCHOOL_LEVELS = [
-  {
-    id: 'nursery',
-    label: 'Nursery School',
-    icon: '🍼',
-    description: 'Nursery 1 & 2',
-    classes: ['Nursery 1', 'Nursery 2']
-  },
-  {
-    id: 'primary',
-    label: 'Primary School',
-    icon: '📚',
-    description: 'Grade 1 – Grade 5',
-    classes: ['Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5']
-  },
-  {
-    id: 'jss',
-    label: 'Junior Secondary',
-    icon: '📖',
-    description: 'JSS 1 – JSS 3',
-    classes: ['JSS 1', 'JSS 2', 'JSS 3']
-  },
-  {
-    id: 'sss',
-    label: 'Senior Secondary',
-    icon: '🎓',
-    description: 'SSS 1 – SSS 3',
-    classes: ['SSS 1', 'SSS 2', 'SSS 3'],
-    streamRequired: true
-  }
+  { id: 'nursery', label: 'Nursery School', icon: '🍼', description: 'Nursery 1 & 2', classes: ['Nursery 1', 'Nursery 2'] },
+  { id: 'primary', label: 'Primary School', icon: '📚', description: 'Grade 1 – Grade 5', classes: ['Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5'] },
+  { id: 'jss', label: 'Junior Secondary', icon: '📖', description: 'JSS 1 – JSS 3', classes: ['JSS 1', 'JSS 2', 'JSS 3'] },
+  { id: 'sss', label: 'Senior Secondary', icon: '🎓', description: 'SSS 1 – SSS 3', classes: ['SSS 1', 'SSS 2', 'SSS 3'], streamRequired: true }
 ]
 
 export const SECONDARY_STREAMS = [
@@ -59,163 +32,31 @@ export const PROFESSIONAL_SERVICES = [
   { id: 'cac-registration', label: 'CAC / TIN Registration Support', icon: '📋' }
 ]
 
-// ============================================================
-// FORM TYPES PER DIVISION
-// ============================================================
 export const FORM_TYPES = {
-  'basic-secondary': {
-    type: 'school-admission',
-    label: {
-      step2Title: 'School Admission Details',
-      finalLabel: 'Class Level'
-    },
-    // Uses SCHOOL_LEVELS, SECONDARY_STREAMS
-    hideDepartment: true,
-    hideCourse: true
-  },
-  'extramural-exam-hub': {
-    type: 'exam-prep',
-    label: {
-      step2Title: 'Exam Preparation Details',
-      finalLabel: 'Course / Exam Prep Track'
-    },
-    // Uses Department + Course as normal
-    showExamYear: true
-  },
-  'technology-innovation': {
-    type: 'training',
-    label: {
-      step2Title: 'Course Selection',
-      finalLabel: 'Course'
-    },
-    additionalQuestion: {
-      id: 'codingExperience',
-      label: 'Your Coding / Tech Experience',
-      type: 'select',
-      options: ['No experience', 'Beginner', 'Intermediate', 'Advanced']
-    }
-  },
-  'frontier-sciences': {
-    type: 'training',
-    label: {
-      step2Title: 'Course Selection',
-      finalLabel: 'Course'
-    },
-    additionalQuestion: {
-      id: 'background',
-      label: 'Your Background in Science / Tech',
-      type: 'select',
-      options: ['No background', 'Basic interest', 'Undergraduate', 'Postgraduate']
-    }
-  },
-  'professional-vocational': {
-    type: 'training',
-    label: {
-      step2Title: 'Programme Selection',
-      finalLabel: 'Course'
-    },
-    additionalQuestion: {
-      id: 'experience',
-      label: 'Your Experience in This Field',
-      type: 'select',
-      options: ['No experience', 'Some experience', 'Working professional']
-    }
-  },
-  'professional-services': {
-    type: 'service-request',
-    label: {
-      step2Title: 'Select the Service You Need',
-      finalLabel: 'Service'
-    },
-    // Uses PROFESSIONAL_SERVICES
-    hideDepartment: true,
-    hideCourse: true,
-    hideAcademicStep: true  // Skip Step 3 for services
-  },
-  'publishing-media': {
-    type: 'service-request',
-    label: {
-      step2Title: 'Select Publishing / Media Service'
-    },
-    hideCourse: false,
-    hideAcademicStep: true
-  },
-  'consulting-institutional': {
-    type: 'consulting-request',
-    label: {
-      step2Title: 'Consulting Service Needed'
-    },
-    hideDepartment: true,
-    hideCourse: true,
-    hideAcademicStep: true
-  },
-  'edtech-intelligence': {
-    type: 'training',
-    label: {
-      step2Title: 'Solution Selection',
-      finalLabel: 'Course'
-    }
-  },
-  // Foundation entities — treat as standard course enrolment for now
-  'open-university': {
-    type: 'higher-ed',
-    label: {
-      step2Title: 'Programme Selection',
-      finalLabel: 'Course'
-    }
-  },
-  'college-of-education': {
-    type: 'higher-ed',
-    label: {
-      step2Title: 'Programme Selection',
-      finalLabel: 'Course'
-    }
-  },
-  'research-policy': {
-    type: 'research-request',
-    label: {
-      step2Title: 'Research Area'
-    },
-    hideAcademicStep: true
-  },
-  'community-impact': {
-    type: 'community-request',
-    label: {
-      step2Title: 'Programme of Interest'
-    }
-  },
-  default: {
-    type: 'generic',
-    label: {
-      step2Title: 'Programme Selection',
-      finalLabel: 'Course'
-    }
-  }
+  'basic-secondary': { type: 'school-admission', label: { step2Title: 'School Admission Details', finalLabel: 'Class Level' }, hideDepartment: true, hideCourse: true },
+  'extramural-exam-hub': { type: 'exam-prep', label: { step2Title: 'Exam Preparation Details', finalLabel: 'Course / Exam Prep Track' }, showExamYear: true },
+  'technology-innovation': { type: 'training', label: { step2Title: 'Course Selection', finalLabel: 'Course' }, additionalQuestion: { id: 'codingExperience', label: 'Your Coding / Tech Experience', type: 'select', options: ['No experience', 'Beginner', 'Intermediate', 'Advanced'] } },
+  'frontier-sciences': { type: 'training', label: { step2Title: 'Course Selection', finalLabel: 'Course' }, additionalQuestion: { id: 'background', label: 'Your Background in Science / Tech', type: 'select', options: ['No background', 'Basic interest', 'Undergraduate', 'Postgraduate'] } },
+  'professional-vocational': { type: 'training', label: { step2Title: 'Programme Selection', finalLabel: 'Course' }, additionalQuestion: { id: 'experience', label: 'Your Experience in This Field', type: 'select', options: ['No experience', 'Some experience', 'Working professional'] } },
+  'professional-services': { type: 'service-request', label: { step2Title: 'Select the Service You Need', finalLabel: 'Service' }, hideDepartment: true, hideCourse: true, hideAcademicStep: true },
+  'publishing-media': { type: 'service-request', label: { step2Title: 'Select Publishing / Media Service' }, hideCourse: false, hideAcademicStep: true },
+  'consulting-institutional': { type: 'consulting-request', label: { step2Title: 'Consulting Service Needed' }, hideDepartment: true, hideCourse: true, hideAcademicStep: true },
+  'edtech-intelligence': { type: 'training', label: { step2Title: 'Solution Selection', finalLabel: 'Course' } },
+  'open-university': { type: 'higher-ed', label: { step2Title: 'Programme Selection', finalLabel: 'Course' } },
+  'college-of-education': { type: 'higher-ed', label: { step2Title: 'Programme Selection', finalLabel: 'Course' } },
+  'research-policy': { type: 'research-request', label: { step2Title: 'Research Area' }, hideAcademicStep: true },
+  'community-impact': { type: 'community-request', label: { step2Title: 'Programme of Interest' } },
+  default: { type: 'generic', label: { step2Title: 'Programme Selection', finalLabel: 'Course' } }
 }
 
-export function getFormType(schoolId) {
-  return FORM_TYPES[schoolId] || FORM_TYPES.default
-}
+export function getFormType(schoolId) { return FORM_TYPES[schoolId] || FORM_TYPES.default }
+export function needsAcademicStep(formType) { return !formType.hideAcademicStep }
+export function needsDepartment(formType) { return !formType.hideDepartment }
+export function needsCourse(formType) { return !formType.hideCourse }
 
-// Helper: check if this form needs the academic background step
-export function needsAcademicStep(formType) {
-  return !formType.hideAcademicStep
-}
-
-// Helper: check if this form needs department field
-export function needsDepartment(formType) {
-  return !formType.hideDepartment
-}
-
-// Helper: check if this form needs course field
-export function needsCourse(formType) {
-  return !formType.hideCourse
-}
-
-// Define dynamic fields per school type
+// DYNAMIC FIELDS PER SCHOOL
 export const DYNAMIC_FORM_FIELDS = {
-  // Replace the 'basic-secondary' array with this:
-'basic-secondary': [
+  'basic-secondary': [
     { id: 'parent_name', label: 'Parent/Guardian Full Name', type: 'text', required: true },
     { id: 'parent_phone', label: 'Parent Phone Number', type: 'tel', required: true },
     { id: 'parent_occupation', label: 'Parent Occupation', type: 'text' },
@@ -226,9 +67,7 @@ export const DYNAMIC_FORM_FIELDS = {
     { id: 'emergency_phone', label: 'Emergency Contact Phone', type: 'tel', required: true },
     { id: 'previous_school', label: 'Previous School Attended', type: 'text' },
     { id: 'blood_group', label: 'Blood Group', type: 'select', options: ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'] },
-    { id: 'genotype', label: 'Genotype', type: 'select', options: ['AA', 'AS', 'SS', 'AC'] },
-    { id: 'student_passport', label: 'Student Passport Photograph (Upload)', type: 'file', required: true },
-    { id: 'parent_passport', label: 'Parent Passport Photograph (Upload)', type: 'file', required: true }
+    { id: 'genotype', label: 'Genotype', type: 'select', options: ['AA', 'AS', 'SS', 'AC'] }
   ],
   'open-university': [
     { id: 'jamb_reg_number', label: 'JAMB Registration Number', type: 'text' },
@@ -242,6 +81,4 @@ export const DYNAMIC_FORM_FIELDS = {
   ]
 }
 
-export function getDynamicFields(schoolId) {
-  return DYNAMIC_FORM_FIELDS[schoolId] || []
-}
+export function getDynamicFields(schoolId) { return DYNAMIC_FORM_FIELDS[schoolId] || [] }
