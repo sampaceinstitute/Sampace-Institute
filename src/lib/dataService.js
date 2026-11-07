@@ -160,3 +160,24 @@ export function generateReference() {
   return `SMP-${year}-${random}`
 }
 export const createApplication = saveApplication;
+
+// ==========================================
+// FIX FOR CLOUDFLARE BUILD (PHASE 5)
+// ==========================================
+
+export async function getUserDiagnostics(userId) {
+  if (!isSupabaseConfigured() || !userId) return { data: [] }
+  try {
+    const { data, error } = await supabase
+      .from('diagnostic_results')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+    return { data: data || [], error }
+  } catch (err) { 
+    return { data: [], error: err } 
+  }
+}
+
+// Assuming saveApplication is already defined above in this file:
+export const createApplication = saveApplication;
