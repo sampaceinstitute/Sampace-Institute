@@ -144,13 +144,26 @@ export async function upsertResults(rows) {
 /**
  * Get all organisations the current user belongs to, plus their roles.
  */
+// ---------- ORG / ROLE HELPERS ----------
 export async function getUserOrganisations() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
+  
   const { data, error } = await supabase
     .from('user_roles')
-    .select('role, organisation_id, organisation:organisation_id ( id, name )')
+    .select(`
+      organisation_id, 
+      organisation:organisation_id ( id, name ),
+      roles:role_id ( name )
+    `) // <--- WE NOW JOIN THE ROLES TABLE HERE
     .eq('user_id', user.id);
+    
   if (error) throw error;
-  return data || [];
+  
+  // Flatten the role name so the front-end pages don't break
+  return (data || []).map(row => ({
+    organisation_id: row.organisation_id,
+    organisation: row.organisation,
+    role: row.roles?.name || 'unknown'
+  }));
 }
