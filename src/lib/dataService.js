@@ -1,4 +1,16 @@
 import { supabase, isSupabaseConfigured } from './supabaseClient.js'
+export async function getUserDiagnostics(userId) {
+  if (!isSupabaseConfigured() || !userId) return { data: [] }
+  try {
+    const { data, error } = await supabase
+      .from('diagnostic_results')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(20)
+    return { data: data || [], error }
+  } catch (err) { return { data: [], error: err } }
+}
 
 // ---------- DIAGNOSTICS ----------
 export async function saveDiagnosticResult({ userId, examType, score, totalQuestions, readinessLevel, answers, weakTopics, phone, name }) {
