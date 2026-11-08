@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { ALL_DIVISIONS, SITE } from '../constants.js'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { saveApplication, generateReference } from '../lib/dataService.js'
-import FileUpload from '../components/FileUpload'; // <-- NEW IMPORT
+import FileUpload from '../components/FileUpload';
 import LoadingButton from '../components/LoadingButton.jsx'
 import {
   SCHOOL_LEVELS,
@@ -28,7 +28,7 @@ export default function ApplyPage() {
     serviceType: '', departmentId: '', course: '',
     additionalAnswer: '', mode: 'Online',
     qualification: '', schoolAttended: '', graduationYear: '',
-    motivation: ''
+    motivation: '', passportUrl: '' // <-- NEW: Global Passport State
   })
 
   const [dynamicData, setDynamicData] = useState({})
@@ -59,9 +59,11 @@ export default function ApplyPage() {
   const availableClasses = selectedLevel?.classes || []
   const streamRequired = selectedLevel?.streamRequired || false
 
+  // NEW: Adjusted for the 5-step flow
   const canProceed = () => {
     if (step === 1) return form.fullName.trim() && form.email.includes('@') && form.phone.length >= 10
-    if (step === 2) {
+    if (step === 2) return !!form.passportUrl // Must upload passport
+    if (step === 3) {
       if (!form.schoolId || !formType) return false
       if (formType.type === 'school-admission') {
         if (!form.level || !form.classLevel) return false
@@ -76,19 +78,21 @@ export default function ApplyPage() {
       }
       return true
     }
-    if (step === 3) {
+    if (step === 4) {
       if (formType && !needsAcademicStep(formType)) return true
       return !!form.qualification
     }
     return true
   }
 
+  // NEW: Skip academic step if not needed
   const getNextStep = () => {
-    if (step === 2 && formType && !needsAcademicStep(formType)) return 4
+    if (step === 3 && formType && !needsAcademicStep(formType)) return 5
     return step + 1
   }
+  
   const getPrevStep = () => {
-    if (step === 4 && formType && !needsAcademicStep(formType)) return 2
+    if (step === 5 && formType && !needsAcademicStep(formType)) return 3
     return step - 1
   }
 
@@ -101,6 +105,9 @@ export default function ApplyPage() {
     setReference(ref)
     const service = PROFESSIONAL_SERVICES.find((s) => s.id === form.serviceType)
 
+    // Merge the passport URL into the dynamic data payload for the database
+    const finalDynamicData = { ...dynamicData, passport_photo: form.passportUrl }
+
     try {
       await saveApplication({
         userId: user?.id || null, reference: ref, formType: formType?.type,
@@ -112,7 +119,7 @@ export default function ApplyPage() {
         preferredMode: form.mode, additionalAnswer: form.additionalAnswer,
         applicantName: form.fullName, email: form.email, phone: form.phone, gender: form.gender,
         qualification: form.qualification, schoolAttended: form.schoolAttended, graduationYear: form.graduationYear,
-        motivation: form.motivation, dynamicData: dynamicData // The URL will be saved inside here
+        motivation: form.motivation, dynamicData: finalDynamicData
       })
     } catch (err) { console.warn(err) }
 
@@ -130,9 +137,7 @@ export default function ApplyPage() {
       dynamicMessage = `\n*ADDITIONAL INFO:*\n`
       Object.entries(dynamicData).forEach(([key, val]) => {
         const fieldLabel = dynamicFields.find(f => f.id === key)?.label || key
-        // Don't print the long URL in WhatsApp, just mark it as uploaded
-        const displayValue = key === 'passport_photo' ? '✅ Passport Uploaded' : val
-        dynamicMessage += `• ${fieldLabel}: ${displayValue}\n`
+        dynamicMessage += `• ${fieldLabel}: ${val}\n`
       })
     }
 
@@ -140,6 +145,7 @@ export default function ApplyPage() {
       `Hello SAMPACE! 👋\n\n*NEW APPLICATION*\nReference: ${ref}\n\n` +
       `👤 Name: ${form.fullName}\n📧 Email: ${form.email}\n📱 Phone: ${form.phone}\n\n` +
       `🏫 School: ${selectedSchool?.name}\n` + programmeDetails + dynamicMessage +
+      `📸 Passport: ✅ Uploaded\n` + // Notify admin
       `\nPlease process my application.`
     )
 
@@ -150,7 +156,7 @@ export default function ApplyPage() {
 
   const resetForm = () => {
     setSubmitted(false); setStep(1); setReference('')
-    setForm({ fullName: '', email: '', phone: '', gender: '', schoolId: '', level: '', classLevel: '', stream: '', serviceType: '', departmentId: '', course: '', additionalAnswer: '', mode: 'Online', qualification: '', schoolAttended: '', graduationYear: '', motivation: '' })
+    setForm({ fullName: '', email: '', phone: '', gender: '', schoolId: '', level: '', classLevel: '', stream: '', serviceType: '', departmentId: '', course: '', additionalAnswer: '', mode: 'Online', qualification: '', schoolAttended: '', graduationYear: '', motivation: '', passportUrl: '' })
     setDynamicData({})
   }
 
@@ -169,15 +175,20 @@ export default function ApplyPage() {
   }
 
   const step2Title = formType?.label?.step2Title || 'Programme Selection'
+  
+  // Dynamic Total Steps for UI
+  const totalSteps = formType && !needsAcademicStep(formType) ? 4 : 5;
 
   return (
     <main className="apply-page">
       <div className="page-header">
-        <div className="badge"><span className="badge-dot" />Step {step} of {formType && !needsAcademicStep(formType) ? 3 : 4}</div>
+        <div className="badge"><span className="badge-dot" />Step {step} of {totalSteps}</div>
         <h1 className="page-title">Apply to SAMPACE</h1>
       </div>
 
       <form className="apply-form" onSubmit={handleSubmit}>
+        
+        {/* STEP 1: PERSONAL INFO */}
         {step === 1 && (
           <div className="apply-step">
             <h3 className="apply-step-title">Personal Information</h3>
@@ -190,7 +201,21 @@ export default function ApplyPage() {
           </div>
         )}
 
+        {/* STEP 2: GLOBAL PASSPORT UPLOAD */}
         {step === 2 && (
+          <div className="apply-step">
+            <h3 className="apply-step-title">Identification</h3>
+            <p className="page-subtitle" style={{ marginBottom: '1.5rem' }}>Please upload a clear passport photograph. This will be used for your student ID and official records.</p>
+            <FileUpload 
+              label="Passport Photograph" 
+              required={true}
+              onUploadComplete={(url) => updateField('passportUrl', url)} 
+            />
+          </div>
+        )}
+
+        {/* STEP 3: PROGRAMME SELECTION */}
+        {step === 3 && (
           <div className="apply-step">
             <h3 className="apply-step-title">{step2Title}</h3>
             <div className="form-grid">
@@ -262,35 +287,19 @@ export default function ApplyPage() {
                 <div className="form-field form-field-full" style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
                   <h4 style={{ color: 'var(--gold-light)', marginBottom: '1rem' }}>Additional Information</h4>
                   <div className="form-grid">
-                    {dynamicFields.map((field) => {
-                      // --- NEW: FILE UPLOAD LOGIC ---
-                      if (field.type === 'file') {
-                        return (
-                          <div key={field.id} className="form-field form-field-full">
-                            <FileUpload
-                              label={field.label}
-                              required={field.required}
-                              onUploadComplete={(url) => updateDynamic(field.id, url)}
-                            />
-                          </div>
-                        )
-                      }
-
-                      // --- EXISTING TEXT/SELECT LOGIC ---
-                      return (
-                        <label key={field.id} className={`form-field ${field.type === 'text' && field.id === 'parent_address' ? 'form-field-full' : ''}`}>
-                          <span>{field.label} {field.required && '*'}</span>
-                          {field.type === 'select' ? (
-                            <select required={field.required} value={dynamicData[field.id] || ''} onChange={(e) => updateDynamic(field.id, e.target.value)}>
-                              <option value="">Select</option>
-                              {field.options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-                            </select>
-                          ) : (
-                            <input type={field.type} required={field.required} value={dynamicData[field.id] || ''} onChange={(e) => updateDynamic(field.id, e.target.value)} />
-                          )}
-                        </label>
-                      )
-                    })}
+                    {dynamicFields.map((field) => (
+                      <label key={field.id} className={`form-field ${field.type === 'text' && field.id === 'parent_address' ? 'form-field-full' : ''}`}>
+                        <span>{field.label} {field.required && '*'}</span>
+                        {field.type === 'select' ? (
+                          <select required={field.required} value={dynamicData[field.id] || ''} onChange={(e) => updateDynamic(field.id, e.target.value)}>
+                            <option value="">Select</option>
+                            {field.options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                          </select>
+                        ) : (
+                          <input type={field.type} required={field.required} value={dynamicData[field.id] || ''} onChange={(e) => updateDynamic(field.id, e.target.value)} />
+                        )}
+                      </label>
+                    ))}
                   </div>
                 </div>
               )}
@@ -298,7 +307,8 @@ export default function ApplyPage() {
           </div>
         )}
 
-        {step === 3 && formType && needsAcademicStep(formType) && (
+        {/* STEP 4: ACADEMIC BACKGROUND */}
+        {step === 4 && formType && needsAcademicStep(formType) && (
           <div className="apply-step">
             <h3 className="apply-step-title">Academic Background</h3>
             <div className="form-grid">
@@ -321,11 +331,18 @@ export default function ApplyPage() {
           </div>
         )}
 
-        {step === 4 && (
+        {/* STEP 5: REVIEW & SUBMIT */}
+        {step === totalSteps && (
           <div className="apply-step">
             <h3 className="apply-step-title">Review & Submit</h3>
+            
             <div className="apply-summary">
               <h4>Application Summary</h4>
+              
+              <div className="summary-row">
+                <span>Passport Photo:</span>
+                <img src={form.passportUrl} alt="Passport" style={{ height: '50px', width: '50px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border)' }} />
+              </div>
               <div className="summary-row"><span>Name:</span><strong>{form.fullName}</strong></div>
               <div className="summary-row"><span>School:</span><strong>{selectedSchool?.name}</strong></div>
               {form.course && <div className="summary-row"><span>Course:</span><strong>{form.course}</strong></div>}
@@ -333,20 +350,10 @@ export default function ApplyPage() {
               {Object.entries(dynamicData).map(([key, val]) => {
                 const field = dynamicFields.find(f => f.id === key)
                 if (!val) return null
-                
-                // If it's an image URL, show a small preview
-                if (field?.type === 'file') {
-                   return (
-                     <div key={key} className="summary-row">
-                       <span>{field?.label}:</span>
-                       <img src={val} alt="Uploaded" style={{ height: '40px', width: '40px', objectFit: 'cover', borderRadius: '4px' }} />
-                     </div>
-                   )
-                }
-
                 return <div key={key} className="summary-row"><span>{field?.label}:</span><strong>{val}</strong></div>
               })}
             </div>
+
             <label className="form-field form-field-full" style={{ marginTop: '1.5rem' }}>
               <span>Anything else we should know?</span>
               <textarea rows="3" value={form.motivation} onChange={(e) => updateField('motivation', e.target.value)} />
@@ -356,7 +363,7 @@ export default function ApplyPage() {
 
         <div className="apply-nav">
           {step > 1 && <button type="button" className="btn btn-outline" onClick={() => setStep(getPrevStep())}>← Back</button>}
-          {step < 4 ? (
+          {step < totalSteps ? (
             <button type="button" className="btn btn-primary" onClick={() => canProceed() && setStep(getNextStep())} disabled={!canProceed()} style={{ opacity: canProceed() ? 1 : 0.5 }}>Continue →</button>
           ) : (
             <LoadingButton type="submit" loading={saving} className="btn btn-primary">Submit Application →</LoadingButton>
