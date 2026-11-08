@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { ALL_DIVISIONS, SITE } from '../constants.js'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { saveApplication, generateReference } from '../lib/dataService.js'
+import FileUpload from '../components/FileUpload'; // <-- NEW IMPORT
 import LoadingButton from '../components/LoadingButton.jsx'
 import {
   SCHOOL_LEVELS,
@@ -111,7 +112,7 @@ export default function ApplyPage() {
         preferredMode: form.mode, additionalAnswer: form.additionalAnswer,
         applicantName: form.fullName, email: form.email, phone: form.phone, gender: form.gender,
         qualification: form.qualification, schoolAttended: form.schoolAttended, graduationYear: form.graduationYear,
-        motivation: form.motivation, dynamicData: dynamicData
+        motivation: form.motivation, dynamicData: dynamicData // The URL will be saved inside here
       })
     } catch (err) { console.warn(err) }
 
@@ -129,7 +130,9 @@ export default function ApplyPage() {
       dynamicMessage = `\n*ADDITIONAL INFO:*\n`
       Object.entries(dynamicData).forEach(([key, val]) => {
         const fieldLabel = dynamicFields.find(f => f.id === key)?.label || key
-        dynamicMessage += `• ${fieldLabel}: ${val}\n`
+        // Don't print the long URL in WhatsApp, just mark it as uploaded
+        const displayValue = key === 'passport_photo' ? '✅ Passport Uploaded' : val
+        dynamicMessage += `• ${fieldLabel}: ${displayValue}\n`
       })
     }
 
@@ -259,19 +262,35 @@ export default function ApplyPage() {
                 <div className="form-field form-field-full" style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
                   <h4 style={{ color: 'var(--gold-light)', marginBottom: '1rem' }}>Additional Information</h4>
                   <div className="form-grid">
-                    {dynamicFields.map((field) => (
-                      <label key={field.id} className={`form-field ${field.type === 'text' && field.id === 'parent_address' ? 'form-field-full' : ''}`}>
-                        <span>{field.label} {field.required && '*'}</span>
-                        {field.type === 'select' ? (
-                          <select required={field.required} value={dynamicData[field.id] || ''} onChange={(e) => updateDynamic(field.id, e.target.value)}>
-                            <option value="">Select</option>
-                            {field.options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-                          </select>
-                        ) : (
-                          <input type={field.type} required={field.required} value={dynamicData[field.id] || ''} onChange={(e) => updateDynamic(field.id, e.target.value)} />
-                        )}
-                      </label>
-                    ))}
+                    {dynamicFields.map((field) => {
+                      // --- NEW: FILE UPLOAD LOGIC ---
+                      if (field.type === 'file') {
+                        return (
+                          <div key={field.id} className="form-field form-field-full">
+                            <FileUpload
+                              label={field.label}
+                              required={field.required}
+                              onUploadComplete={(url) => updateDynamic(field.id, url)}
+                            />
+                          </div>
+                        )
+                      }
+
+                      // --- EXISTING TEXT/SELECT LOGIC ---
+                      return (
+                        <label key={field.id} className={`form-field ${field.type === 'text' && field.id === 'parent_address' ? 'form-field-full' : ''}`}>
+                          <span>{field.label} {field.required && '*'}</span>
+                          {field.type === 'select' ? (
+                            <select required={field.required} value={dynamicData[field.id] || ''} onChange={(e) => updateDynamic(field.id, e.target.value)}>
+                              <option value="">Select</option>
+                              {field.options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                            </select>
+                          ) : (
+                            <input type={field.type} required={field.required} value={dynamicData[field.id] || ''} onChange={(e) => updateDynamic(field.id, e.target.value)} />
+                          )}
+                        </label>
+                      )
+                    })}
                   </div>
                 </div>
               )}
@@ -314,6 +333,17 @@ export default function ApplyPage() {
               {Object.entries(dynamicData).map(([key, val]) => {
                 const field = dynamicFields.find(f => f.id === key)
                 if (!val) return null
+                
+                // If it's an image URL, show a small preview
+                if (field?.type === 'file') {
+                   return (
+                     <div key={key} className="summary-row">
+                       <span>{field?.label}:</span>
+                       <img src={val} alt="Uploaded" style={{ height: '40px', width: '40px', objectFit: 'cover', borderRadius: '4px' }} />
+                     </div>
+                   )
+                }
+
                 return <div key={key} className="summary-row"><span>{field?.label}:</span><strong>{val}</strong></div>
               })}
             </div>
